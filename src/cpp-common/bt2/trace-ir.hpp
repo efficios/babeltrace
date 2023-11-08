@@ -151,7 +151,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonEvent<LibObjT>& operator=(const CommonEvent<OtherLibObjT> event) noexcept
+    CommonEvent<LibObjT> operator=(const CommonEvent<OtherLibObjT> event) noexcept
     {
         _ThisBorrowedObject::operator=(event);
         return *this;
@@ -292,7 +292,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonPacket& operator=(const CommonPacket<OtherLibObjT> packet) noexcept
+    CommonPacket operator=(const CommonPacket<OtherLibObjT> packet) noexcept
     {
         _ThisBorrowedObject::operator=(packet);
         return *this;
@@ -444,7 +444,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonStream& operator=(const CommonStream<OtherLibObjT> stream) noexcept
+    CommonStream operator=(const CommonStream<OtherLibObjT> stream) noexcept
     {
         _ThisBorrowedObject::operator=(stream);
         return *this;
@@ -658,7 +658,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonTrace& operator=(const CommonTrace<OtherLibObjT> trace) noexcept
+    CommonTrace operator=(const CommonTrace<OtherLibObjT> trace) noexcept
     {
         _ThisBorrowedObject::operator=(trace);
         return *this;
@@ -977,7 +977,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonEventClass& operator=(const CommonEventClass<OtherLibObjT> eventClass) noexcept
+    CommonEventClass operator=(const CommonEventClass<OtherLibObjT> eventClass) noexcept
     {
         _ThisBorrowedObject::operator=(eventClass);
         return *this;
@@ -1302,7 +1302,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonStreamClass& operator=(const CommonStreamClass<OtherLibObjT> streamClass) noexcept
+    CommonStreamClass operator=(const CommonStreamClass<OtherLibObjT> streamClass) noexcept
     {
         _ThisBorrowedObject::operator=(streamClass);
         return *this;
@@ -1731,7 +1731,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonTraceClass& operator=(const CommonTraceClass<OtherLibObjT> traceClass) noexcept
+    CommonTraceClass operator=(const CommonTraceClass<OtherLibObjT> traceClass) noexcept
     {
         _ThisBorrowedObject::operator=(traceClass);
         return *this;

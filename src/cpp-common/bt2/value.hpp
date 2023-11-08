@@ -129,7 +129,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    _ThisCommonValue& operator=(const CommonValue<OtherLibObjT> val) noexcept
+    _ThisCommonValue operator=(const CommonValue<OtherLibObjT> val) noexcept
     {
         _ThisBorrowedObject::operator=(val);
         return *this;
@@ -410,7 +410,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonNullValue<LibObjT>& operator=(const CommonNullValue<OtherLibObjT> val) noexcept
+    CommonNullValue<LibObjT> operator=(const CommonNullValue<OtherLibObjT> val) noexcept
     {
         _ThisCommonValue::operator=(val);
         return *this;
@@ -480,7 +480,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonBoolValue<LibObjT>& operator=(const CommonBoolValue<OtherLibObjT> val) noexcept
+    CommonBoolValue<LibObjT> operator=(const CommonBoolValue<OtherLibObjT> val) noexcept
     {
         _ThisCommonValue::operator=(val);
         return *this;
@@ -569,7 +569,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonUnsignedIntegerValue<LibObjT>&
+    CommonUnsignedIntegerValue<LibObjT>
     operator=(const CommonUnsignedIntegerValue<OtherLibObjT> val) noexcept
     {
         _ThisCommonValue::operator=(val);
@@ -749,7 +749,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonRealValue<LibObjT>& operator=(const CommonRealValue<OtherLibObjT> val) noexcept
+    CommonRealValue<LibObjT> operator=(const CommonRealValue<OtherLibObjT> val) noexcept
     {
         _ThisCommonValue::operator=(val);
         return *this;
@@ -841,7 +841,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonStringValue<LibObjT>& operator=(const CommonStringValue<OtherLibObjT> val) noexcept
+    CommonStringValue<LibObjT> operator=(const CommonStringValue<OtherLibObjT> val) noexcept
     {
         _ThisCommonValue::operator=(val);
         return *this;
@@ -962,7 +962,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonArrayValue<LibObjT>& operator=(const CommonArrayValue<OtherLibObjT> val) noexcept
+    CommonArrayValue<LibObjT> operator=(const CommonArrayValue<OtherLibObjT> val) noexcept
     {
         _ThisCommonValue::operator=(val);
         return *this;
@@ -1265,7 +1265,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonMapValue<LibObjT>& operator=(const CommonMapValue<OtherLibObjT> val) noexcept
+    CommonMapValue<LibObjT> operator=(const CommonMapValue<OtherLibObjT> val) noexcept
     {
         _ThisCommonValue::operator=(val);
         return *this;

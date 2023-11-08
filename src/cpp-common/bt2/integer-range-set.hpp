@@ -171,7 +171,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonIntegerRangeSet& operator=(const CommonIntegerRangeSet<OtherLibObjT> rangeSet) noexcept
+    CommonIntegerRangeSet operator=(const CommonIntegerRangeSet<OtherLibObjT> rangeSet) noexcept
     {
         _ThisBorrowedObject::operator=(rangeSet);
         return *this;

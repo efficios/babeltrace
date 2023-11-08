@@ -72,9 +72,6 @@ public:
     {
     }
 
-    ClockClassOffset(const ClockClassOffset&) noexcept = default;
-    ClockClassOffset& operator=(const ClockClassOffset&) noexcept = default;
-
     std::int64_t seconds() const noexcept
     {
         return _mSeconds;

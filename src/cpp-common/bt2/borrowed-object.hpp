@@ -87,10 +87,6 @@ protected:
         BT_ASSERT_DBG(libObjPtr);
     }
 
-    /* Default copy operations */
-    BorrowedObject(const BorrowedObject&) noexcept = default;
-    BorrowedObject& operator=(const BorrowedObject&) noexcept = default;
-
     /*
      * Generic "copy" constructor.
      *
@@ -126,7 +122,7 @@ protected:
      * context in the compiler error message.
      */
     template <typename OtherLibObjT>
-    _ThisBorrowedObject& operator=(const BorrowedObject<OtherLibObjT>& other) noexcept
+    _ThisBorrowedObject operator=(const BorrowedObject<OtherLibObjT>& other) noexcept
     {
         static_assert(_AssignableFromConst<OtherLibObjT>::val,
                       "Don't assign a non-const wrapper from a const wrapper.");

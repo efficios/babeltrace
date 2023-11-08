@@ -184,7 +184,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonFieldClass& operator=(const CommonFieldClass<OtherLibObjT> fc) noexcept
+    CommonFieldClass operator=(const CommonFieldClass<OtherLibObjT> fc) noexcept
     {
         _ThisBorrowedObject::operator=(fc);
         return *this;
@@ -472,7 +472,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonBitArrayFieldClass<LibObjT>&
+    CommonBitArrayFieldClass<LibObjT>
     operator=(const CommonBitArrayFieldClass<OtherLibObjT> fc) noexcept
     {
         _ThisCommonFieldClass::operator=(fc);
@@ -552,7 +552,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonIntegerFieldClass& operator=(const CommonIntegerFieldClass<OtherLibObjT> fc) noexcept
+    CommonIntegerFieldClass operator=(const CommonIntegerFieldClass<OtherLibObjT> fc) noexcept
     {
         _ThisCommonFieldClass::operator=(fc);
         return *this;
@@ -686,7 +686,7 @@ public:
     {
     }
 
-    ConstEnumerationFieldClassMapping&
+    ConstEnumerationFieldClassMapping
     operator=(const ConstEnumerationFieldClassMapping& mapping) noexcept
     {
         _ThisBorrowedObject::operator=(mapping);
@@ -793,7 +793,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonBaseEnumerationFieldClass&
+    CommonBaseEnumerationFieldClass
     operator=(const CommonBaseEnumerationFieldClass<OtherLibObjT> fc) noexcept
     {
         _ThisCommonIntegerFieldClass::operator=(fc);
@@ -842,7 +842,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonEnumerationFieldClass&
+    CommonEnumerationFieldClass
     operator=(const CommonEnumerationFieldClass<OtherLibObjT, MappingT> fc) noexcept
     {
         CommonEnumerationFieldClass::operator=(fc);
@@ -1013,7 +1013,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonStructureFieldClassMember<LibObjT>&
+    CommonStructureFieldClassMember<LibObjT>
     operator=(const CommonStructureFieldClassMember<OtherLibObjT> fc) noexcept
     {
         _ThisBorrowedObject::operator=(fc);
@@ -1143,7 +1143,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonStructureFieldClass& operator=(const CommonStructureFieldClass<OtherLibObjT> fc) noexcept
+    CommonStructureFieldClass operator=(const CommonStructureFieldClass<OtherLibObjT> fc) noexcept
     {
         _ThisCommonFieldClass::operator=(fc);
         return *this;
@@ -1289,7 +1289,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonArrayFieldClass& operator=(const CommonArrayFieldClass<OtherLibObjT> fc) noexcept
+    CommonArrayFieldClass operator=(const CommonArrayFieldClass<OtherLibObjT> fc) noexcept
     {
         _ThisCommonFieldClass::operator=(fc);
         return *this;
@@ -1358,7 +1358,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonStaticArrayFieldClass&
+    CommonStaticArrayFieldClass
     operator=(const CommonStaticArrayFieldClass<OtherLibObjT> fc) noexcept
     {
         _ThisCommonArrayFieldClass::operator=(fc);
@@ -1428,7 +1428,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonDynamicArrayWithLengthFieldClass&
+    CommonDynamicArrayWithLengthFieldClass
     operator=(const CommonDynamicArrayWithLengthFieldClass<OtherLibObjT> fc) noexcept
     {
         _ThisCommonArrayFieldClass::operator=(fc);
@@ -1530,7 +1530,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonOptionFieldClass& operator=(const CommonOptionFieldClass<OtherLibObjT> fc) noexcept
+    CommonOptionFieldClass operator=(const CommonOptionFieldClass<OtherLibObjT> fc) noexcept
     {
         _ThisCommonFieldClass::operator=(fc);
         return *this;
@@ -1603,7 +1603,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonOptionWithSelectorFieldClass&
+    CommonOptionWithSelectorFieldClass
     operator=(const CommonOptionWithSelectorFieldClass<OtherLibObjT> fc) noexcept
     {
         _ThisCommonOptionFieldClass::operator=(fc);
@@ -1677,7 +1677,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonOptionWithBoolSelectorFieldClass&
+    CommonOptionWithBoolSelectorFieldClass
     operator=(const CommonOptionWithBoolSelectorFieldClass<OtherLibObjT> fc) noexcept
     {
         _ThisCommonOptionWithSelectorFieldClass::operator=(fc);
@@ -1782,7 +1782,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonOptionWithIntegerSelectorFieldClass&
+    CommonOptionWithIntegerSelectorFieldClass
     operator=(const CommonOptionWithIntegerSelectorFieldClass<OtherLibObjT, RangeSetT> fc) noexcept
     {
         _ThisCommonOptionWithSelectorFieldClass::operator=(fc);
@@ -1911,7 +1911,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonVariantFieldClassOption&
+    CommonVariantFieldClassOption
     operator=(const CommonVariantFieldClassOption<OtherLibObjT> fc) noexcept
     {
         _ThisBorrowedObject::operator=(fc);
@@ -2058,7 +2058,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    ConstVariantWithIntegerSelectorFieldClassOption&
+    ConstVariantWithIntegerSelectorFieldClassOption
     operator=(const ConstVariantWithIntegerSelectorFieldClassOption<OtherLibObjT> fc) noexcept
     {
         _ThisBorrowedObject::operator=(fc);
@@ -2165,7 +2165,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonVariantFieldClass& operator=(const CommonVariantFieldClass<OtherLibObjT> fc) noexcept
+    CommonVariantFieldClass operator=(const CommonVariantFieldClass<OtherLibObjT> fc) noexcept
     {
         _ThisCommonFieldClass::operator=(fc);
         return *this;
@@ -2267,7 +2267,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonVariantWithoutSelectorFieldClass&
+    CommonVariantWithoutSelectorFieldClass
     operator=(const CommonVariantWithoutSelectorFieldClass<OtherLibObjT> fc) noexcept
     {
         _ThisCommonVariantFieldClass::operator=(fc);
@@ -2420,7 +2420,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonVariantWithSelectorFieldClass&
+    CommonVariantWithSelectorFieldClass
     operator=(const CommonVariantWithSelectorFieldClass<OtherLibObjT> fc) noexcept
     {
         _ThisCommonVariantFieldClass::operator=(fc);
@@ -2481,7 +2481,7 @@ public:
     }
 
     template <typename OtherLibObjT>
-    CommonVariantWithIntegerSelectorFieldClass&
+    CommonVariantWithIntegerSelectorFieldClass
     operator=(const CommonVariantWithIntegerSelectorFieldClass<OtherLibObjT, OptionT> fc) noexcept
     {
         _ThisCommonVariantWithSelectorFieldClass::operator=(fc);

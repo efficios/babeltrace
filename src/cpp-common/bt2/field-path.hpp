@@ -36,16 +36,6 @@ public:
     {
     }
 
-    ConstFieldPathItem(const ConstFieldPathItem& fpItem) noexcept : _ThisBorrowedObject {fpItem}
-    {
-    }
-
-    ConstFieldPathItem& operator=(const ConstFieldPathItem& fpItem) noexcept
-    {
-        _ThisBorrowedObject::operator=(fpItem);
-        return *this;
-    }
-
     FieldPathItemType type() const noexcept
     {
         return static_cast<FieldPathItemType>(this->_libType());
@@ -82,17 +72,6 @@ public:
         ConstFieldPathItem {libObjPtr}
     {
         BT_ASSERT_DBG(this->isIndex());
-    }
-
-    ConstIndexFieldPathItem(const ConstIndexFieldPathItem& fpItem) noexcept :
-        ConstFieldPathItem {fpItem}
-    {
-    }
-
-    ConstIndexFieldPathItem& operator=(const ConstIndexFieldPathItem& fpItem) noexcept
-    {
-        ConstFieldPathItem::operator=(fpItem);
-        return *this;
     }
 
     std::uint64_t index() const noexcept
@@ -140,16 +119,6 @@ public:
 
     explicit ConstFieldPath(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
-    }
-
-    ConstFieldPath(const ConstFieldPath& fieldPath) noexcept : _ThisBorrowedObject {fieldPath}
-    {
-    }
-
-    ConstFieldPath& operator=(const ConstFieldPath& fieldPath) noexcept
-    {
-        _ThisBorrowedObject::operator=(fieldPath);
-        return *this;
     }
 
     Scope rootScope() const noexcept

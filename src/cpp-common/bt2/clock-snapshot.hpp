@@ -24,17 +24,6 @@ public:
     {
     }
 
-    ConstClockSnapshot(const ConstClockSnapshot& clkSnapshot) noexcept :
-        _ThisBorrowedObject {clkSnapshot}
-    {
-    }
-
-    ConstClockSnapshot& operator=(const ConstClockSnapshot& clkSnapshot) noexcept
-    {
-        _ThisBorrowedObject::operator=(clkSnapshot);
-        return *this;
-    }
-
     std::uint64_t value() const noexcept
     {
         return bt_clock_snapshot_get_value(this->libObjPtr());

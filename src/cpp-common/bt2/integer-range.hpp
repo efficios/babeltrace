@@ -82,16 +82,6 @@ public:
     {
     }
 
-    ConstIntegerRange(const ConstIntegerRange& range) noexcept : _ThisBorrowedObject {range}
-    {
-    }
-
-    ConstIntegerRange& operator=(const ConstIntegerRange& range) noexcept
-    {
-        _ThisBorrowedObject::operator=(range);
-        return *this;
-    }
-
     bool operator==(const ConstIntegerRange& other) const noexcept
     {
         return internal::ConstIntegerRangeSpec<LibObjT>::isEqual(this->libObjPtr(),
