@@ -156,10 +156,7 @@ def _handle_func_status(status, msg=None):
         else:
             raise TryAgain(msg)
     elif status == native_bt.__BT_FUNC_STATUS_OVERFLOW_ERROR:
-        if msg is None:
-            raise _OverflowError
-        else:
-            raise _OverflowError(msg)
+        raise _OverflowError(msg)
     elif status == native_bt.__BT_FUNC_STATUS_UNKNOWN_OBJECT:
         if msg is None:
             raise UnknownObject
