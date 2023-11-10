@@ -184,10 +184,12 @@ fi
 export BT_TESTS_CC_BIN
 
 # Whether or not to enable AddressSanitizer, `0` (disabled) if not set.
+#
+# This doesn't need to be exported from the point of view of this file,
+# but the sourced `env.sh` above does export it.
 if [ -z "${BT_TESTS_ENABLE_ASAN:-}" ]; then
 	BT_TESTS_ENABLE_ASAN="0"
 fi
-export BT_TESTS_ENABLE_ASAN
 
 # Directory containing test data
 BT_TESTS_DATADIR="${BT_TESTS_SRCDIR}/data"
