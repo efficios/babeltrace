@@ -487,7 +487,7 @@ gen_mctf_trace() {
 	local -r input_file="$1"
 	local -r base_dir="$2"
 
-	diag "Running: \`${BT_TESTS_PYTHON_BIN} ${BT_TESTS_SRCDIR}/utils/python/mctf.py --base-dir ${base_dir} ${input_file}\`"
+	echo "Running: \`${BT_TESTS_PYTHON_BIN} ${BT_TESTS_SRCDIR}/utils/python/mctf.py --base-dir ${base_dir} ${input_file}\`" >&2
 	run_python "${BT_TESTS_PYTHON_BIN}" "${BT_TESTS_SRCDIR}/utils/python/mctf.py" \
 		--base-dir "${base_dir}" "${input_file}"
 }
