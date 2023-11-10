@@ -385,7 +385,7 @@ test_stored_values() {
 	tmp_dir=$(mktemp -d -t 'test-stored-value.XXXXXXX')
 
 	# Generate test trace.
-	gen_mctf_trace "${trace_dir}/live/stored-values.mctf" "$tmp_dir/stored-values"
+	bt_gen_mctf_trace "${trace_dir}/live/stored-values.mctf" "$tmp_dir/stored-values"
 
 	run_test "$test_text" "$cli_args_template" "$expected_stdout" \
 		"$expected_stderr" "$tmp_dir" "${server_args[@]}"

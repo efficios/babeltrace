@@ -475,7 +475,7 @@ bt_run_py_test() {
 
 # Generates a CTF trace into the directory `$2` from the moultipart
 # document `$1` using `mctf.py`.
-gen_mctf_trace() {
+bt_gen_mctf_trace() {
 	local -r input_file=$1
 	local -r base_dir=$2
 	local -r cmd=(
