@@ -247,8 +247,8 @@ bt_cli() {
 #
 # Returns 0 if there's no difference, or not zero otherwise.
 bt_diff() {
-	local expected_file="$1"
-	local actual_file="$2"
+	local -r expected_file="$1"
+	local -r actual_file="$2"
 	local ret=0
 
 	diff -u <(bt_remove_cr_inline "$expected_file") <(bt_remove_cr_inline "$actual_file") 1>&2
