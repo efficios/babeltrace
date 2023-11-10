@@ -457,10 +457,8 @@ run_python_bt2() {
 # the testing Python modules (in `tests/utils/python`) and the `bt2`
 # Python package.
 run_python_bt2_test() {
-	local test_dir="$1"
-	local test_pattern="${2:-'*'}"
-
-	local ret
+	local -r test_dir="$1"
+	local -r test_pattern="${2:-'*'}"
 
 	if test "${BT_TESTS_COVERAGE:-}" = "1"; then
 		python_exec="check_coverage"
@@ -474,7 +472,7 @@ run_python_bt2_test() {
 		--pattern "$test_pattern" \
 		"$test_dir" \
 
-	ret=$?
+	local -r ret=$?
 
 	if test "${BT_TESTS_COVERAGE_REPORT:-}" = "1"; then
 		coverage report -m
