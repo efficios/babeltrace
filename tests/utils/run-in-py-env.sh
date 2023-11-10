@@ -5,10 +5,10 @@
 # Copyright (C) 2017-2023 Philippe Proulx <pproulx@efficios.com>
 # Copyright (C) 2019 Simon Marchi <simon.marchi@efficios.com>
 
-if [[ -n "${BT_TESTS_SRCDIR:-}" ]]; then
-	UTILSSH="$BT_TESTS_SRCDIR/utils/utils.sh"
+if [[ -n ${BT_TESTS_SRCDIR:-} ]]; then
+	UTILSSH=$BT_TESTS_SRCDIR/utils/utils.sh
 else
-	UTILSSH="$(dirname "$0")/../utils/utils.sh"
+	UTILSSH=$(dirname "$0")/../utils/utils.sh
 fi
 
 # shellcheck source=../utils/utils.sh
@@ -31,7 +31,7 @@ if (($# == 0)); then
 fi
 
 # Sanity check that the BT_TESTS_BUILDDIR value makes sense.
-if [[ ! -f "$BT_TESTS_BUILDDIR/Makefile" ]]; then
+if [[ ! -f $BT_TESTS_BUILDDIR/Makefile ]]; then
 	{
 		echo "ERROR: Invalid \`BT_TESTS_BUILDDIR\` variable (\`\$BT_TESTS_BUILDDIR/Makefile\`"
 		echo "doesn't exist)."
