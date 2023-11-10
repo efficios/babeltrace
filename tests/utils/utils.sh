@@ -99,9 +99,9 @@ unset -f _set_vars_srcdir_builddir
 _source_env_sh() {
 	local -r env_sh_path=$BT_TESTS_BUILDDIR/utils/env.sh
 
-	if [[ -f ${env_sh_path} ]]; then
+	if [[ -f $env_sh_path ]]; then
 		# shellcheck disable=SC1090,SC1091
-		. "${env_sh_path}"
+		. "$env_sh_path"
 	fi
 }
 
@@ -121,23 +121,23 @@ export BT_TESTS_BT2_BIN
 # run_python_bt2() to use it.
 #
 # TODO: Remove when `tests/bindings/python/bt2/test_plugin.py` is fixed.
-_bt_tests_plugins_path=${BT_TESTS_BUILDDIR}/../src/plugins
+_bt_tests_plugins_path=$BT_TESTS_BUILDDIR/../src/plugins
 
 # Colon-separated list of project plugin paths, if not set
 if [[ -z ${BT_TESTS_BABELTRACE_PLUGIN_PATH:-} ]]; then
-	BT_TESTS_BABELTRACE_PLUGIN_PATH=${_bt_tests_plugins_path}/ctf:${_bt_tests_plugins_path}/utils:${_bt_tests_plugins_path}/text:${_bt_tests_plugins_path}/lttng-utils
+	BT_TESTS_BABELTRACE_PLUGIN_PATH=$_bt_tests_plugins_path/ctf:$_bt_tests_plugins_path/utils:$_bt_tests_plugins_path/text:$_bt_tests_plugins_path/lttng-utils
 fi
 export BT_TESTS_BABELTRACE_PLUGIN_PATH
 
 # Directory containing the Python plugin provider library, if not set
 if [[ -z ${BT_TESTS_PROVIDER_DIR:-} ]]; then
-	BT_TESTS_PROVIDER_DIR=${BT_TESTS_BUILDDIR}/../src/python-plugin-provider/.libs
+	BT_TESTS_PROVIDER_DIR=$BT_TESTS_BUILDDIR/../src/python-plugin-provider/.libs
 fi
 export BT_TESTS_PROVIDER_DIR
 
 # Directory containing the built `bt2` Python package, if not set
 if [[ -z ${BT_TESTS_PYTHONPATH:-} ]]; then
-	BT_TESTS_PYTHONPATH=${BT_TESTS_BUILDDIR}/../src/bindings/python/bt2/build/build_lib
+	BT_TESTS_PYTHONPATH=$BT_TESTS_BUILDDIR/../src/bindings/python/bt2/build/build_lib
 fi
 export BT_TESTS_PYTHONPATH
 
@@ -192,15 +192,15 @@ if [[ -z ${BT_TESTS_ENABLE_ASAN:-} ]]; then
 fi
 
 # Directory containing test data
-BT_TESTS_DATADIR=${BT_TESTS_SRCDIR}/data
+BT_TESTS_DATADIR=$BT_TESTS_SRCDIR/data
 
 # Directory containing test CTF traces
-BT_CTF_TRACES_PATH=${BT_TESTS_DATADIR}/ctf-traces
+BT_CTF_TRACES_PATH=$BT_TESTS_DATADIR/ctf-traces
 
 # Source the shell TAP utilities if `SH_TAP` is `1`
 if [[ ${SH_TAP:-} == 1 ]]; then
 	# shellcheck source=./tap/tap.sh
-	. "${BT_TESTS_SRCDIR}/utils/tap/tap.sh"
+	. "$BT_TESTS_SRCDIR/utils/tap/tap.sh"
 fi
 
 # Removes the CR characters from the file having the path `$1`.
@@ -381,38 +381,38 @@ _bt_tests_check_coverage() {
 # Executes a command within an environment which can import the testing
 # Python modules (in `tests/utils/python`).
 run_python() {
-	local our_pythonpath=${BT_TESTS_SRCDIR}/utils/python
+	local our_pythonpath=$BT_TESTS_SRCDIR/utils/python
 
 	if [[ $_bt_tests_py3_version =~ 3.[45] ]]; then
 		# Add a local directory containing a `typing.py` to `PYTHONPATH`
 		# for Python 3.4 and Python 3.5 which either don't offer the
 		# `typing` module at all, or offer a partial one.
-		our_pythonpath=$our_pythonpath:${BT_TESTS_SRCDIR}/utils/python/typing
+		our_pythonpath=$our_pythonpath:$BT_TESTS_SRCDIR/utils/python/typing
 	fi
 
-	PYTHONPATH=${our_pythonpath}${PYTHONPATH:+:}${PYTHONPATH:-} "$@"
+	PYTHONPATH=$our_pythonpath${PYTHONPATH:+:}${PYTHONPATH:-} "$@"
 }
 
 # Executes a command within an environment which can import the testing
 # Python modules (in `tests/utils/python`) and the `bt2` Python package.
 run_python_bt2() {
-	local -x BABELTRACE_PLUGIN_PATH=${BT_TESTS_BABELTRACE_PLUGIN_PATH}
-	local -x LIBBABELTRACE2_PLUGIN_PROVIDER_DIR=${BT_TESTS_PROVIDER_DIR}
-	local -x BT_TESTS_DATADIR=${BT_TESTS_DATADIR}
-	local -x BT_CTF_TRACES_PATH=${BT_CTF_TRACES_PATH}
-	local -x BT_PLUGINS_PATH=${_bt_tests_plugins_path}
-	local -x PYTHONPATH=${BT_TESTS_PYTHONPATH}${PYTHONPATH:+:}${PYTHONPATH:-}
+	local -x BABELTRACE_PLUGIN_PATH=$BT_TESTS_BABELTRACE_PLUGIN_PATH
+	local -x LIBBABELTRACE2_PLUGIN_PROVIDER_DIR=$BT_TESTS_PROVIDER_DIR
+	local -x BT_TESTS_DATADIR=$BT_TESTS_DATADIR
+	local -x BT_CTF_TRACES_PATH=$BT_CTF_TRACES_PATH
+	local -x BT_PLUGINS_PATH=$_bt_tests_plugins_path
+	local -x PYTHONPATH=$BT_TESTS_PYTHONPATH${PYTHONPATH:+:}${PYTHONPATH:-}
 
-	local -r main_lib_path=${BT_TESTS_BUILDDIR}/../src/lib/.libs
+	local -r main_lib_path=$BT_TESTS_BUILDDIR/../src/lib/.libs
 
 	# Set the library search path so that the Python 3 interpreter can
 	# load `libbabeltrace2`.
 	if [[ $BT_TESTS_OS_TYPE == mingw || $BT_TESTS_OS_TYPE == cygwin ]]; then
-		local -x PATH=${main_lib_path}${PATH:+:}${PATH:-}
+		local -x PATH=$main_lib_path${PATH:+:}${PATH:-}
 	elif [[ $BT_TESTS_OS_TYPE == darwin ]]; then
-		local -x DYLD_LIBRARY_PATH=${main_lib_path}${DYLD_LIBRARY_PATH:+:}${DYLD_LIBRARY_PATH:-}
+		local -x DYLD_LIBRARY_PATH=$main_lib_path${DYLD_LIBRARY_PATH:+:}${DYLD_LIBRARY_PATH:-}
 	else
-		local -x LD_LIBRARY_PATH=${main_lib_path}${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH:-}
+		local -x LD_LIBRARY_PATH=$main_lib_path${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH:-}
 	fi
 
 	# On Windows, an embedded Python 3 interpreter needs a way to locate
@@ -433,9 +433,9 @@ run_python_bt2() {
 	# Append it to existing `ASAN_OPTIONS` variable, such that we
 	# override the user's value if it contains `detect_leaks=1`.
 	if [[ ${BT_TESTS_ENABLE_ASAN:-} == 1 ]]; then
-		if "${BT_TESTS_CC_BIN}" --version | head -n 1 | bt_grep -q '^gcc'; then
-			local -r lib_asan=$("${BT_TESTS_CC_BIN}" -print-file-name=libasan.so)
-			local -x LD_PRELOAD=${lib_asan}${LD_PRELOAD:+:}${LD_PRELOAD:-}
+		if "$BT_TESTS_CC_BIN" --version | head -n 1 | bt_grep -q '^gcc'; then
+			local -r lib_asan=$("$BT_TESTS_CC_BIN" -print-file-name=libasan.so)
+			local -x LD_PRELOAD=$lib_asan${LD_PRELOAD:+:}${LD_PRELOAD:-}
 		fi
 
 		local -x ASAN_OPTIONS=${ASAN_OPTIONS:-}${ASAN_OPTIONS:+,}detect_leaks=0
@@ -459,12 +459,12 @@ run_python_bt2_test() {
 	if [[ ${BT_TESTS_COVERAGE:-} == 1 ]]; then
 		python_exec=_bt_tests_check_coverage
 	else
-		python_exec=${BT_TESTS_PYTHON_BIN}
+		python_exec=$BT_TESTS_PYTHON_BIN
 	fi
 
 	run_python_bt2 \
-		"${python_exec}" \
-		"${BT_TESTS_SRCDIR}/utils/python/testrunner.py" \
+		"$python_exec" \
+		"$BT_TESTS_SRCDIR/utils/python/testrunner.py" \
 		--pattern "$test_pattern" \
 		"$test_dir" \
 
