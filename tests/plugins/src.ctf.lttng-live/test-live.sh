@@ -57,7 +57,7 @@ lttng_live_server() {
 
 	# start server
 	diag "$BT_TESTS_PYTHON_BIN $server_script ${server_args[*]}"
-	run_python "$BT_TESTS_PYTHON_BIN" "$server_script" "${server_args[@]}" 1>&2 &
+	bt_run_in_py_utils_env "$BT_TESTS_PYTHON_BIN" "$server_script" "${server_args[@]}" 1>&2 &
 
 	# write PID to file
 	echo $! > "$pid_file"

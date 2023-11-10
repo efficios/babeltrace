@@ -155,7 +155,7 @@ _bt_tests_set_var_def BT_TESTS_PYTHON_BIN python3
 # Major and minor version of the `python3` command to use when testing.
 #
 # This doesn't need to be exported, but it needs to remain set for
-# run_python() to use it.
+# bt_run_in_py_utils_env() to use it.
 _bt_tests_py3_version=$("$BT_TESTS_PYTHON_BIN" -c 'import sys; print("{}.{}".format(sys.version_info.major, sys.version_info.minor))')
 
 # Name of the `python3-config` command to use when testing, if not set
@@ -376,7 +376,7 @@ _bt_tests_check_coverage() {
 
 # Executes a command within an environment which can import the testing
 # Python modules (in `tests/utils/python`).
-run_python() {
+bt_run_in_py_utils_env() {
 	local our_pythonpath=$BT_TESTS_SRCDIR/utils/python
 
 	if [[ $_bt_tests_py3_version =~ 3.[45] ]]; then
@@ -436,7 +436,7 @@ run_python_bt2() {
 		local -x ASAN_OPTIONS=${ASAN_OPTIONS:-}${ASAN_OPTIONS:+,}detect_leaks=0
 	fi
 
-	run_python "$@"
+	bt_run_in_py_utils_env "$@"
 }
 
 # Runs the Python tests matching the pattern `$2` (optional, `*` if
@@ -485,5 +485,5 @@ gen_mctf_trace() {
 	)
 
 	echo "Running: \`${cmd[*]}\`" >&2
-	run_python "${cmd[@]}"
+	bt_run_in_py_utils_env "${cmd[@]}"
 }
