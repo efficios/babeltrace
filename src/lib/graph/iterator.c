@@ -70,6 +70,9 @@
 struct per_stream_state
 {
 	bt_packet *cur_packet;
+
+	/* Bit mask of expected message types. */
+	guint expected_msg_types;
 };
 #endif
 
@@ -868,6 +871,145 @@ const bt_stream *get_stream_from_msg(const struct bt_message *msg)
 }
 
 static
+GString *message_types_to_string(guint msg_types)
+{
+	GString *str = g_string_new("");
+
+	for (int msg_type = 1; msg_type <= BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY;
+			msg_type <<= 1) {
+		if (msg_type & msg_types) {
+			if (str->len > 0) {
+				g_string_append_c(str, '|');
+			}
+
+			g_string_append(str,
+				bt_common_message_type_string(msg_type));
+		}
+	}
+
+	return str;
+}
+
+static
+void update_expected_msg_type(const struct bt_stream *stream,
+		struct per_stream_state *state,
+		const struct bt_message *msg)
+{
+	switch (msg->type) {
+        case BT_MESSAGE_TYPE_STREAM_BEGINNING:
+		state->expected_msg_types = BT_MESSAGE_TYPE_STREAM_END;
+
+		if (stream->class->supports_packets) {
+			state->expected_msg_types |=
+				BT_MESSAGE_TYPE_PACKET_BEGINNING;
+
+			if (stream->class->supports_discarded_packets) {
+				state->expected_msg_types |=
+					BT_MESSAGE_TYPE_DISCARDED_PACKETS;
+			}
+		} else {
+			state->expected_msg_types |= BT_MESSAGE_TYPE_EVENT;
+		}
+
+		if (stream->class->supports_discarded_events) {
+			state->expected_msg_types |=
+				BT_MESSAGE_TYPE_DISCARDED_EVENTS;
+		}
+
+		break;
+        case BT_MESSAGE_TYPE_STREAM_END:
+		state->expected_msg_types = 0;
+		break;
+        case BT_MESSAGE_TYPE_EVENT:
+	{
+		state->expected_msg_types = BT_MESSAGE_TYPE_EVENT;
+
+		if (stream->class->supports_packets) {
+			state->expected_msg_types |= BT_MESSAGE_TYPE_PACKET_END;
+		} else {
+			state->expected_msg_types |= BT_MESSAGE_TYPE_STREAM_END;
+		}
+
+		if (stream->class->supports_discarded_events) {
+			state->expected_msg_types |=
+				BT_MESSAGE_TYPE_DISCARDED_EVENTS;
+		}
+
+		break;
+	}
+        case BT_MESSAGE_TYPE_PACKET_BEGINNING:
+	{
+		state->expected_msg_types = BT_MESSAGE_TYPE_EVENT |
+			BT_MESSAGE_TYPE_PACKET_END;
+
+		if (stream->class->supports_discarded_events) {
+			state->expected_msg_types |=
+				BT_MESSAGE_TYPE_DISCARDED_EVENTS;
+		}
+
+		break;
+	}
+        case BT_MESSAGE_TYPE_PACKET_END:
+	{
+		state->expected_msg_types = BT_MESSAGE_TYPE_PACKET_BEGINNING |
+			BT_MESSAGE_TYPE_STREAM_END;
+
+		if (stream->class->supports_discarded_events) {
+			state->expected_msg_types |=
+				BT_MESSAGE_TYPE_DISCARDED_EVENTS;
+		}
+
+		if (stream->class->supports_discarded_packets) {
+			state->expected_msg_types |=
+				BT_MESSAGE_TYPE_DISCARDED_PACKETS;
+		}
+
+		break;
+	}
+        case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
+		state->expected_msg_types = BT_MESSAGE_TYPE_DISCARDED_EVENTS;
+
+		if (state->cur_packet) {
+			state->expected_msg_types |= BT_MESSAGE_TYPE_EVENT |
+				BT_MESSAGE_TYPE_PACKET_END;
+		} else {
+			state->expected_msg_types |= BT_MESSAGE_TYPE_STREAM_END;
+
+			if (stream->class->supports_packets) {
+				state->expected_msg_types |=
+					BT_MESSAGE_TYPE_PACKET_BEGINNING;
+
+				if (stream->class->supports_discarded_packets) {
+					state->expected_msg_types |=
+						BT_MESSAGE_TYPE_DISCARDED_PACKETS;
+				}
+			} else {
+				state->expected_msg_types |=
+					BT_MESSAGE_TYPE_EVENT;
+			}
+		}
+
+		break;
+        case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
+		state->expected_msg_types = BT_MESSAGE_TYPE_DISCARDED_PACKETS |
+			BT_MESSAGE_TYPE_PACKET_BEGINNING |
+			BT_MESSAGE_TYPE_STREAM_END;
+
+		if (stream->class->supports_discarded_events) {
+			state->expected_msg_types |=
+				BT_MESSAGE_TYPE_DISCARDED_EVENTS;
+		}
+		break;
+	default:
+		/*
+		 * Other message types are not associated to a stream, so we
+		 * should not get them here.
+		 */
+                bt_common_abort();
+        }
+}
+
+static
 struct per_stream_state *get_per_stream_state(
 		struct bt_message_iterator *iterator,
 		const struct bt_stream *stream)
@@ -877,6 +1019,7 @@ struct per_stream_state *get_per_stream_state(
 
 	if (!state) {
 		state = g_new0(struct per_stream_state, 1);
+		state->expected_msg_types = BT_MESSAGE_TYPE_STREAM_BEGINNING;
 		g_hash_table_insert(iterator->per_stream_state,
 			(gpointer) stream, state);
 	}
@@ -888,6 +1031,38 @@ struct per_stream_state *get_per_stream_state(
 #define NEXT_METHOD_NAME	"bt_message_iterator_class_next_method"
 
 #ifdef BT_DEV_MODE
+static
+void assert_post_dev_expected_sequence(struct bt_message_iterator *iterator,
+		const struct bt_message *msg)
+{
+	const bt_stream *stream = get_stream_from_msg(msg);
+	struct per_stream_state *state;
+
+	if (!stream) {
+		goto end;
+	}
+
+	state = get_per_stream_state(iterator, stream);
+
+	/*
+	 * We don't free the return value of message_types_to_string(), but
+	 * that's because we know the program is going to abort anyway, and
+	 * we don't want to call it if the assertion holds.
+	 */
+	BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
+		"message-type-is-expected",
+		msg->type & state->expected_msg_types,
+		"Unexpected message type: %![stream-]s, %![iterator-]i, "
+		"%![message-]n, expected-msg-types=%s",
+		stream, iterator, msg,
+		message_types_to_string(state->expected_msg_types)->str);
+
+	update_expected_msg_type(stream, state, msg);
+
+end:
+	return;
+}
+
 static
 void assert_post_dev_expected_packet(struct bt_message_iterator *iterator,
 		const struct bt_message *msg)
@@ -958,8 +1133,30 @@ void assert_post_dev_next(
 		uint64_t i;
 
 		for (i = 0; i < msg_count; i++) {
+			assert_post_dev_expected_sequence(iterator, msgs[i]);
 			assert_post_dev_expected_packet(iterator, msgs[i]);
 		}
+	} else if (status == BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_END) {
+		GHashTableIter iter;
+
+		gpointer stream_v, stream_state_v;
+
+		g_hash_table_iter_init(&iter, iterator->per_stream_state);
+		while (g_hash_table_iter_next(&iter, &stream_v,
+				&stream_state_v)) {
+			struct bt_stream *stream = stream_v;
+			struct per_stream_state *stream_state = stream_state_v;
+
+			BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
+				"stream-is-ended",
+				stream_state->expected_msg_types == 0,
+				"Stream is not ended: %![stream-]s, "
+				"%![iterator-]i, expected-msg-types=%s",
+				stream, iterator,
+				message_types_to_string(
+					stream_state->expected_msg_types)->str);
+		}
+
 	}
 }
 #endif
