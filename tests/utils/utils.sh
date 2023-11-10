@@ -25,15 +25,6 @@
 # An unbound variable is an error
 set -u
 
-# If `readlink -f` is available, then get a resolved absolute path to
-# the tests source directory. Otherwise, make do with a relative path.
-scriptdir="$(dirname "${BASH_SOURCE[0]}")"
-if readlink -f "." >/dev/null 2>&1; then
-	testsdir=$(readlink -f "$scriptdir/..")
-else
-	testsdir="$scriptdir/.."
-fi
-
 # Name of the OS on which we're running, if not set.
 #
 # One of:
@@ -71,18 +62,38 @@ if [ -z "${BT_TESTS_OS_TYPE:-}" ]; then
 fi
 export BT_TESTS_OS_TYPE
 
-# Base source directory of tests
-if [ -z "${BT_TESTS_SRCDIR:-}" ]; then
-	BT_TESTS_SRCDIR="$testsdir"
-fi
-export BT_TESTS_SRCDIR
+# Sets and exports, if not set:
+#
+# • `BT_TESTS_SRCDIR` to the base source directory of tests.
+# • `BT_TESTS_BUILDDIR` to the base build directory of tests.
+_set_vars_srcdir_builddir() {
+	# If `readlink -f` is available, then get a resolved absolute path
+	# to the tests source directory. Otherwise, make do with a relative
+	# path.
+	local -r scriptdir="$(dirname "${BASH_SOURCE[0]}")"
+	local testsdir
 
-# Base build directory of tests
-if [ -z "${BT_TESTS_BUILDDIR:-}" ]; then
-	BT_TESTS_BUILDDIR="$testsdir"
-fi
-export BT_TESTS_BUILDDIR
+	if readlink -f "." >/dev/null 2>&1; then
+		testsdir=$(readlink -f "$scriptdir/..")
+	else
+		testsdir="$scriptdir/.."
+	fi
 
+	# Base source directory of tests
+	if [ -z "${BT_TESTS_SRCDIR:-}" ]; then
+		BT_TESTS_SRCDIR="$testsdir"
+	fi
+	export BT_TESTS_SRCDIR
+
+	# Base build directory of tests
+	if [ -z "${BT_TESTS_BUILDDIR:-}" ]; then
+		BT_TESTS_BUILDDIR="$testsdir"
+	fi
+	export BT_TESTS_BUILDDIR
+}
+
+_set_vars_srcdir_builddir
+unset -f _set_vars_srcdir_builddir
 
 # Source the generated environment file if it's present
 if [ -f "${BT_TESTS_BUILDDIR}/utils/env.sh" ]; then
