@@ -10,7 +10,7 @@
 # bt2 Python bindings. For example, one could use it to run a specific Python
 # binding test case with:
 #
-#   $ tests/utils/run_python_bt2 python3 ./tests/utils/python/testrunner.py \
+#   $ tests/utils/run-in-py-utils-bt2-env.sh python3 ./tests/utils/python/testrunner.py \
 #     -t test_value.MapValueTestCase.test_deepcopy \
 #     ./tests/bindings/python/bt2
 
@@ -24,7 +24,7 @@ fi
 source "$UTILSSH"
 
 usage() {
-	echo "Usage: run_python_bt2 [PYTHON_BIN] ..."
+	echo "Usage: run-in-py-utils-bt2-env.sh [PYTHON_BIN] ..."
 	echo ""
 	echo "Run a binary with the python environment set to use the 'bt2' module"
 	echo "from the build system prior to installation."
@@ -48,4 +48,4 @@ if [ ! -f "$BT_TESTS_BUILDDIR/Makefile" ]; then
 	exit 1
 fi
 
-bt_run_in_py_utils_bt2_env "${@}"
+bt_run_in_py_env "${@}"

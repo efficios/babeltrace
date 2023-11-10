@@ -1505,11 +1505,11 @@ $ ./tests/plugins/sink.text.pretty/test-enum.sh
 
 ==== Python
 
-You can use the `tests/utils/run-python-bt2.sh` script to run any
-command within an environment making the build's `bt2` Python package
-available.
+You can use the `tests/utils/run-in-py-env.sh` script to run any command
+within an environment making the build's `bt2` Python package available,
+as well as the testing utility Python modules.
 
-`run-python-bt2.sh` uses <<test-env,`utils.sh`>> which needs to know the
+`run-in-py-env.sh` uses <<test-env,`utils.sh`>> which needs to know the
 build directory, so make sure you set the `BT_TESTS_BUILDDIR`
 environment variable correctly _if you build out of tree_, for example:
 
@@ -1518,10 +1518,10 @@ $ export BT_TESTS_BUILDDIR=/path/to/build/babeltrace/tests
 ----
 
 You can run any command which needs the `bt2` Python package through
-`run-python-bt2.sh`, for example:
+`run-in-py-env.sh`, for example:
 
 ----
-$ ./tests/utils/run-python-bt2.sh ipython3
+$ ./tests/utils/run-in-py-env.sh ipython3
 ----
 
 === Report format
@@ -1567,13 +1567,13 @@ To run all the `bt2` Python package tests:
 * Run:
 +
 ----
-$ ./tests/utils/run-python-bt2.sh ./tests/bindings/python/bt2/test-python-bt2.sh
+$ ./tests/utils/run-in-py-env.sh ./tests/bindings/python/bt2/test-python-bt2.sh
 ----
 +
 or:
 +
 ----
-$ ./tests/utils/run-python-bt2.sh python3 ./tests/utils/python/testrunner.py \
+$ ./tests/utils/run-in-py-env.sh python3 ./tests/utils/python/testrunner.py \
   ./tests/bindings/python/bt2/ -p '*.py'
 ----
 
@@ -1583,7 +1583,7 @@ To run **all the tests** in a test module (for example,
 * Run:
 +
 ----
-$ ./tests/utils/run-python-bt2.sh python3 ./tests/utils/python/testrunner.py \
+$ ./tests/utils/run-in-py-env.sh python3 ./tests/utils/python/testrunner.py \
   ./tests/bindings/python/bt2 -t test_value
 ----
 
@@ -1593,7 +1593,7 @@ To run a **specific test case** (for example, `RealValueTestCase` within
 * Run:
 +
 ----
-$ ./tests/utils/run-python-bt2.sh python3 ./tests/utils/python/testrunner.py \
+$ ./tests/utils/run-in-py-env.sh python3 ./tests/utils/python/testrunner.py \
   ./tests/bindings/python/bt2/ -t test_value.RealValueTestCase
 ----
 
@@ -1603,7 +1603,7 @@ To run a **specific test** (for example,
 * Run:
 +
 ----
-$ ./tests/utils/run-python-bt2.sh python3 ./tests/utils/python/testrunner.py \
+$ ./tests/utils/run-in-py-env.sh python3 ./tests/utils/python/testrunner.py \
   ./tests/bindings/python/bt2/ -t test_value.RealValueTestCase.test_assign_pos_int
 ----
 

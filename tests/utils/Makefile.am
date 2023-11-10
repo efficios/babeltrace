@@ -10,6 +10,6 @@ libtestcommon_la_SOURCES = common.c common.h
 EXTRA_DIST = python
 
 dist_check_SCRIPTS = \
-	run-python-bt2.sh \
+	run-in-py-env.sh \
 	tap-driver.sh \
 	utils.sh
