@@ -460,6 +460,8 @@ run_python_bt2_test() {
 	local -r test_dir="$1"
 	local -r test_pattern="${2:-'*'}"
 
+	local python_exec
+
 	if test "${BT_TESTS_COVERAGE:-}" = "1"; then
 		python_exec="check_coverage"
 	else
