@@ -156,7 +156,7 @@ export BT_TESTS_PYTHON_BIN
 #
 # This doesn't need to be exported, but it needs to remain set for
 # run_python() to use it.
-BT_TESTS_PYTHON_VERSION=$($BT_TESTS_PYTHON_BIN -c 'import sys; print("{}.{}".format(sys.version_info.major, sys.version_info.minor))')
+BT_TESTS_PYTHON_VERSION=$("$BT_TESTS_PYTHON_BIN" -c 'import sys; print("{}.{}".format(sys.version_info.major, sys.version_info.minor))')
 
 # Name of the `python3-config` command to use when testing, if not set
 if [ -z "${BT_TESTS_PYTHON_CONFIG_BIN:-}" ]; then
@@ -428,7 +428,7 @@ run_python_bt2() {
 	if [ "$BT_TESTS_OS_TYPE" = "mingw" ]; then
 		local -x PYTHONHOME
 
-		PYTHONHOME=$($BT_TESTS_PYTHON_CONFIG_BIN --prefix)
+		PYTHONHOME=$("$BT_TESTS_PYTHON_CONFIG_BIN" --prefix)
 	fi
 
 	# If AddressSanitizer is used, we must preload `libasan.so` so that
@@ -440,8 +440,8 @@ run_python_bt2() {
 	# Append it to existing `ASAN_OPTIONS` variable, such that we
 	# override the user's value if it contains `detect_leaks=1`.
 	if [ "${BT_TESTS_ENABLE_ASAN:-}" = "1" ]; then
-		if ${BT_TESTS_CC_BIN} --version | head -n 1 | bt_grep -q '^gcc'; then
-			lib_asan="$(${BT_TESTS_CC_BIN} -print-file-name=libasan.so)"
+		if "${BT_TESTS_CC_BIN}" --version | head -n 1 | bt_grep -q '^gcc'; then
+			lib_asan="$("${BT_TESTS_CC_BIN}" -print-file-name=libasan.so)"
 			local -x LD_PRELOAD="${lib_asan}${LD_PRELOAD:+:}${LD_PRELOAD:-}"
 		fi
 
