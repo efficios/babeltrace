@@ -73,7 +73,7 @@ _set_vars_srcdir_builddir() {
 	local -r scriptdir="$(dirname "${BASH_SOURCE[0]}")"
 	local testsdir
 
-	if readlink -f "." >/dev/null 2>&1; then
+	if readlink -f "." &> /dev/null; then
 		testsdir=$(readlink -f "$scriptdir/..")
 	else
 		testsdir="$scriptdir/.."
