@@ -359,13 +359,13 @@ bt_grep() {
 # ok() with the test name `$3` on the result of bt_grep() matching the
 # pattern `$1` within the file `$2`.
 bt_grep_ok() {
-	local pattern=$1
-	local file=$2
-	local test_name=$3
+	local -r pattern=$1
+	local -r file=$2
+	local -r test_name=$3
 
 	bt_grep --silent "$pattern" "$file"
 
-	local ret=$?
+	local -r ret=$?
 
 	if ! ok $ret "$test_name"; then
 		{
