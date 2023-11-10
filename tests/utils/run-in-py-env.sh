@@ -30,7 +30,7 @@ if (($# == 0)); then
 	exit 1
 fi
 
-# Sanity check that the BT_TESTS_BUILDDIR value makes sense.
+# Make sure the value of `BT_TESTS_BUILDDIR` makes sense
 if [[ ! -f $BT_TESTS_BUILDDIR/Makefile ]]; then
 	{
 		echo "ERROR: Invalid \`BT_TESTS_BUILDDIR\` variable (\`\$BT_TESTS_BUILDDIR/Makefile\`"
