@@ -249,11 +249,8 @@ bt_cli() {
 bt_diff() {
 	local -r expected_file="$1"
 	local -r actual_file="$2"
-	local ret=0
 
 	diff -u <(bt_remove_cr_inline "$expected_file") <(bt_remove_cr_inline "$actual_file") 1>&2
-
-	return $?
 }
 
 # Checks the difference between:
