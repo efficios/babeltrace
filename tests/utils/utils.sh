@@ -95,11 +95,18 @@ _set_vars_srcdir_builddir() {
 _set_vars_srcdir_builddir
 unset -f _set_vars_srcdir_builddir
 
-# Source the generated environment file if it's present
-if [ -f "${BT_TESTS_BUILDDIR}/utils/env.sh" ]; then
-	# shellcheck disable=SC1091
-	. "${BT_TESTS_BUILDDIR}/utils/env.sh"
-fi
+# Sources the generated environment file (`env.sh`) if it exists.
+_source_env_sh() {
+	local -r env_sh_path="$BT_TESTS_BUILDDIR/utils/env.sh"
+
+	if [ -f "${env_sh_path}" ]; then
+		# shellcheck disable=SC1090,SC1091
+		. "${env_sh_path}"
+	fi
+}
+
+_source_env_sh
+unset -f _source_env_sh
 
 # Path to the `babeltrace2` command, if not set
 if [ -z "${BT_TESTS_BT2_BIN:-}" ]; then
