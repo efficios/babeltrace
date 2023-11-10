@@ -312,10 +312,10 @@ bt_diff_cli() {
 # Returns 0 if there's no difference, or 1 otherwise, also printing said
 # difference to the standard error.
 bt_diff_details_ctf_single() {
-	local expected_stdout_file="$1"
-	local trace_dir="$2"
+	local -r expected_stdout_file="$1"
+	local -r trace_dir="$2"
 	shift 2
-	local extra_details_args=("$@")
+	local -r extra_details_args=("$@")
 	expected_stderr_file="/dev/null"
 
 	# Compare using the CLI with `sink.text.details`
