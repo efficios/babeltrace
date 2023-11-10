@@ -32,11 +32,14 @@ fi
 
 # Sanity check that the BT_TESTS_BUILDDIR value makes sense.
 if [[ ! -f "$BT_TESTS_BUILDDIR/Makefile" ]]; then
-	fold -w 80 -s <<- END
-	$0: BT_TESTS_BUILDDIR does not point to a valid directory (\`$BT_TESTS_BUILDDIR/Makefile\` does not exist).
+	{
+		echo "ERROR: Invalid \`BT_TESTS_BUILDDIR\` variable (\`\$BT_TESTS_BUILDDIR/Makefile\`"
+		echo "doesn't exist)."
+		echo ""
+		echo "If you build out of tree, export and set the \`BT_TESTS_BUILDDIR\` environment"
+		echo "variable to the built \`tests\` directory."
+	} >&2
 
-	If building out-of-tree, set BT_TESTS_BUILDDIR to point to the \`tests\` directory in the build tree.
-	END
 	exit 1
 fi
 
