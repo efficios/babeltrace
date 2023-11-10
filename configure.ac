@@ -838,11 +838,10 @@ AC_CONFIG_FILES([
   tests/plugins/flt.utils.muxer/succeed/Makefile
   tests/plugins/flt.utils.trimmer/Makefile
   tests/plugins/sink.text.pretty/Makefile
+  tests/utils/env.sh
   tests/utils/Makefile
   tests/utils/tap/Makefile
 ])
-
-AC_CONFIG_FILES([tests/utils/env.sh],[chmod +x tests/utils/env.sh])
 
 AC_OUTPUT
 
