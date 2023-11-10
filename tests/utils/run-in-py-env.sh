@@ -43,4 +43,4 @@ if [[ ! -f $BT_TESTS_BUILDDIR/Makefile ]]; then
 	exit 1
 fi
 
-bt_run_in_py_env "${@}"
+bt_run_in_py_env "$@"
