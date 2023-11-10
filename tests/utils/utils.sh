@@ -128,7 +128,7 @@ fi
 export BT_TESTS_BT2_BIN
 
 # This doesn't need to be exported, but it needs to remain set for
-# run_python_bt2() to use it.
+# bt_run_in_py_env() to use it.
 #
 # TODO: Remove when `tests/bindings/python/bt2/test_plugin.py` is fixed.
 _bt_tests_plugins_path=$BT_TESTS_BUILDDIR/../src/plugins
@@ -222,7 +222,7 @@ bt_cli() {
 	local -r args=("$@")
 
 	echo "Running: \`$BT_TESTS_BT2_BIN ${args[*]}\`" >&2
-	run_python_bt2 "$BT_TESTS_BT2_BIN" "${args[@]}" 1>"$stdout_file" 2>"$stderr_file"
+	bt_run_in_py_env "$BT_TESTS_BT2_BIN" "${args[@]}" 1>"$stdout_file" 2>"$stderr_file"
 }
 
 # Checks the differences between:
@@ -391,7 +391,7 @@ bt_run_in_py_utils_env() {
 
 # Executes a command within an environment which can import the testing
 # Python modules (in `tests/utils/python`) and the `bt2` Python package.
-run_python_bt2() {
+bt_run_in_py_env() {
 	local -x BABELTRACE_PLUGIN_PATH=$BT_TESTS_BABELTRACE_PLUGIN_PATH
 	local -x LIBBABELTRACE2_PLUGIN_PROVIDER_DIR=$BT_TESTS_PROVIDER_DIR
 	local -x BT_TESTS_DATADIR=$BT_TESTS_DATADIR
@@ -442,7 +442,7 @@ run_python_bt2() {
 # Runs the Python tests matching the pattern `$2` (optional, `*` if
 # missing) in the directory `$1` using `testrunner.py`.
 #
-# This function uses run_python_bt2(), therefore such tests can import
+# This function uses bt_run_in_py_env(), therefore such tests can import
 # the testing Python modules (in `tests/utils/python`) and the `bt2`
 # Python package.
 run_python_bt2_test() {
@@ -456,7 +456,7 @@ run_python_bt2_test() {
 		python_exec=$BT_TESTS_PYTHON_BIN
 	fi
 
-	run_python_bt2 \
+	bt_run_in_py_env \
 		"$python_exec" "$BT_TESTS_SRCDIR/utils/python/testrunner.py" \
 		--pattern "$test_pattern" "$test_dir"
 

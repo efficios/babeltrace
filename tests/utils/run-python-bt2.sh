@@ -48,4 +48,4 @@ if [ ! -f "$BT_TESTS_BUILDDIR/Makefile" ]; then
 	exit 1
 fi
 
-run_python_bt2 "${@}"
+bt_run_in_py_utils_bt2_env "${@}"

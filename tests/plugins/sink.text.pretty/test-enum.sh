@@ -35,7 +35,7 @@ function compare_enum_sorted
 	# data structures differently (e.g. dictionaries are insertion sorted
 	# since Python 3.7).
 
-	run_python_bt2 "${BT_TESTS_PYTHON_BIN}" "${BT_TESTS_SRCDIR}/utils/python/split_sort_compare.py" \
+	bt_run_in_py_env "${BT_TESTS_PYTHON_BIN}" "${BT_TESTS_SRCDIR}/utils/python/split_sort_compare.py" \
 		"$(cat "$expected_file")" "$(cat "$actual_file")"
 }
 

@@ -14,4 +14,4 @@ fi
 # shellcheck source=../utils/utils.sh
 source "$UTILSSH"
 
-run_python_bt2 "${BT_TESTS_BUILDDIR}/lib/test-fields-bin"
+bt_run_in_py_env "${BT_TESTS_BUILDDIR}/lib/test-fields-bin"
