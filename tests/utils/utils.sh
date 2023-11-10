@@ -42,6 +42,7 @@ set -u
 # Export it so that executed commands can use it.
 if [[ -z ${BT_TESTS_OS_TYPE:-} ]]; then
 	BT_TESTS_OS_TYPE=$(uname -s)
+
 	case $BT_TESTS_OS_TYPE in
 	MINGW*)
 		BT_TESTS_OS_TYPE=mingw
@@ -60,6 +61,7 @@ if [[ -z ${BT_TESTS_OS_TYPE:-} ]]; then
 		;;
 	esac
 fi
+
 export BT_TESTS_OS_TYPE
 
 # Sets and exports, if not set:
@@ -83,12 +85,14 @@ _set_vars_srcdir_builddir() {
 	if [[ -z ${BT_TESTS_SRCDIR:-} ]]; then
 		BT_TESTS_SRCDIR=$testsdir
 	fi
+
 	export BT_TESTS_SRCDIR
 
 	# Base build directory of tests
 	if [[ -z ${BT_TESTS_BUILDDIR:-} ]]; then
 		BT_TESTS_BUILDDIR=$testsdir
 	fi
+
 	export BT_TESTS_BUILDDIR
 }
 
@@ -111,10 +115,12 @@ unset -f _source_env_sh
 # Path to the `babeltrace2` command, if not set
 if [[ -z ${BT_TESTS_BT2_BIN:-} ]]; then
 	BT_TESTS_BT2_BIN=$BT_TESTS_BUILDDIR/../src/cli/babeltrace2
+
 	if [[ $BT_TESTS_OS_TYPE == mingw ]]; then
 		BT_TESTS_BT2_BIN+=.exe
 	fi
 fi
+
 export BT_TESTS_BT2_BIN
 
 # This doesn't need to be exported, but it needs to remain set for
@@ -127,36 +133,42 @@ _bt_tests_plugins_path=$BT_TESTS_BUILDDIR/../src/plugins
 if [[ -z ${BT_TESTS_BABELTRACE_PLUGIN_PATH:-} ]]; then
 	BT_TESTS_BABELTRACE_PLUGIN_PATH=$_bt_tests_plugins_path/ctf:$_bt_tests_plugins_path/utils:$_bt_tests_plugins_path/text:$_bt_tests_plugins_path/lttng-utils
 fi
+
 export BT_TESTS_BABELTRACE_PLUGIN_PATH
 
 # Directory containing the Python plugin provider library, if not set
 if [[ -z ${BT_TESTS_PROVIDER_DIR:-} ]]; then
 	BT_TESTS_PROVIDER_DIR=$BT_TESTS_BUILDDIR/../src/python-plugin-provider/.libs
 fi
+
 export BT_TESTS_PROVIDER_DIR
 
 # Directory containing the built `bt2` Python package, if not set
 if [[ -z ${BT_TESTS_PYTHONPATH:-} ]]; then
 	BT_TESTS_PYTHONPATH=$BT_TESTS_BUILDDIR/../src/bindings/python/bt2/build/build_lib
 fi
+
 export BT_TESTS_PYTHONPATH
 
 # Name of the `awk` command to use when testing, if not set
 if [[ -z ${BT_TESTS_AWK_BIN:-} ]]; then
 	BT_TESTS_AWK_BIN="awk"
 fi
+
 export BT_TESTS_AWK_BIN
 
 # Name of the `grep` command to use when testing, if not set
 if [[ -z ${BT_TESTS_GREP_BIN:-} ]]; then
 	BT_TESTS_GREP_BIN="grep"
 fi
+
 export BT_TESTS_GREP_BIN
 
 # Name of the `python3` command to use when testing, if not set
 if [[ -z ${BT_TESTS_PYTHON_BIN:-} ]]; then
 	BT_TESTS_PYTHON_BIN=python3
 fi
+
 export BT_TESTS_PYTHON_BIN
 
 # Major and minor version of the `python3` command to use when testing.
@@ -169,18 +181,21 @@ _bt_tests_py3_version=$("$BT_TESTS_PYTHON_BIN" -c 'import sys; print("{}.{}".for
 if [[ -z ${BT_TESTS_PYTHON_CONFIG_BIN:-} ]]; then
 	BT_TESTS_PYTHON_CONFIG_BIN=python3-config
 fi
+
 export BT_TESTS_PYTHON_CONFIG_BIN
 
 # Name of the `sed` command to use when testing, if not set
 if [[ -z ${BT_TESTS_SED_BIN:-} ]]; then
 	BT_TESTS_SED_BIN="sed"
 fi
+
 export BT_TESTS_SED_BIN
 
 # Name of the `cc` command to use when testing, if not set
 if [[ -z ${BT_TESTS_CC_BIN:-} ]]; then
 	BT_TESTS_CC_BIN=cc
 fi
+
 export BT_TESTS_CC_BIN
 
 # Whether or not to enable AddressSanitizer, `0` (disabled) if not set.
@@ -229,7 +244,9 @@ bt_remove_cr_inline() {
 bt_cli() {
 	local -r stdout_file=$1
 	local -r stderr_file=$2
+
 	shift 2
+
 	local -r args=("$@")
 
 	echo "Running: \`$BT_TESTS_BT2_BIN ${args[*]}\`" >&2
@@ -272,21 +289,23 @@ bt_diff() {
 bt_diff_cli() {
 	local -r expected_stdout_file=$1
 	local -r expected_stderr_file=$2
-	shift 2
-	local -r args=("$@")
 
+	shift 2
+
+	local -r args=("$@")
 	local -r temp_stdout_output_file=$(mktemp -t actual-stdout.XXXXXX)
 	local -r temp_stderr_output_file=$(mktemp -t actual-stderr.XXXXXX)
 
 	bt_cli "$temp_stdout_output_file" "$temp_stderr_output_file" "${args[@]}"
-
 	bt_diff "$expected_stdout_file" "$temp_stdout_output_file" "${args[@]}"
+
 	local -r ret_stdout=$?
+
 	bt_diff "$expected_stderr_file" "$temp_stderr_output_file" "${args[@]}"
+
 	local -r ret_stderr=$?
 
 	rm -f "$temp_stdout_output_file" "$temp_stderr_output_file"
-
 	return $((ret_stdout || ret_stderr))
 }
 
@@ -306,7 +325,9 @@ bt_diff_cli() {
 bt_diff_details_ctf_single() {
 	local -r expected_stdout_file=$1
 	local -r trace_dir=$2
+
 	shift 2
+
 	local -r extra_details_args=("$@")
 
 	# Compare using the CLI with `sink.text.details`
@@ -322,9 +343,10 @@ bt_diff_details_ctf_single() {
 bt_diff_details_ctf_gen_single() {
 	local -r ctf_gen_prog_path=$1
 	local -r expected_stdout_file=$2
-	shift 2
-	local -r extra_details_args=("$@")
 
+	shift 2
+
+	local -r extra_details_args=("$@")
 	local -r temp_trace_dir=$(mktemp -d)
 
 	# Run the CTF trace generator program to get a CTF trace
@@ -337,7 +359,9 @@ bt_diff_details_ctf_gen_single() {
 	# Compare using the CLI with `sink.text.details`
 	bt_diff_details_ctf_single "$expected_stdout_file" "$temp_trace_dir" \
 		"${extra_details_args[@]+${extra_details_args[@]}}"
+
 	local -r ret=$?
+
 	rm -rf "$temp_trace_dir"
 	return $ret
 }
@@ -402,7 +426,6 @@ run_python_bt2() {
 	local -x BT_CTF_TRACES_PATH=$BT_CTF_TRACES_PATH
 	local -x BT_PLUGINS_PATH=$_bt_tests_plugins_path
 	local -x PYTHONPATH=$BT_TESTS_PYTHONPATH${PYTHONPATH:+:}${PYTHONPATH:-}
-
 	local -r main_lib_path=$BT_TESTS_BUILDDIR/../src/lib/.libs
 
 	# Set the library search path so that the Python 3 interpreter can
@@ -453,7 +476,6 @@ run_python_bt2() {
 run_python_bt2_test() {
 	local -r test_dir=$1
 	local -r test_pattern=${2:-*}
-
 	local python_exec
 
 	if [[ ${BT_TESTS_COVERAGE:-} == 1 ]]; then
@@ -463,10 +485,8 @@ run_python_bt2_test() {
 	fi
 
 	run_python_bt2 \
-		"$python_exec" \
-		"$BT_TESTS_SRCDIR/utils/python/testrunner.py" \
-		--pattern "$test_pattern" \
-		"$test_dir" \
+		"$python_exec" "$BT_TESTS_SRCDIR/utils/python/testrunner.py" \
+		--pattern "$test_pattern" "$test_dir"
 
 	local -r ret=$?
 
