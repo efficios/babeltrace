@@ -411,7 +411,6 @@ run_python() {
 # Python modules (in `tests/utils/python`) and the `bt2` Python package.
 run_python_bt2() {
 	local lib_asan
-	local -x "BABELTRACE_PYTHON_BT2_NO_TRACEBACK=1"
 	local -x "BABELTRACE_PLUGIN_PATH=${BT_TESTS_BABELTRACE_PLUGIN_PATH}"
 	local -x "LIBBABELTRACE2_PLUGIN_PROVIDER_DIR=${BT_TESTS_PROVIDER_DIR}"
 	local -x "BT_TESTS_DATADIR=${BT_TESTS_DATADIR}"
