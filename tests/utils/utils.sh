@@ -112,7 +112,7 @@ unset -f _source_env_sh
 if [ -z "${BT_TESTS_BT2_BIN:-}" ]; then
 	BT_TESTS_BT2_BIN="$BT_TESTS_BUILDDIR/../src/cli/babeltrace2"
 	if [ "$BT_TESTS_OS_TYPE" = "mingw" ]; then
-		BT_TESTS_BT2_BIN="${BT_TESTS_BT2_BIN}.exe"
+		BT_TESTS_BT2_BIN+=".exe"
 	fi
 fi
 export BT_TESTS_BT2_BIN
