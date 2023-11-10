@@ -402,7 +402,6 @@ run_python() {
 # Executes a command within an environment which can import the testing
 # Python modules (in `tests/utils/python`) and the `bt2` Python package.
 run_python_bt2() {
-	local lib_asan
 	local -x "BABELTRACE_PLUGIN_PATH=${BT_TESTS_BABELTRACE_PLUGIN_PATH}"
 	local -x "LIBBABELTRACE2_PLUGIN_PROVIDER_DIR=${BT_TESTS_PROVIDER_DIR}"
 	local -x "BT_TESTS_DATADIR=${BT_TESTS_DATADIR}"
@@ -410,7 +409,7 @@ run_python_bt2() {
 	local -x "BT_PLUGINS_PATH=${_bt_tests_plugins_path}"
 	local -x "PYTHONPATH=${BT_TESTS_PYTHONPATH}${PYTHONPATH:+:}${PYTHONPATH:-}"
 
-	local main_lib_path="${BT_TESTS_BUILDDIR}/../src/lib/.libs"
+	local -r main_lib_path="${BT_TESTS_BUILDDIR}/../src/lib/.libs"
 
 	# Set the library search path so that the Python 3 interpreter can
 	# load `libbabeltrace2`.
@@ -441,7 +440,7 @@ run_python_bt2() {
 	# override the user's value if it contains `detect_leaks=1`.
 	if [ "${BT_TESTS_ENABLE_ASAN:-}" = "1" ]; then
 		if "${BT_TESTS_CC_BIN}" --version | head -n 1 | bt_grep -q '^gcc'; then
-			lib_asan="$("${BT_TESTS_CC_BIN}" -print-file-name=libasan.so)"
+			local -r lib_asan="$("${BT_TESTS_CC_BIN}" -print-file-name=libasan.so)"
 			local -x LD_PRELOAD="${lib_asan}${LD_PRELOAD:+:}${LD_PRELOAD:-}"
 		fi
 
