@@ -232,7 +232,7 @@ bt_cli() {
 	shift 2
 	local -r args=("$@")
 
-	echo "Running: $BT_TESTS_BT2_BIN ${args[*]}" >&2
+	echo "Running: \`$BT_TESTS_BT2_BIN ${args[*]}\`" >&2
 	run_python_bt2 "$BT_TESTS_BT2_BIN" "${args[@]}" 1>"$stdout_file" 2>"$stderr_file"
 }
 
@@ -338,7 +338,7 @@ bt_diff_details_ctf_gen_single() {
 
 	# Run the CTF trace generator program to get a CTF trace
 	if ! "$ctf_gen_prog_path" "$temp_trace_dir" 2>/dev/null; then
-		echo "ERROR: \"$ctf_gen_prog_path\" \"$temp_trace_dir\" failed" >&2
+		echo "ERROR: \`$ctf_gen_prog_path $temp_trace_dir\` failed" >&2
 		rm -rf "$temp_trace_dir"
 		return 1
 	fi
@@ -493,7 +493,7 @@ gen_mctf_trace() {
 	local -r input_file="$1"
 	local -r base_dir="$2"
 
-	diag "Running: ${BT_TESTS_PYTHON_BIN} ${BT_TESTS_SRCDIR}/utils/python/mctf.py --base-dir ${base_dir} ${input_file}"
+	diag "Running: \`${BT_TESTS_PYTHON_BIN} ${BT_TESTS_SRCDIR}/utils/python/mctf.py --base-dir ${base_dir} ${input_file}\`"
 	run_python "${BT_TESTS_PYTHON_BIN}" "${BT_TESTS_SRCDIR}/utils/python/mctf.py" \
 		--base-dir "${base_dir}" "${input_file}"
 }
