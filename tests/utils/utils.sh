@@ -347,28 +347,31 @@ bt_grep() {
 	"$BT_TESTS_GREP_BIN" "$@"
 }
 
-# ok() with the test name `$3` on the result of bt_grep() matching the
-# pattern `$1` within the file `$2`.
-bt_grep_ok() {
-	local -r pattern=$1
-	local -r file=$2
-	local -r test_name=$3
+# Only if `tap.sh` is sourced because bt_grep_ok() uses ok()
+if [[ ${SH_TAP:-} == 1 ]]; then
+	# ok() with the test name `$3` on the result of bt_grep() matching
+	# the pattern `$1` within the file `$2`.
+	bt_grep_ok() {
+		local -r pattern=$1
+		local -r file=$2
+		local -r test_name=$3
 
-	bt_grep --silent "$pattern" "$file"
+		bt_grep --silent "$pattern" "$file"
 
-	local -r ret=$?
+		local -r ret=$?
 
-	if ! ok $ret "$test_name"; then
-		{
-			echo "Pattern \`$pattern\` doesn't match the contents of \`$file\`:"
-			echo '--- 8< ---'
-			cat "$file"
-			echo '--- >8 ---'
-		} >&2
-	fi
+		if ! ok $ret "$test_name"; then
+			{
+				echo "Pattern \`$pattern\` doesn't match the contents of \`$file\`:"
+				echo '--- 8< ---'
+				cat "$file"
+				echo '--- >8 ---'
+			} >&2
+		fi
 
-	return $ret
-}
+		return $ret
+	}
+fi
 
 # Forwards the arguments to `coverage run`.
 check_coverage() {
