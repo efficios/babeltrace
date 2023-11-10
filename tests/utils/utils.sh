@@ -374,7 +374,7 @@ if [[ ${SH_TAP:-} == 1 ]]; then
 fi
 
 # Forwards the arguments to `coverage run`.
-check_coverage() {
+_bt_tests_check_coverage() {
 	coverage run "$@"
 }
 
@@ -457,7 +457,7 @@ run_python_bt2_test() {
 	local python_exec
 
 	if test "${BT_TESTS_COVERAGE:-}" = "1"; then
-		python_exec="check_coverage"
+		python_exec="_bt_tests_check_coverage"
 	else
 		python_exec="${BT_TESTS_PYTHON_BIN}"
 	fi
