@@ -14,4 +14,4 @@ fi
 # shellcheck source=../../../utils/utils.sh
 source "$UTILSSH"
 
-run_python_bt2_test "${BT_TESTS_SRCDIR}/plugins/src.ctf.fs/query" test_query_trace_info.py
+bt_run_py_test "${BT_TESTS_SRCDIR}/plugins/src.ctf.fs/query" test_query_trace_info.py

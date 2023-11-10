@@ -445,7 +445,7 @@ bt_run_in_py_env() {
 # This function uses bt_run_in_py_env(), therefore such tests can import
 # the testing Python modules (in `tests/utils/python`) and the `bt2`
 # Python package.
-run_python_bt2_test() {
+bt_run_py_test() {
 	local -r test_dir=$1
 	local -r test_pattern=${2:-*}
 	local python_exec

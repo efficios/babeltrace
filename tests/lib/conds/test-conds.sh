@@ -20,4 +20,4 @@ if [ "$BT_TESTS_OS_TYPE" = "mingw" ]; then
 	BT_TESTS_LIB_CONDS_TRIGGER_BIN="$BT_TESTS_LIB_CONDS_TRIGGER_BIN.exe"
 fi
 
-run_python_bt2_test "$BT_TESTS_SRCDIR/$reldir" test.py
+bt_run_py_test "$BT_TESTS_SRCDIR/$reldir" test.py

@@ -16,6 +16,6 @@ source "$UTILSSH"
 
 export PYTHON_PLUGIN_PROVIDER_TEST_PLUGIN_PATH="${BT_TESTS_SRCDIR}/python-plugin-provider/bt_plugin_test_python_plugin_provider.py"
 
-run_python_bt2_test \
+bt_run_py_test \
 	"${BT_TESTS_SRCDIR}/python-plugin-provider" \
 	test_python_plugin_provider.py

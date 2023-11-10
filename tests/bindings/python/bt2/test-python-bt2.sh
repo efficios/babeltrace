@@ -14,4 +14,4 @@ fi
 # shellcheck source=../../../utils/utils.sh
 source "$UTILSSH"
 
-run_python_bt2_test "${BT_TESTS_SRCDIR}/bindings/python/bt2" "test_*"
+bt_run_py_test "${BT_TESTS_SRCDIR}/bindings/python/bt2" "test_*"
