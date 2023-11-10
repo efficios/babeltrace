@@ -25,7 +25,7 @@ usage() {
 	echo "environment variable to the built \`tests\` directory."
 }
 
-if [[ -z "$*" ]]; then
+if (($# == 0)); then
 	usage
 	exit 1
 fi
