@@ -25,6 +25,18 @@
 # An unbound variable is an error
 set -u
 
+# Sets the variable named `$1` to `$2` if it's not set, and exports it.
+_bt_tests_set_var_def() {
+	local -r varname=$1
+	local -r val=$2
+
+	if [[ -z ${!varname:-} ]]; then
+		eval "$varname='$val'"
+	fi
+
+	export "${varname?}"
+}
+
 # Name of the OS on which we're running, if not set.
 #
 # One of:
@@ -82,18 +94,10 @@ _set_vars_srcdir_builddir() {
 	fi
 
 	# Base source directory of tests
-	if [[ -z ${BT_TESTS_SRCDIR:-} ]]; then
-		BT_TESTS_SRCDIR=$testsdir
-	fi
-
-	export BT_TESTS_SRCDIR
+	_bt_tests_set_var_def BT_TESTS_SRCDIR "$testsdir"
 
 	# Base build directory of tests
-	if [[ -z ${BT_TESTS_BUILDDIR:-} ]]; then
-		BT_TESTS_BUILDDIR=$testsdir
-	fi
-
-	export BT_TESTS_BUILDDIR
+	_bt_tests_set_var_def BT_TESTS_BUILDDIR "$testsdir"
 }
 
 _set_vars_srcdir_builddir
@@ -130,46 +134,23 @@ export BT_TESTS_BT2_BIN
 _bt_tests_plugins_path=$BT_TESTS_BUILDDIR/../src/plugins
 
 # Colon-separated list of project plugin paths, if not set
-if [[ -z ${BT_TESTS_BABELTRACE_PLUGIN_PATH:-} ]]; then
-	BT_TESTS_BABELTRACE_PLUGIN_PATH=$_bt_tests_plugins_path/ctf:$_bt_tests_plugins_path/utils:$_bt_tests_plugins_path/text:$_bt_tests_plugins_path/lttng-utils
-fi
-
-export BT_TESTS_BABELTRACE_PLUGIN_PATH
+_bt_tests_set_var_def BT_TESTS_BABELTRACE_PLUGIN_PATH \
+	"$_bt_tests_plugins_path/ctf:$_bt_tests_plugins_path/utils:$_bt_tests_plugins_path/text:$_bt_tests_plugins_path/lttng-utils"
 
 # Directory containing the Python plugin provider library, if not set
-if [[ -z ${BT_TESTS_PROVIDER_DIR:-} ]]; then
-	BT_TESTS_PROVIDER_DIR=$BT_TESTS_BUILDDIR/../src/python-plugin-provider/.libs
-fi
-
-export BT_TESTS_PROVIDER_DIR
+_bt_tests_set_var_def BT_TESTS_PROVIDER_DIR "$BT_TESTS_BUILDDIR/../src/python-plugin-provider/.libs"
 
 # Directory containing the built `bt2` Python package, if not set
-if [[ -z ${BT_TESTS_PYTHONPATH:-} ]]; then
-	BT_TESTS_PYTHONPATH=$BT_TESTS_BUILDDIR/../src/bindings/python/bt2/build/build_lib
-fi
-
-export BT_TESTS_PYTHONPATH
+_bt_tests_set_var_def BT_TESTS_PYTHONPATH "$BT_TESTS_BUILDDIR/../src/bindings/python/bt2/build/build_lib"
 
 # Name of the `awk` command to use when testing, if not set
-if [[ -z ${BT_TESTS_AWK_BIN:-} ]]; then
-	BT_TESTS_AWK_BIN="awk"
-fi
-
-export BT_TESTS_AWK_BIN
+_bt_tests_set_var_def BT_TESTS_AWK_BIN awk
 
 # Name of the `grep` command to use when testing, if not set
-if [[ -z ${BT_TESTS_GREP_BIN:-} ]]; then
-	BT_TESTS_GREP_BIN="grep"
-fi
-
-export BT_TESTS_GREP_BIN
+_bt_tests_set_var_def BT_TESTS_GREP_BIN grep
 
 # Name of the `python3` command to use when testing, if not set
-if [[ -z ${BT_TESTS_PYTHON_BIN:-} ]]; then
-	BT_TESTS_PYTHON_BIN=python3
-fi
-
-export BT_TESTS_PYTHON_BIN
+_bt_tests_set_var_def BT_TESTS_PYTHON_BIN python3
 
 # Major and minor version of the `python3` command to use when testing.
 #
@@ -178,25 +159,16 @@ export BT_TESTS_PYTHON_BIN
 _bt_tests_py3_version=$("$BT_TESTS_PYTHON_BIN" -c 'import sys; print("{}.{}".format(sys.version_info.major, sys.version_info.minor))')
 
 # Name of the `python3-config` command to use when testing, if not set
-if [[ -z ${BT_TESTS_PYTHON_CONFIG_BIN:-} ]]; then
-	BT_TESTS_PYTHON_CONFIG_BIN=python3-config
-fi
-
-export BT_TESTS_PYTHON_CONFIG_BIN
+_bt_tests_set_var_def BT_TESTS_PYTHON_CONFIG_BIN python3-config
 
 # Name of the `sed` command to use when testing, if not set
-if [[ -z ${BT_TESTS_SED_BIN:-} ]]; then
-	BT_TESTS_SED_BIN="sed"
-fi
-
-export BT_TESTS_SED_BIN
+_bt_tests_set_var_def BT_TESTS_SED_BIN sed
 
 # Name of the `cc` command to use when testing, if not set
-if [[ -z ${BT_TESTS_CC_BIN:-} ]]; then
-	BT_TESTS_CC_BIN=cc
-fi
+_bt_tests_set_var_def BT_TESTS_CC_BIN cc
 
-export BT_TESTS_CC_BIN
+# Done with _bt_tests_set_var_def()
+unset -f _bt_tests_set_var_def
 
 # Whether or not to enable AddressSanitizer, `0` (disabled) if not set.
 #
