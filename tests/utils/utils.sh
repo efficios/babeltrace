@@ -277,7 +277,6 @@ bt_diff_cli() {
 
 	local -r temp_stdout_output_file="$(mktemp -t actual-stdout.XXXXXX)"
 	local -r temp_stderr_output_file="$(mktemp -t actual-stderr.XXXXXX)"
-	local ret=0
 
 	bt_cli "$temp_stdout_output_file" "$temp_stderr_output_file" "${args[@]}"
 
@@ -286,13 +285,9 @@ bt_diff_cli() {
 	bt_diff "$expected_stderr_file" "$temp_stderr_output_file" "${args[@]}"
 	local -r ret_stderr=$?
 
-	if ((ret_stdout != 0 || ret_stderr != 0)); then
-		ret=1
-	fi
-
 	rm -f "$temp_stdout_output_file" "$temp_stderr_output_file"
 
-	return $ret
+	return $((ret_stdout || ret_stderr))
 }
 
 # Checks the difference between:
