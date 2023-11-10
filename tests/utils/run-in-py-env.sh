@@ -5,7 +5,7 @@
 # Copyright (C) 2017-2023 Philippe Proulx <pproulx@efficios.com>
 # Copyright (C) 2019 Simon Marchi <simon.marchi@efficios.com>
 
-if [ -n "${BT_TESTS_SRCDIR:-}" ]; then
+if [[ -n "${BT_TESTS_SRCDIR:-}" ]]; then
 	UTILSSH="$BT_TESTS_SRCDIR/utils/utils.sh"
 else
 	UTILSSH="$(dirname "$0")/../utils/utils.sh"
@@ -25,13 +25,13 @@ usage() {
 	echo "environment variable to the built \`tests\` directory."
 }
 
-if [ -z "$*" ]; then
+if [[ -z "$*" ]]; then
 	usage
 	exit 1
 fi
 
 # Sanity check that the BT_TESTS_BUILDDIR value makes sense.
-if [ ! -f "$BT_TESTS_BUILDDIR/Makefile" ]; then
+if [[ ! -f "$BT_TESTS_BUILDDIR/Makefile" ]]; then
 	fold -w 80 -s <<- END
 	$0: BT_TESTS_BUILDDIR does not point to a valid directory (\`$BT_TESTS_BUILDDIR/Makefile\` does not exist).
 
