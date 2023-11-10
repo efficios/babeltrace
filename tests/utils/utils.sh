@@ -308,10 +308,9 @@ bt_diff_details_ctf_single() {
 	local -r trace_dir="$2"
 	shift 2
 	local -r extra_details_args=("$@")
-	expected_stderr_file="/dev/null"
 
 	# Compare using the CLI with `sink.text.details`
-	bt_diff_cli "$expected_stdout_file" "$expected_stderr_file" "$trace_dir" \
+	bt_diff_cli "$expected_stdout_file" /dev/null "$trace_dir" \
 		"-c" "sink.text.details" "${extra_details_args[@]+${extra_details_args[@]}}"
 }
 
