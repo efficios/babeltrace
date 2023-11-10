@@ -227,10 +227,10 @@ bt_remove_cr_inline() {
 #
 # Returns the exit status of the executed `$BT_TESTS_BT2_BIN`.
 bt_cli() {
-	local stdout_file="$1"
-	local stderr_file="$2"
+	local -r stdout_file="$1"
+	local -r stderr_file="$2"
 	shift 2
-	local args=("$@")
+	local -r args=("$@")
 
 	echo "Running: $BT_TESTS_BT2_BIN ${args[*]}" >&2
 	run_python_bt2 "$BT_TESTS_BT2_BIN" "${args[@]}" 1>"$stdout_file" 2>"$stderr_file"
