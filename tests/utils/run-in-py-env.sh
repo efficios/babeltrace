@@ -2,17 +2,8 @@
 #
 # SPDX-License-Identifier: GPL-2.0-only
 #
-# Copyright (C) 2017 Philippe Proulx <pproulx@efficios.com>
+# Copyright (C) 2017-2023 Philippe Proulx <pproulx@efficios.com>
 # Copyright (C) 2019 Simon Marchi <simon.marchi@efficios.com>
-#
-
-# Execute a shell command in the appropriate environment to have access to the
-# bt2 Python bindings. For example, one could use it to run a specific Python
-# binding test case with:
-#
-#   $ tests/utils/run-in-py-utils-bt2-env.sh python3 ./tests/utils/python/testrunner.py \
-#     -t test_value.MapValueTestCase.test_deepcopy \
-#     ./tests/bindings/python/bt2
 
 if [ -n "${BT_TESTS_SRCDIR:-}" ]; then
 	UTILSSH="$BT_TESTS_SRCDIR/utils/utils.sh"
@@ -24,13 +15,14 @@ fi
 source "$UTILSSH"
 
 usage() {
-	echo "Usage: run-in-py-utils-bt2-env.sh [PYTHON_BIN] ..."
+	echo "Usage: run-in-py-utils-bt2-env.sh COMMAND [ARGS]..."
 	echo ""
-	echo "Run a binary with the python environment set to use the 'bt2' module"
-	echo "from the build system prior to installation."
+	echo "Runs the command \`COMMAND\` with the arguments \`ARGS\` within an environment"
+	echo "which can import the testing Python modules (in \`tests/utils/python\`) and the"
+	echo "built \`bt2\` Python package."
 	echo ""
-	echo "When building out of tree export the BT_TESTS_BUILDDIR variable with"
-	echo "the path to the built 'tests' directory."
+	echo "NOTE: If you build out of tree, export and set the \`BT_TESTS_BUILDDIR\`"
+	echo "environment variable to the built \`tests\` directory."
 }
 
 if [ -z "$*" ]; then
