@@ -273,26 +273,21 @@ bt_diff() {
 # Returns 0 if there's no difference, or 1 otherwise, also printing said
 # difference to the standard error.
 bt_diff_cli() {
-	local expected_stdout_file="$1"
-	local expected_stderr_file="$2"
+	local -r expected_stdout_file="$1"
+	local -r expected_stderr_file="$2"
 	shift 2
-	local args=("$@")
+	local -r args=("$@")
 
-	local temp_stdout_output_file
-	local temp_stderr_output_file
+	local -r temp_stdout_output_file="$(mktemp -t actual-stdout.XXXXXX)"
+	local -r temp_stderr_output_file="$(mktemp -t actual-stderr.XXXXXX)"
 	local ret=0
-	local ret_stdout
-	local ret_stderr
-
-	temp_stdout_output_file="$(mktemp -t actual-stdout.XXXXXX)"
-	temp_stderr_output_file="$(mktemp -t actual-stderr.XXXXXX)"
 
 	bt_cli "$temp_stdout_output_file" "$temp_stderr_output_file" "${args[@]}"
 
 	bt_diff "$expected_stdout_file" "$temp_stdout_output_file" "${args[@]}"
-	ret_stdout=$?
+	local -r ret_stdout=$?
 	bt_diff "$expected_stderr_file" "$temp_stderr_output_file" "${args[@]}"
-	ret_stderr=$?
+	local -r ret_stderr=$?
 
 	if ((ret_stdout != 0 || ret_stderr != 0)); then
 		ret=1
