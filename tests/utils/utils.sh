@@ -121,11 +121,11 @@ export BT_TESTS_BT2_BIN
 # run_python_bt2() to use it.
 #
 # TODO: Remove when `tests/bindings/python/bt2/test_plugin.py` is fixed.
-BT_PLUGINS_PATH="${BT_TESTS_BUILDDIR}/../src/plugins"
+_bt_tests_plugins_path="${BT_TESTS_BUILDDIR}/../src/plugins"
 
 # Colon-separated list of project plugin paths, if not set
 if [ -z "${BT_TESTS_BABELTRACE_PLUGIN_PATH:-}" ]; then
-	BT_TESTS_BABELTRACE_PLUGIN_PATH="${BT_PLUGINS_PATH}/ctf:${BT_PLUGINS_PATH}/utils:${BT_PLUGINS_PATH}/text:${BT_PLUGINS_PATH}/lttng-utils"
+	BT_TESTS_BABELTRACE_PLUGIN_PATH="${_bt_tests_plugins_path}/ctf:${_bt_tests_plugins_path}/utils:${_bt_tests_plugins_path}/text:${_bt_tests_plugins_path}/lttng-utils"
 fi
 export BT_TESTS_BABELTRACE_PLUGIN_PATH
 
@@ -163,7 +163,7 @@ export BT_TESTS_PYTHON_BIN
 #
 # This doesn't need to be exported, but it needs to remain set for
 # run_python() to use it.
-BT_TESTS_PYTHON_VERSION=$("$BT_TESTS_PYTHON_BIN" -c 'import sys; print("{}.{}".format(sys.version_info.major, sys.version_info.minor))')
+_bt_tests_py3_version=$("$BT_TESTS_PYTHON_BIN" -c 'import sys; print("{}.{}".format(sys.version_info.major, sys.version_info.minor))')
 
 # Name of the `python3-config` command to use when testing, if not set
 if [ -z "${BT_TESTS_PYTHON_CONFIG_BIN:-}" ]; then
@@ -395,7 +395,7 @@ check_coverage() {
 run_python() {
 	local our_pythonpath="${BT_TESTS_SRCDIR}/utils/python"
 
-	if [[ $BT_TESTS_PYTHON_VERSION =~ 3.[45] ]]; then
+	if [[ $_bt_tests_py3_version =~ 3.[45] ]]; then
 		# Add a local directory containing a `typing.py` to `PYTHONPATH`
 		# for Python 3.4 and Python 3.5 which either don't offer the
 		# `typing` module at all, or offer a partial one.
@@ -414,7 +414,7 @@ run_python_bt2() {
 	local -x "LIBBABELTRACE2_PLUGIN_PROVIDER_DIR=${BT_TESTS_PROVIDER_DIR}"
 	local -x "BT_TESTS_DATADIR=${BT_TESTS_DATADIR}"
 	local -x "BT_CTF_TRACES_PATH=${BT_CTF_TRACES_PATH}"
-	local -x "BT_PLUGINS_PATH=${BT_PLUGINS_PATH}"
+	local -x "BT_PLUGINS_PATH=${_bt_tests_plugins_path}"
 	local -x "PYTHONPATH=${BT_TESTS_PYTHONPATH}${PYTHONPATH:+:}${PYTHONPATH:-}"
 
 	local main_lib_path="${BT_TESTS_BUILDDIR}/../src/lib/.libs"
