@@ -329,15 +329,12 @@ bt_diff_details_ctf_single() {
 # The program `$1` receives the path to a temporary, empty directory
 # where to write the CTF trace as its first argument.
 bt_diff_details_ctf_gen_single() {
-	local ctf_gen_prog_path="$1"
-	local expected_stdout_file="$2"
+	local -r ctf_gen_prog_path="$1"
+	local -r expected_stdout_file="$2"
 	shift 2
-	local extra_details_args=("$@")
+	local -r extra_details_args=("$@")
 
-	local temp_trace_dir
-	local ret
-
-	temp_trace_dir="$(mktemp -d)"
+	local -r temp_trace_dir="$(mktemp -d)"
 
 	# Run the CTF trace generator program to get a CTF trace
 	if ! "$ctf_gen_prog_path" "$temp_trace_dir" 2>/dev/null; then
@@ -349,7 +346,7 @@ bt_diff_details_ctf_gen_single() {
 	# Compare using the CLI with `sink.text.details`
 	bt_diff_details_ctf_single "$expected_stdout_file" "$temp_trace_dir" \
 		"${extra_details_args[@]+${extra_details_args[@]}}"
-	ret=$?
+	local -r ret=$?
 	rm -rf "$temp_trace_dir"
 	return $ret
 }
