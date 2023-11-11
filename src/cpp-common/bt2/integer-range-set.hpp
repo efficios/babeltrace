@@ -198,7 +198,9 @@ public:
 
     void addRange(const Value lower, const Value upper) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(
+            !std::is_const<LibObjT>::value,
+            "Not available with `bt2::ConstUnsignedIntegerRangeSet` or `bt2::ConstSignedIntegerRangeSet`.");
 
         const auto status = _Spec::addRange(this->libObjPtr(), lower, upper);
 

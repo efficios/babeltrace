@@ -271,7 +271,8 @@ public:
 
     void defaultClockSnapshot(const std::uint64_t val) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstStreamBeginningMessage`.");
 
         bt_message_stream_beginning_set_default_clock_snapshot(this->libObjPtr(), val);
     }
@@ -387,7 +388,8 @@ public:
 
     void defaultClockSnapshot(const std::uint64_t val) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstStreamEndMessage`.");
 
         bt_message_stream_end_set_default_clock_snapshot(this->libObjPtr(), val);
     }
@@ -504,7 +506,8 @@ public:
 
     void defaultClockSnapshot(const std::uint64_t val) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstPacketBeginningMessage`.");
 
         bt_message_packet_beginning_set_default_clock_snapshot(this->libObjPtr(), val);
     }
@@ -615,7 +618,8 @@ public:
 
     void defaultClockSnapshot(const std::uint64_t val) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstPacketEndMessage`.");
 
         bt_message_packet_end_set_default_clock_snapshot(this->libObjPtr(), val);
     }
@@ -847,7 +851,8 @@ public:
 
     void count(const std::uint64_t count) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstDiscardedEventsMessage`.");
 
         bt_message_discarded_events_set_count(this->libObjPtr(), count);
     }
@@ -980,7 +985,8 @@ public:
 
     void count(const std::uint64_t count) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstDiscardedPacketsMessage`.");
 
         bt_message_discarded_packets_set_count(this->libObjPtr(), count);
     }

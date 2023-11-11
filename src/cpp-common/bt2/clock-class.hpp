@@ -128,7 +128,7 @@ public:
 
     void frequency(const std::uint64_t frequency) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstClockClass`.");
 
         bt_clock_class_set_frequency(this->libObjPtr(), frequency);
     }
@@ -140,7 +140,7 @@ public:
 
     void offset(const ClockClassOffset& offset) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstClockClass`.");
 
         bt_clock_class_set_offset(this->libObjPtr(), offset.seconds(), offset.cycles());
     }
@@ -156,7 +156,7 @@ public:
 
     void precision(const std::uint64_t precision) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstClockClass`.");
 
         bt_clock_class_set_precision(this->libObjPtr(), precision);
     }
@@ -168,7 +168,7 @@ public:
 
     void originIsUnixEpoch(const bool originIsUnixEpoch) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstClockClass`.");
 
         bt_clock_class_set_origin_is_unix_epoch(this->libObjPtr(),
                                                 static_cast<bt_bool>(originIsUnixEpoch));
@@ -181,7 +181,7 @@ public:
 
     void name(const char * const name) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstClockClass`.");
 
         const auto status = bt_clock_class_set_name(this->libObjPtr(), name);
 
@@ -208,7 +208,7 @@ public:
 
     void description(const char * const description) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstClockClass`.");
 
         const auto status = bt_clock_class_set_description(this->libObjPtr(), description);
 
@@ -252,7 +252,7 @@ public:
     template <typename LibValT>
     void userAttributes(const CommonMapValue<LibValT> userAttrs) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstClockClass`.");
 
         bt_clock_class_set_user_attributes(this->libObjPtr(), userAttrs.libObjPtr());
     }

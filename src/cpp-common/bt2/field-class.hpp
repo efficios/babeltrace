@@ -405,7 +405,7 @@ public:
     template <typename LibValT>
     void userAttributes(const CommonMapValue<LibValT> userAttrs) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstFieldClass`.");
 
         bt_field_class_set_user_attributes(this->libObjPtr(), userAttrs.libObjPtr());
     }
@@ -567,7 +567,8 @@ public:
 
     void fieldValueRange(const std::uint64_t n) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstIntegerFieldClass`.");
 
         bt_field_class_integer_set_field_value_range(this->libObjPtr(), n);
     }
@@ -579,7 +580,8 @@ public:
 
     void preferredDisplayBase(const DisplayBase base) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstIntegerFieldClass`.");
 
         bt_field_class_integer_set_preferred_display_base(
             this->libObjPtr(), static_cast<bt_field_class_integer_preferred_display_base>(base));
@@ -1043,7 +1045,8 @@ public:
     template <typename LibValT>
     void userAttributes(const CommonMapValue<LibValT> userAttrs) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstStructureFieldClassMember`.");
 
         bt_field_class_structure_member_set_user_attributes(this->libObjPtr(),
                                                             userAttrs.libObjPtr());
@@ -1160,7 +1163,8 @@ public:
 
     void appendMember(const char * const name, const FieldClass fc) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstStructureFieldClass`.");
 
         const auto status =
             bt_field_class_structure_append_member(this->libObjPtr(), name, fc.libObjPtr());
@@ -1957,7 +1961,8 @@ public:
     template <typename LibValT>
     void userAttributes(const CommonMapValue<LibValT> userAttrs) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstVariantFieldClassOption`.");
 
         bt_field_class_variant_option_set_user_attributes(this->libObjPtr(), userAttrs.libObjPtr());
     }
@@ -2296,7 +2301,8 @@ public:
 
     void appendOption(const char * const name, const FieldClass fc) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstVariantWithoutSelectorFieldClass`.");
 
         const auto status = bt_field_class_variant_without_selector_append_option(
             this->libObjPtr(), name, fc.libObjPtr());
@@ -2528,7 +2534,9 @@ public:
     void appendOption(const char * const name, const FieldClass fc,
                       const typename Option::RangeSet ranges) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(
+            !std::is_const<LibObjT>::value,
+            "Not available with `bt2::ConstVariantWithUnsignedIntegerSelectorFieldClass`.");
 
         const auto status =
             _Spec::appendOption(this->libObjPtr(), name, fc.libObjPtr(), ranges.libObjPtr());

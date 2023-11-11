@@ -476,7 +476,7 @@ public:
 
     Packet::Shared createPacket() const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstStream`.");
 
         const auto libObjPtr = bt_packet_create(this->libObjPtr());
 
@@ -494,7 +494,7 @@ public:
 
     void name(const char * const name) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstStream`.");
 
         const auto status = bt_stream_set_name(this->libObjPtr(), name);
 
@@ -522,7 +522,7 @@ public:
     template <typename LibValT>
     void userAttributes(const CommonMapValue<LibValT> userAttrs) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstStream`.");
 
         bt_stream_set_user_attributes(this->libObjPtr(), userAttrs.libObjPtr());
     }
@@ -699,7 +699,7 @@ public:
 
     void name(const char * const name) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTrace`.");
 
         const auto status = bt_trace_set_name(this->libObjPtr(), name);
 
@@ -763,7 +763,7 @@ public:
 
     void environmentEntry(const char * const name, const std::int64_t val) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTrace`.");
 
         const auto status = bt_trace_set_environment_entry_integer(this->libObjPtr(), name, val);
 
@@ -779,7 +779,7 @@ public:
 
     void environmentEntry(const char * const name, const char * const val) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTrace`.");
 
         const auto status = bt_trace_set_environment_entry_string(this->libObjPtr(), name, val);
 
@@ -838,7 +838,7 @@ public:
     template <typename LibValT>
     void userAttributes(const CommonMapValue<LibValT> userAttrs) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTrace`.");
 
         bt_trace_set_user_attributes(this->libObjPtr(), userAttrs.libObjPtr());
     }
@@ -1027,7 +1027,7 @@ public:
 
     void name(const char * const name) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstEventClass`.");
 
         const auto status = bt_event_class_set_name(this->libObjPtr(), name);
 
@@ -1054,7 +1054,7 @@ public:
 
     void logLevel(const LogLevel logLevel) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstEventClass`.");
 
         bt_event_class_set_log_level(this->libObjPtr(),
                                      static_cast<bt_event_class_log_level>(logLevel));
@@ -1074,7 +1074,7 @@ public:
 
     void emfUri(const char * const emfUri) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstEventClass`.");
 
         const auto status = bt_event_class_set_emf_uri(this->libObjPtr(), emfUri);
 
@@ -1101,7 +1101,7 @@ public:
 
     void payloadFieldClass(const StructureFieldClass fc) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstEventClass`.");
 
         const auto status =
             bt_event_class_set_payload_field_class(this->libObjPtr(), fc.libObjPtr());
@@ -1124,7 +1124,7 @@ public:
 
     void specificContextFieldClass(const StructureFieldClass fc) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstEventClass`.");
 
         const auto status =
             bt_event_class_set_specific_context_field_class(this->libObjPtr(), fc.libObjPtr());
@@ -1148,7 +1148,7 @@ public:
     template <typename LibValT>
     void userAttributes(const CommonMapValue<LibValT> userAttrs) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstEventClass`.");
 
         bt_event_class_set_user_attributes(this->libObjPtr(), userAttrs.libObjPtr());
     }
@@ -1354,7 +1354,8 @@ public:
 
     Stream::Shared instantiate(const Trace trace) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstStreamClass`.");
 
         const auto libObjPtr = bt_stream_create(this->libObjPtr(), trace.libObjPtr());
 
@@ -1364,7 +1365,8 @@ public:
 
     Stream::Shared instantiate(const Trace trace, const std::uint64_t id) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstStreamClass`.");
 
         const auto libObjPtr = bt_stream_create_with_id(this->libObjPtr(), trace.libObjPtr(), id);
 
@@ -1374,7 +1376,8 @@ public:
 
     EventClass::Shared createEventClass() const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstStreamClass`.");
 
         const auto libObjPtr = bt_event_class_create(this->libObjPtr());
 
@@ -1384,7 +1387,8 @@ public:
 
     EventClass::Shared createEventClass(const std::uint64_t id) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstStreamClass`.");
 
         const auto libObjPtr = bt_event_class_create_with_id(this->libObjPtr(), id);
 
@@ -1401,7 +1405,8 @@ public:
 
     void name(const char * const name) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstStreamClass`.");
 
         const auto status = bt_stream_class_set_name(this->libObjPtr(), name);
 
@@ -1428,7 +1433,8 @@ public:
 
     void assignsAutomaticEventClassId(const bool val) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstStreamClass`.");
 
         bt_stream_class_set_assigns_automatic_event_class_id(this->libObjPtr(),
                                                              static_cast<bt_bool>(val));
@@ -1442,7 +1448,8 @@ public:
 
     void assignsAutomaticStreamId(const bool val) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstStreamClass`.");
 
         bt_stream_class_set_assigns_automatic_stream_id(this->libObjPtr(),
                                                         static_cast<bt_bool>(val));
@@ -1456,7 +1463,8 @@ public:
     void supportsPackets(const bool supportsPackets, const bool withBeginningDefaultClkSnapshot,
                          const bool withEndDefaultClkSnapshot) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstStreamClass`.");
 
         bt_stream_class_set_supports_packets(this->libObjPtr(),
                                              static_cast<bt_bool>(supportsPackets),
@@ -1484,7 +1492,8 @@ public:
     void supportsDiscardedEvents(const bool supportsDiscardedEvents,
                                  const bool withDefaultClkSnapshots) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstStreamClass`.");
 
         bt_stream_class_set_supports_discarded_events(
             this->libObjPtr(), static_cast<bt_bool>(supportsDiscardedEvents),
@@ -1505,7 +1514,8 @@ public:
     void supportsDiscardedPackets(const bool supportsDiscardedPackets,
                                   const bool withDefaultClkSnapshots) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstStreamClass`.");
 
         bt_stream_class_set_supports_discarded_packets(
             this->libObjPtr(), static_cast<bt_bool>(supportsDiscardedPackets),
@@ -1525,7 +1535,8 @@ public:
 
     void defaultClockClass(const ClockClass clkCls) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstStreamClass`.");
 
         const auto status =
             bt_stream_class_set_default_clock_class(this->libObjPtr(), clkCls.libObjPtr());
@@ -1567,7 +1578,8 @@ public:
 
     void packetContextFieldClass(const StructureFieldClass fc) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstStreamClass`.");
 
         const auto status =
             bt_stream_class_set_packet_context_field_class(this->libObjPtr(), fc.libObjPtr());
@@ -1590,7 +1602,8 @@ public:
 
     void eventCommonContextFieldClass(const StructureFieldClass fc) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstStreamClass`.");
 
         const auto status =
             bt_stream_class_set_event_common_context_field_class(this->libObjPtr(), fc.libObjPtr());
@@ -1614,7 +1627,8 @@ public:
     template <typename LibValT>
     void userAttributes(const CommonMapValue<LibValT> userAttrs) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstStreamClass`.");
 
         bt_stream_class_set_user_attributes(this->libObjPtr(), userAttrs.libObjPtr());
     }
@@ -1773,7 +1787,7 @@ public:
 
     Trace::Shared instantiate() const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTraceClass`.");
 
         const auto libObjPtr = bt_trace_create(this->libObjPtr());
 
@@ -1783,7 +1797,7 @@ public:
 
     StreamClass::Shared createStreamClass() const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTraceClass`.");
 
         const auto libObjPtr = bt_stream_class_create(this->libObjPtr());
 
@@ -1793,7 +1807,7 @@ public:
 
     StreamClass::Shared createStreamClass(const std::uint64_t id) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTraceClass`.");
 
         const auto libObjPtr = bt_stream_class_create_with_id(this->libObjPtr(), id);
 
@@ -1803,7 +1817,7 @@ public:
 
     FieldClass::Shared createBoolFieldClass() const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTraceClass`.");
 
         const auto libObjPtr = bt_field_class_bool_create(this->libObjPtr());
 
@@ -1813,7 +1827,7 @@ public:
 
     BitArrayFieldClass::Shared createBitArrayFieldClass(const std::uint64_t length) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTraceClass`.");
 
         const auto libObjPtr = bt_field_class_bit_array_create(this->libObjPtr(), length);
 
@@ -1823,7 +1837,7 @@ public:
 
     IntegerFieldClass::Shared createUnsignedIntegerFieldClass() const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTraceClass`.");
 
         const auto libObjPtr = bt_field_class_integer_unsigned_create(this->libObjPtr());
 
@@ -1833,7 +1847,7 @@ public:
 
     IntegerFieldClass::Shared createSignedIntegerFieldClass() const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTraceClass`.");
 
         const auto libObjPtr = bt_field_class_integer_signed_create(this->libObjPtr());
 
@@ -1843,7 +1857,7 @@ public:
 
     UnsignedEnumerationFieldClass::Shared createUnsignedEnumerationFieldClass() const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTraceClass`.");
 
         const auto libObjPtr = bt_field_class_enumeration_unsigned_create(this->libObjPtr());
 
@@ -1853,7 +1867,7 @@ public:
 
     SignedEnumerationFieldClass::Shared createSignedEnumerationFieldClass() const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTraceClass`.");
 
         const auto libObjPtr = bt_field_class_enumeration_signed_create(this->libObjPtr());
 
@@ -1863,7 +1877,7 @@ public:
 
     FieldClass::Shared createSinglePrecisionRealFieldClass() const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTraceClass`.");
 
         const auto libObjPtr = bt_field_class_real_single_precision_create(this->libObjPtr());
 
@@ -1873,7 +1887,7 @@ public:
 
     FieldClass::Shared createDoublePrecisionRealFieldClass() const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTraceClass`.");
 
         const auto libObjPtr = bt_field_class_real_double_precision_create(this->libObjPtr());
 
@@ -1883,7 +1897,7 @@ public:
 
     FieldClass::Shared createStringFieldClass() const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTraceClass`.");
 
         const auto libObjPtr = bt_field_class_string_create(this->libObjPtr());
 
@@ -1894,7 +1908,7 @@ public:
     StaticArrayFieldClass::Shared createStaticArrayFieldClass(const FieldClass elementFieldClass,
                                                               const std::uint64_t length) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTraceClass`.");
 
         const auto libObjPtr = bt_field_class_array_static_create(
             this->libObjPtr(), elementFieldClass.libObjPtr(), length);
@@ -1905,7 +1919,7 @@ public:
 
     ArrayFieldClass::Shared createDynamicArrayFieldClass(const FieldClass elementFieldClass) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTraceClass`.");
 
         const auto libObjPtr = bt_field_class_array_dynamic_create(
             this->libObjPtr(), elementFieldClass.libObjPtr(), nullptr);
@@ -1918,7 +1932,7 @@ public:
     createDynamicArrayFieldClass(const FieldClass elementFieldClass,
                                  const IntegerFieldClass lengthFieldClass) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTraceClass`.");
 
         const auto libObjPtr = bt_field_class_array_dynamic_create(
             this->libObjPtr(), elementFieldClass.libObjPtr(), lengthFieldClass.libObjPtr());
@@ -1929,7 +1943,7 @@ public:
 
     StructureFieldClass::Shared createStructureFieldClass() const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTraceClass`.");
 
         const auto libObjPtr = bt_field_class_structure_create(this->libObjPtr());
 
@@ -1939,7 +1953,7 @@ public:
 
     OptionFieldClass::Shared createOptionFieldClass(const FieldClass optionalFieldClass) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTraceClass`.");
 
         const auto libObjPtr = bt_field_class_option_without_selector_create(
             this->libObjPtr(), optionalFieldClass.libObjPtr());
@@ -1952,7 +1966,7 @@ public:
     createOptionWithBoolSelectorFieldClass(const FieldClass optionalFieldClass,
                                            const FieldClass selectorFieldClass) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTraceClass`.");
 
         const auto libObjPtr = bt_field_class_option_with_selector_field_bool_create(
             this->libObjPtr(), optionalFieldClass.libObjPtr(), selectorFieldClass.libObjPtr());
@@ -1966,7 +1980,7 @@ public:
         const FieldClass optionalFieldClass, const IntegerFieldClass selectorFieldClass,
         const ConstUnsignedIntegerRangeSet ranges) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTraceClass`.");
 
         const auto libObjPtr = bt_field_class_option_with_selector_field_integer_unsigned_create(
             this->libObjPtr(), optionalFieldClass.libObjPtr(), selectorFieldClass.libObjPtr(),
@@ -1981,7 +1995,7 @@ public:
                                                     const IntegerFieldClass selectorFieldClass,
                                                     const ConstSignedIntegerRangeSet ranges) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTraceClass`.");
 
         const auto libObjPtr = bt_field_class_option_with_selector_field_integer_signed_create(
             this->libObjPtr(), optionalFieldClass.libObjPtr(), selectorFieldClass.libObjPtr(),
@@ -1993,7 +2007,7 @@ public:
 
     VariantWithoutSelectorFieldClass::Shared createVariantFieldClass() const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTraceClass`.");
 
         const auto libObjPtr = bt_field_class_variant_create(this->libObjPtr(), nullptr);
 
@@ -2019,7 +2033,7 @@ public:
 
     void assignsAutomaticStreamClassId(const bool val) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTraceClass`.");
 
         bt_trace_class_set_assigns_automatic_stream_class_id(this->libObjPtr(),
                                                              static_cast<bt_bool>(val));
@@ -2055,7 +2069,7 @@ public:
     template <typename LibValT>
     void userAttributes(const CommonMapValue<LibValT> userAttrs) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTraceClass`.");
 
         bt_trace_class_set_user_attributes(this->libObjPtr(), userAttrs.libObjPtr());
     }
@@ -2075,7 +2089,7 @@ private:
     typename ObjT::Shared
     _createVariantWithIntegerSelectorFieldClass(const IntegerFieldClass selectorFieldClass) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTraceClass`.");
 
         const auto libObjPtr =
             bt_field_class_variant_create(this->libObjPtr(), selectorFieldClass.libObjPtr());

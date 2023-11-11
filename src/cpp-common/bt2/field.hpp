@@ -285,7 +285,7 @@ public:
 
     CommonBoolField<LibObjT> operator=(const Value val) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstBoolField`.");
 
         bt_field_bool_set_value(this->libObjPtr(), static_cast<bt_bool>(val));
         return *this;
@@ -372,7 +372,8 @@ public:
 
     CommonBitArrayField<LibObjT> operator=(const std::uint64_t bits) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstBitArrayField`.");
 
         bt_field_bit_array_set_value_as_integer(this->libObjPtr(), bits);
         return *this;
@@ -461,7 +462,8 @@ public:
 
     CommonUnsignedIntegerField<LibObjT> operator=(const Value val) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstUnsignedIntegerField`.");
 
         bt_field_integer_unsigned_set_value(this->libObjPtr(), val);
         return *this;
@@ -549,7 +551,8 @@ public:
 
     CommonSignedIntegerField<LibObjT> operator=(const Value val) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstSignedIntegerField`.");
 
         bt_field_integer_signed_set_value(this->libObjPtr(), val);
         return *this;
@@ -823,7 +826,8 @@ public:
 
     CommonSinglePrecisionRealField<LibObjT> operator=(const Value val) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstSinglePrecisionRealField`.");
 
         bt_field_real_single_precision_set_value(this->libObjPtr(), val);
         return *this;
@@ -901,7 +905,8 @@ public:
 
     CommonDoublePrecisionRealField<LibObjT> operator=(const Value val) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstDoublePrecisionRealField`.");
 
         bt_field_real_double_precision_set_value(this->libObjPtr(), val);
         return *this;
@@ -973,7 +978,8 @@ public:
 
     CommonStringField<LibObjT> operator=(const char * const val) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstStringField`.");
 
         const auto status = bt_field_string_set_value(this->libObjPtr(), val);
 
@@ -991,7 +997,8 @@ public:
 
     void append(const char * const begin, const std::uint64_t len) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstStringField`.");
 
         const auto status = bt_field_string_append_with_length(this->libObjPtr(), begin, len);
 
@@ -1007,7 +1014,8 @@ public:
 
     void clear() const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstStringField`.");
 
         bt_field_string_clear(this->libObjPtr());
     }
@@ -1309,7 +1317,8 @@ public:
 
     void length(const std::uint64_t length) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstDynamicArrayField`.");
 
         const auto status = bt_field_array_dynamic_set_length(this->libObjPtr(), length);
 
@@ -1406,7 +1415,8 @@ public:
 
     void hasField(const bool hasField) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstOptionField`.");
 
         bt_field_option_set_has_field(this->libObjPtr(), static_cast<bt_bool>(hasField));
     }
@@ -1515,7 +1525,8 @@ public:
 
     void selectOption(const std::uint64_t index) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstVariantField`.");
 
         static_cast<void>(bt_field_variant_select_option_by_index(this->libObjPtr(), index));
     }

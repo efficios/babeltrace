@@ -329,7 +329,7 @@ public:
 
     CommonBoolValue<LibObjT> operator=(const Value rawVal) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstBoolValue`.");
 
         bt_value_bool_set(this->libObjPtr(), static_cast<bt_bool>(rawVal));
         return *this;
@@ -409,7 +409,8 @@ public:
     CommonUnsignedIntegerValue<LibObjT>&
     operator=(const CommonUnsignedIntegerValue<OtherLibObjT> val) noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstUnsignedIntegerValue`.");
 
         _ThisCommonValue::operator=(val);
         return *this;
@@ -511,7 +512,8 @@ public:
 
     CommonSignedIntegerValue<LibObjT> operator=(const Value rawVal) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstSignedIntegerValue`.");
 
         bt_value_integer_signed_set(this->libObjPtr(), rawVal);
         return *this;
@@ -599,7 +601,7 @@ public:
 
     CommonRealValue<LibObjT> operator=(const Value rawVal) const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstRealValue`.");
 
         bt_value_real_set(this->libObjPtr(), rawVal);
         return *this;
@@ -691,7 +693,8 @@ public:
 
     CommonStringValue<LibObjT> operator=(const char * const rawVal) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value,
+                      "Not available with `bt2::ConstStringValue`.");
 
         const auto status = bt_value_string_set(this->libObjPtr(), rawVal);
 
@@ -834,7 +837,7 @@ public:
 
     void append(const Value val) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstArrayValue`.");
 
         const auto status = bt_value_array_append_element(this->libObjPtr(), val.libObjPtr());
 
@@ -843,7 +846,7 @@ public:
 
     void append(const bool rawVal) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstArrayValue`.");
 
         const auto status =
             bt_value_array_append_bool_element(this->libObjPtr(), static_cast<bt_bool>(rawVal));
@@ -853,7 +856,7 @@ public:
 
     void append(const std::uint64_t rawVal) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstArrayValue`.");
 
         const auto status =
             bt_value_array_append_unsigned_integer_element(this->libObjPtr(), rawVal);
@@ -863,7 +866,7 @@ public:
 
     void append(const std::int64_t rawVal) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstArrayValue`.");
 
         const auto status = bt_value_array_append_signed_integer_element(this->libObjPtr(), rawVal);
 
@@ -872,7 +875,7 @@ public:
 
     void append(const double rawVal) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstArrayValue`.");
 
         const auto status = bt_value_array_append_real_element(this->libObjPtr(), rawVal);
 
@@ -881,7 +884,7 @@ public:
 
     void append(const char * const rawVal) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstArrayValue`.");
 
         const auto status = bt_value_array_append_string_element(this->libObjPtr(), rawVal);
 
@@ -1148,7 +1151,7 @@ public:
 
     void insert(const char * const key, const Value val) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstMapValue`.");
 
         const auto status = bt_value_map_insert_entry(this->libObjPtr(), key, val.libObjPtr());
 
@@ -1162,7 +1165,7 @@ public:
 
     void insert(const char * const key, const bool rawVal) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstMapValue`.");
 
         const auto status =
             bt_value_map_insert_bool_entry(this->libObjPtr(), key, static_cast<bt_bool>(rawVal));
@@ -1177,7 +1180,7 @@ public:
 
     void insert(const char * const key, const std::uint64_t rawVal) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstMapValue`.");
 
         const auto status =
             bt_value_map_insert_unsigned_integer_entry(this->libObjPtr(), key, rawVal);
@@ -1192,7 +1195,7 @@ public:
 
     void insert(const char * const key, const std::int64_t rawVal) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstMapValue`.");
 
         const auto status =
             bt_value_map_insert_signed_integer_entry(this->libObjPtr(), key, rawVal);
@@ -1207,7 +1210,7 @@ public:
 
     void insert(const char * const key, const double rawVal) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstMapValue`.");
 
         const auto status = bt_value_map_insert_real_entry(this->libObjPtr(), key, rawVal);
 
@@ -1221,7 +1224,7 @@ public:
 
     void insert(const char * const key, const char * const rawVal) const
     {
-        static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstMapValue`.");
 
         const auto status = bt_value_map_insert_string_entry(this->libObjPtr(), key, rawVal);
 
@@ -1349,7 +1352,7 @@ CommonMapValue<LibObjT> CommonValue<LibObjT>::asMap() const noexcept
 template <typename LibObjT>
 ArrayValue CommonArrayValue<LibObjT>::appendEmptyArray() const
 {
-    static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+    static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstArrayValue`.");
 
     bt_value *libElemPtr;
     const auto status = bt_value_array_append_empty_array_element(this->libObjPtr(), &libElemPtr);
@@ -1361,7 +1364,7 @@ ArrayValue CommonArrayValue<LibObjT>::appendEmptyArray() const
 template <typename LibObjT>
 MapValue CommonArrayValue<LibObjT>::appendEmptyMap() const
 {
-    static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+    static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstArrayValue`.");
 
     bt_value *libElemPtr;
     const auto status = bt_value_array_append_empty_map_element(this->libObjPtr(), &libElemPtr);
@@ -1373,7 +1376,7 @@ MapValue CommonArrayValue<LibObjT>::appendEmptyMap() const
 template <typename LibObjT>
 ArrayValue CommonMapValue<LibObjT>::insertEmptyArray(const char * const key) const
 {
-    static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+    static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstMapValue`.");
 
     bt_value *libEntryPtr;
     const auto status = bt_value_map_insert_empty_array_entry(this->libObjPtr(), key, &libEntryPtr);
@@ -1391,7 +1394,7 @@ ArrayValue CommonMapValue<LibObjT>::insertEmptyArray(const std::string& key) con
 template <typename LibObjT>
 MapValue CommonMapValue<LibObjT>::insertEmptyMap(const char * const key) const
 {
-    static_assert(!std::is_const<LibObjT>::value, "`LibObjT` must NOT be `const`.");
+    static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstMapValue`.");
 
     bt_value *libEntryPtr;
     const auto status = bt_value_map_insert_empty_map_entry(this->libObjPtr(), key, &libEntryPtr);
