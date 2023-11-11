@@ -22,6 +22,7 @@
 #include "borrowed-object.hpp"
 #include "exc.hpp"
 #include "internal/utils.hpp"
+#include "raw-value-proxy.hpp"
 #include "shared-object.hpp"
 
 namespace bt2 {
@@ -79,6 +80,30 @@ enum class ValueType
     STRING = BT_VALUE_TYPE_STRING,
     ARRAY = BT_VALUE_TYPE_ARRAY,
     MAP = BT_VALUE_TYPE_MAP,
+};
+
+template <typename ValueObjT>
+class CommonValueRawValueProxy final
+{
+public:
+    explicit CommonValueRawValueProxy(const ValueObjT obj) : _mObj {obj}
+    {
+    }
+
+    CommonValueRawValueProxy& operator=(bool rawVal) noexcept;
+    CommonValueRawValueProxy& operator=(std::int64_t rawVal) noexcept;
+    CommonValueRawValueProxy& operator=(std::uint64_t rawVal) noexcept;
+    CommonValueRawValueProxy& operator=(double rawVal) noexcept;
+    CommonValueRawValueProxy& operator=(const char *rawVal);
+    CommonValueRawValueProxy& operator=(const std::string& rawVal);
+    operator bool() const noexcept;
+    operator std::int64_t() const noexcept;
+    operator std::uint64_t() const noexcept;
+    operator double() const noexcept;
+    operator const char *() const noexcept;
+
+private:
+    ValueObjT _mObj;
 };
 
 template <typename LibObjT>
@@ -177,40 +202,9 @@ public:
         return !(*this == other);
     }
 
-    CommonValue<LibObjT> operator=(const bool rawVal) const noexcept
+    CommonValueRawValueProxy<CommonValue> operator*() const noexcept
     {
-        this->asBool() = rawVal;
-        return *this;
-    }
-
-    CommonValue<LibObjT> operator=(const std::uint64_t rawVal) const noexcept
-    {
-        this->asUnsignedInteger() = rawVal;
-        return *this;
-    }
-
-    CommonValue<LibObjT> operator=(const std::int64_t rawVal) const noexcept
-    {
-        this->asSignedInteger() = rawVal;
-        return *this;
-    }
-
-    CommonValue<LibObjT> operator=(const double rawVal) const noexcept
-    {
-        this->asReal() = rawVal;
-        return *this;
-    }
-
-    CommonValue<LibObjT> operator=(const char * const rawVal) const noexcept
-    {
-        this->asString() = rawVal;
-        return *this;
-    }
-
-    CommonValue<LibObjT> operator=(const std::string& rawVal) const noexcept
-    {
-        this->asString() = rawVal;
-        return *this;
+        return CommonValueRawValueProxy<CommonValue> {*this};
     }
 
     std::uint64_t arrayLength() const noexcept
@@ -299,6 +293,83 @@ protected:
 
 using Value = CommonValue<bt_value>;
 using ConstValue = CommonValue<const bt_value>;
+
+template <typename ValueObjT>
+CommonValueRawValueProxy<ValueObjT>&
+CommonValueRawValueProxy<ValueObjT>::operator=(const bool rawVal) noexcept
+{
+    _mObj.asBool().value(rawVal);
+    return *this;
+}
+
+template <typename ValueObjT>
+CommonValueRawValueProxy<ValueObjT>&
+CommonValueRawValueProxy<ValueObjT>::operator=(const std::int64_t rawVal) noexcept
+{
+    _mObj.asSignedInteger().value(rawVal);
+    return *this;
+}
+
+template <typename ValueObjT>
+CommonValueRawValueProxy<ValueObjT>&
+CommonValueRawValueProxy<ValueObjT>::operator=(const std::uint64_t rawVal) noexcept
+{
+    _mObj.asUnsignedInteger().value(rawVal);
+    return *this;
+}
+
+template <typename ValueObjT>
+CommonValueRawValueProxy<ValueObjT>&
+CommonValueRawValueProxy<ValueObjT>::operator=(const double rawVal) noexcept
+{
+    _mObj.asReal().value(rawVal);
+    return *this;
+}
+
+template <typename ValueObjT>
+CommonValueRawValueProxy<ValueObjT>&
+CommonValueRawValueProxy<ValueObjT>::operator=(const char * const rawVal)
+{
+    _mObj.asString().value(rawVal);
+    return *this;
+}
+
+template <typename ValueObjT>
+CommonValueRawValueProxy<ValueObjT>&
+CommonValueRawValueProxy<ValueObjT>::operator=(const std::string& rawVal)
+{
+    return *this = rawVal.data();
+}
+
+template <typename ValueObjT>
+CommonValueRawValueProxy<ValueObjT>::operator bool() const noexcept
+{
+    return _mObj.asBool().value();
+}
+
+template <typename ValueObjT>
+CommonValueRawValueProxy<ValueObjT>::operator std::int64_t() const noexcept
+{
+    return _mObj.asSignedInteger().value();
+}
+
+template <typename ValueObjT>
+CommonValueRawValueProxy<ValueObjT>::operator std::uint64_t() const noexcept
+{
+    return _mObj.asUnsignedInteger().value();
+}
+
+template <typename ValueObjT>
+CommonValueRawValueProxy<ValueObjT>::operator double() const noexcept
+{
+    return _mObj.asReal().value();
+}
+
+template <typename ValueObjT>
+CommonValueRawValueProxy<ValueObjT>::operator const char *() const noexcept
+{
+    return _mObj.asString().value();
+}
 
 namespace internal {
 
@@ -420,12 +491,9 @@ public:
         return CommonBoolValue<const bt_value> {*this};
     }
 
-    CommonBoolValue<LibObjT> operator=(const Value rawVal) const noexcept
+    RawValueProxy<CommonBoolValue> operator*() const noexcept
     {
-        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstBoolValue`.");
-
-        bt_value_bool_set(this->libObjPtr(), static_cast<bt_bool>(rawVal));
-        return *this;
+        return RawValueProxy<CommonBoolValue> {*this};
     }
 
     Value value() const noexcept
@@ -433,9 +501,11 @@ public:
         return static_cast<Value>(bt_value_bool_get(this->libObjPtr()));
     }
 
-    operator Value() const noexcept
+    void value(const Value val) const noexcept
     {
-        return this->value();
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstBoolValue`.");
+
+        bt_value_bool_set(this->libObjPtr(), static_cast<bt_bool>(val));
     }
 
     Shared shared() const noexcept
@@ -511,23 +581,22 @@ public:
         return CommonUnsignedIntegerValue<const bt_value> {*this};
     }
 
-    CommonUnsignedIntegerValue<LibObjT> operator=(const Value rawVal) const noexcept
+    RawValueProxy<CommonUnsignedIntegerValue> operator*() const noexcept
+    {
+        return RawValueProxy<CommonUnsignedIntegerValue> {*this};
+    }
+
+    void value(const Value val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstUnsignedIntegerValue`.");
 
-        bt_value_integer_unsigned_set(this->libObjPtr(), rawVal);
-        return *this;
+        bt_value_integer_unsigned_set(this->libObjPtr(), val);
     }
 
     Value value() const noexcept
     {
         return bt_value_integer_unsigned_get(this->libObjPtr());
-    }
-
-    operator Value() const noexcept
-    {
-        return this->value();
     }
 
     Shared shared() const noexcept
@@ -603,23 +672,22 @@ public:
         return CommonSignedIntegerValue<const bt_value> {*this};
     }
 
-    CommonSignedIntegerValue<LibObjT> operator=(const Value rawVal) const noexcept
+    RawValueProxy<CommonSignedIntegerValue> operator*() const noexcept
+    {
+        return RawValueProxy<CommonSignedIntegerValue> {*this};
+    }
+
+    void value(const Value val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstSignedIntegerValue`.");
 
-        bt_value_integer_signed_set(this->libObjPtr(), rawVal);
-        return *this;
+        bt_value_integer_signed_set(this->libObjPtr(), val);
     }
 
     Value value() const noexcept
     {
         return bt_value_integer_signed_get(this->libObjPtr());
-    }
-
-    operator Value() const noexcept
-    {
-        return this->value();
     }
 
     Shared shared() const noexcept
@@ -692,22 +760,21 @@ public:
         return CommonRealValue<const bt_value> {*this};
     }
 
-    CommonRealValue<LibObjT> operator=(const Value rawVal) const noexcept
+    RawValueProxy<CommonRealValue> operator*() const noexcept
+    {
+        return RawValueProxy<CommonRealValue> {*this};
+    }
+
+    void value(const Value val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstRealValue`.");
 
-        bt_value_real_set(this->libObjPtr(), rawVal);
-        return *this;
+        bt_value_real_set(this->libObjPtr(), val);
     }
 
     Value value() const noexcept
     {
         return bt_value_real_get(this->libObjPtr());
-    }
-
-    operator Value() const noexcept
-    {
-        return this->value();
     }
 
     Shared shared() const noexcept
@@ -748,6 +815,7 @@ private:
 
 public:
     using Shared = SharedValue<CommonStringValue<LibObjT>, LibObjT>;
+    using Value = const char *;
 
     explicit CommonStringValue(const _LibObjPtr libObjPtr) noexcept : _ThisCommonValue {libObjPtr}
     {
@@ -784,26 +852,29 @@ public:
         return CommonStringValue<const bt_value> {*this};
     }
 
-    CommonStringValue<LibObjT> operator=(const char * const rawVal) const
+    RawStringValueProxy<CommonStringValue> operator*() const noexcept
+    {
+        return RawStringValueProxy<CommonStringValue> {*this};
+    }
+
+    void value(const Value val) const
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstStringValue`.");
 
-        const auto status = bt_value_string_set(this->libObjPtr(), rawVal);
+        const auto status = bt_value_string_set(this->libObjPtr(), val);
 
         if (status == BT_VALUE_STRING_SET_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
-
-        return *this;
     }
 
-    CommonStringValue<LibObjT> operator=(const std::string& rawVal) const noexcept
+    void value(const std::string& val) const
     {
-        return *this = rawVal.data();
+        this->value(val.data());
     }
 
-    bpstd::string_view value() const noexcept
+    const char *value() const noexcept
     {
         return bt_value_string_get(this->libObjPtr());
     }
