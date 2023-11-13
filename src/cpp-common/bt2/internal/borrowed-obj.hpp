@@ -15,9 +15,6 @@
 namespace bt2 {
 namespace internal {
 
-template <typename ObjT, typename LibObjT, typename RefFuncsT>
-class SharedObj;
-
 /*
  * An instance of this class wraps a pointer to a libbabeltrace2 object
  * of type `LibObjT` without managing any reference counting.
