@@ -16,7 +16,6 @@
 #include "common/assert.h"
 #include "common/common.h"
 #include "cpp-common/optional.hpp"
-#include "cpp-common/string_view.hpp"
 
 #include "borrowed-object-iterator.hpp"
 #include "borrowed-object.hpp"
@@ -1139,7 +1138,7 @@ struct TypeDescr<ConstArrayValue> : public ArrayValueTypeDescr
  * First argument is the entry's key, second is its value.
  */
 template <typename ObjT>
-using CommonMapValueForEachUserFunc = std::function<void(const bpstd::string_view&, ObjT)>;
+using CommonMapValueForEachUserFunc = std::function<void(const char *, ObjT)>;
 
 /*
  * Template of a function to be passed to bt_value_map_foreach_entry()

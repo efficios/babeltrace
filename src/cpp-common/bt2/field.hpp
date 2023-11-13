@@ -14,7 +14,6 @@
 
 #include "common/assert.h"
 #include "cpp-common/optional.hpp"
-#include "cpp-common/string_view.hpp"
 
 #include "borrowed-object.hpp"
 #include "field-class.hpp"
@@ -598,7 +597,7 @@ public:
         return _mLen;
     }
 
-    bpstd::string_view operator[](const std::uint64_t index) const noexcept
+    const char *operator[](const std::uint64_t index) const noexcept
     {
         return _mLabels[index];
     }

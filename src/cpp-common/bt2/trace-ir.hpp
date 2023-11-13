@@ -13,7 +13,6 @@
 #include <babeltrace2/babeltrace.h>
 
 #include "cpp-common/optional.hpp"
-#include "cpp-common/string_view.hpp"
 
 #include "borrowed-object.hpp"
 #include "clock-class.hpp"
@@ -489,15 +488,9 @@ public:
         this->name(name.data());
     }
 
-    nonstd::optional<bpstd::string_view> name() const noexcept
+    const char *name() const noexcept
     {
-        const auto name = bt_stream_get_name(this->libObjPtr());
-
-        if (name) {
-            return name;
-        }
-
-        return nonstd::nullopt;
+        return bt_stream_get_name(this->libObjPtr());
     }
 
     template <typename LibValT>
@@ -644,7 +637,7 @@ public:
 
     struct ConstEnvironmentEntry
     {
-        bpstd::string_view name;
+        const char *name;
         ConstValue value;
     };
 
@@ -687,15 +680,9 @@ public:
         this->name(name.data());
     }
 
-    nonstd::optional<bpstd::string_view> name() const noexcept
+    const char *name() const noexcept
     {
-        const auto name = bt_trace_get_name(this->libObjPtr());
-
-        if (name) {
-            return name;
-        }
-
-        return nonstd::nullopt;
+        return bt_trace_get_name(this->libObjPtr());
     }
 
     void uuid(const bt2_common::UuidView& uuid) const noexcept
@@ -1011,15 +998,9 @@ public:
         this->name(name.data());
     }
 
-    nonstd::optional<bpstd::string_view> name() const noexcept
+    const char *name() const noexcept
     {
-        const auto name = bt_event_class_get_name(this->libObjPtr());
-
-        if (name) {
-            return name;
-        }
-
-        return nonstd::nullopt;
+        return bt_event_class_get_name(this->libObjPtr());
     }
 
     void logLevel(const LogLevel logLevel) const noexcept
@@ -1058,15 +1039,9 @@ public:
         this->emfUri(emfUri.data());
     }
 
-    nonstd::optional<bpstd::string_view> emfUri() const noexcept
+    const char *emfUri() const noexcept
     {
-        const auto emfUri = bt_event_class_get_emf_uri(this->libObjPtr());
-
-        if (emfUri) {
-            return emfUri;
-        }
-
-        return nonstd::nullopt;
+        return bt_event_class_get_emf_uri(this->libObjPtr());
     }
 
     void payloadFieldClass(const StructureFieldClass fc) const
@@ -1381,15 +1356,9 @@ public:
         this->name(name.data());
     }
 
-    nonstd::optional<bpstd::string_view> name() const noexcept
+    const char *name() const noexcept
     {
-        const auto name = bt_stream_class_get_name(this->libObjPtr());
-
-        if (name) {
-            return name;
-        }
-
-        return nonstd::nullopt;
+        return bt_stream_class_get_name(this->libObjPtr());
     }
 
     void assignsAutomaticEventClassId(const bool val) const noexcept

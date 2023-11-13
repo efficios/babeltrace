@@ -14,7 +14,6 @@
 #include <babeltrace2/babeltrace.h>
 
 #include "cpp-common/optional.hpp"
-#include "cpp-common/string_view.hpp"
 #include "cpp-common/uuid-view.hpp"
 
 #include "borrowed-object.hpp"
@@ -189,15 +188,9 @@ public:
         this->name(name.data());
     }
 
-    nonstd::optional<bpstd::string_view> name() const noexcept
+    const char *name() const noexcept
     {
-        const auto name = bt_clock_class_get_name(this->libObjPtr());
-
-        if (name) {
-            return name;
-        }
-
-        return nonstd::nullopt;
+        return bt_clock_class_get_name(this->libObjPtr());
     }
 
     void description(const char * const description) const
@@ -216,15 +209,9 @@ public:
         this->description(description.data());
     }
 
-    nonstd::optional<bpstd::string_view> description() const noexcept
+    const char *description() const noexcept
     {
-        const auto description = bt_clock_class_get_description(this->libObjPtr());
-
-        if (description) {
-            return description;
-        }
-
-        return nonstd::nullopt;
+        return bt_clock_class_get_description(this->libObjPtr());
     }
 
     void uuid(const std::uint8_t * const uuid) const noexcept

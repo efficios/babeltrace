@@ -14,7 +14,6 @@
 
 #include "common/assert.h"
 #include "cpp-common/optional.hpp"
-#include "cpp-common/string_view.hpp"
 
 #include "borrowed-object-iterator.hpp"
 #include "borrowed-object.hpp"
@@ -695,7 +694,7 @@ public:
             internal::ConstEnumerationFieldClassMappingSpec<LibObjT>::ranges(this->libObjPtr())};
     }
 
-    bpstd::string_view label() const noexcept
+    const char *label() const noexcept
     {
         return internal::ConstEnumerationFieldClassMappingSpec<LibObjT>::label(this->libObjPtr());
     }
@@ -1021,7 +1020,7 @@ public:
         return CommonStructureFieldClassMember<const bt_field_class_structure_member> {*this};
     }
 
-    bpstd::string_view name() const noexcept
+    const char *name() const noexcept
     {
         return bt_field_class_structure_member_get_name(this->libObjPtr());
     }
@@ -1919,15 +1918,9 @@ public:
         return CommonVariantFieldClassOption<const bt_field_class_variant_option> {*this};
     }
 
-    nonstd::optional<bpstd::string_view> name() const noexcept
+    const char *name() const noexcept
     {
-        const auto name = bt_field_class_variant_option_get_name(this->libObjPtr());
-
-        if (name) {
-            return name;
-        }
-
-        return nonstd::nullopt;
+        return bt_field_class_variant_option_get_name(this->libObjPtr());
     }
 
     _FieldClass fieldClass() const noexcept
@@ -2066,7 +2059,7 @@ public:
         return ConstVariantFieldClassOption {_Spec::asBaseOption(this->libObjPtr())};
     }
 
-    nonstd::optional<bpstd::string_view> name() const noexcept
+    const char *name() const noexcept
     {
         return this->asBaseOption().name();
     }
