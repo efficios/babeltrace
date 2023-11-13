@@ -22,7 +22,7 @@
 #include "field-path.hpp"
 #include "integer-range-set.hpp"
 #include "internal/utils.hpp"
-#include "shared-obj.hpp"
+#include "shared-object.hpp"
 #include "value.hpp"
 
 namespace bt2 {
@@ -67,7 +67,7 @@ struct CommonFieldClassSpec<const bt_field_class> final
 } /* namespace internal */
 
 template <typename ObjT, typename LibObjT>
-using SharedFieldClass = SharedObj<ObjT, LibObjT, internal::FieldClassRefFuncs>;
+using SharedFieldClass = SharedObject<ObjT, LibObjT, internal::FieldClassRefFuncs>;
 
 template <typename LibObjT>
 class CommonBitArrayFieldClass;

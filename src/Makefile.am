@@ -25,7 +25,7 @@ noinst_HEADERS = \
 	cpp-common/bt2/internal/utils.hpp \
 	cpp-common/bt2/logging.hpp \
 	cpp-common/bt2/message.hpp \
-	cpp-common/bt2/shared-obj.hpp \
+	cpp-common/bt2/shared-object.hpp \
 	cpp-common/bt2/trace-ir.hpp \
 	cpp-common/bt2/type-traits.hpp \
 	cpp-common/bt2/value.hpp \

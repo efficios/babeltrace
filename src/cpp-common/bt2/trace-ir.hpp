@@ -20,7 +20,7 @@
 #include "field-class.hpp"
 #include "field.hpp"
 #include "internal/utils.hpp"
-#include "shared-obj.hpp"
+#include "shared-object.hpp"
 #include "value.hpp"
 
 namespace bt2 {
@@ -325,7 +325,7 @@ private:
                                                       ConstStructureField, StructureField>::type;
 
 public:
-    using Shared = SharedObj<_ThisCommonPacket, LibObjT, internal::PacketRefFuncs>;
+    using Shared = SharedObject<_ThisCommonPacket, LibObjT, internal::PacketRefFuncs>;
 
     explicit CommonPacket(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
@@ -496,7 +496,7 @@ private:
                                   CommonTrace<bt_trace>>::type;
 
 public:
-    using Shared = SharedObj<_ThisCommonStream, LibObjT, internal::StreamRefFuncs>;
+    using Shared = SharedObject<_ThisCommonStream, LibObjT, internal::StreamRefFuncs>;
 
     using Class = typename std::conditional<std::is_const<LibObjT>::value,
                                             CommonStreamClass<const bt_stream_class>,
@@ -729,7 +729,7 @@ private:
                                   CommonStream<bt_stream>>::type;
 
 public:
-    using Shared = SharedObj<_ThisCommonTrace, LibObjT, internal::TraceRefFuncs>;
+    using Shared = SharedObject<_ThisCommonTrace, LibObjT, internal::TraceRefFuncs>;
 
     using Class = typename std::conditional<std::is_const<LibObjT>::value,
                                             CommonTraceClass<const bt_trace_class>,
@@ -1066,7 +1066,7 @@ private:
                                   StructureFieldClass>::type;
 
 public:
-    using Shared = SharedObj<_ThisCommonEventClass, LibObjT, internal::EventClassRefFuncs>;
+    using Shared = SharedObject<_ThisCommonEventClass, LibObjT, internal::EventClassRefFuncs>;
 
     using UserAttributes =
         typename std::conditional<std::is_const<LibObjT>::value, ConstMapValue, MapValue>::type;
@@ -1448,7 +1448,7 @@ private:
         typename std::conditional<std::is_const<LibObjT>::value, ConstClockClass, ClockClass>::type;
 
 public:
-    using Shared = SharedObj<_ThisCommonStreamClass, LibObjT, internal::StreamClassRefFuncs>;
+    using Shared = SharedObject<_ThisCommonStreamClass, LibObjT, internal::StreamClassRefFuncs>;
 
     using UserAttributes =
         typename std::conditional<std::is_const<LibObjT>::value, ConstMapValue, MapValue>::type;
@@ -1930,7 +1930,7 @@ private:
                                                    CommonStreamClass<bt_stream_class>>::type;
 
 public:
-    using Shared = SharedObj<_ThisCommonTraceClass, LibObjT, internal::TraceClassRefFuncs>;
+    using Shared = SharedObject<_ThisCommonTraceClass, LibObjT, internal::TraceClassRefFuncs>;
 
     using UserAttributes =
         typename std::conditional<std::is_const<LibObjT>::value, ConstMapValue, MapValue>::type;

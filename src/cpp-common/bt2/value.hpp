@@ -22,7 +22,7 @@
 #include "common-iter.hpp"
 #include "exc.hpp"
 #include "internal/utils.hpp"
-#include "shared-obj.hpp"
+#include "shared-object.hpp"
 
 namespace bt2 {
 namespace internal {
@@ -43,7 +43,7 @@ struct ValueRefFuncs final
 } /* namespace internal */
 
 template <typename ObjT, typename LibObjT>
-using SharedValue = SharedObj<ObjT, LibObjT, internal::ValueRefFuncs>;
+using SharedValue = SharedObject<ObjT, LibObjT, internal::ValueRefFuncs>;
 
 template <typename LibObjT>
 class CommonNullValue;

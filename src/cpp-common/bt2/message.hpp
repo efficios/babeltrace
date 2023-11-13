@@ -19,7 +19,7 @@
 
 #include "borrowed-object.hpp"
 #include "internal/utils.hpp"
-#include "shared-obj.hpp"
+#include "shared-object.hpp"
 
 namespace bt2 {
 namespace internal {
@@ -40,7 +40,7 @@ struct MessageRefFuncs final
 } /* namespace internal */
 
 template <typename ObjT, typename LibObjT>
-using SharedMessage = SharedObj<ObjT, LibObjT, internal::MessageRefFuncs>;
+using SharedMessage = SharedObject<ObjT, LibObjT, internal::MessageRefFuncs>;
 
 template <typename LibObjT>
 class CommonStreamBeginningMessage;

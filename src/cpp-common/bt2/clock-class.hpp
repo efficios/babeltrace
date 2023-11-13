@@ -20,7 +20,7 @@
 #include "borrowed-object.hpp"
 #include "exc.hpp"
 #include "internal/utils.hpp"
-#include "shared-obj.hpp"
+#include "shared-object.hpp"
 #include "value.hpp"
 
 namespace bt2 {
@@ -100,7 +100,7 @@ private:
     using _ThisCommonClockClass = CommonClockClass<LibObjT>;
 
 public:
-    using Shared = SharedObj<_ThisCommonClockClass, LibObjT, internal::ClockClassRefFuncs>;
+    using Shared = SharedObject<_ThisCommonClockClass, LibObjT, internal::ClockClassRefFuncs>;
 
     using UserAttributes =
         typename std::conditional<std::is_const<LibObjT>::value, ConstMapValue, MapValue>::type;

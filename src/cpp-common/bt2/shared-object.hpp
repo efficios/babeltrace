@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-#ifndef BABELTRACE_CPP_COMMON_BT2_SHARED_OBJ_HPP
-#define BABELTRACE_CPP_COMMON_BT2_SHARED_OBJ_HPP
+#ifndef BABELTRACE_CPP_COMMON_BT2_SHARED_OBJECT_HPP
+#define BABELTRACE_CPP_COMMON_BT2_SHARED_OBJECT_HPP
 
 #include "common/assert.h"
 #include "cpp-common/optional.hpp"
@@ -31,24 +31,24 @@ namespace bt2 {
  * its reference count.
  */
 template <typename ObjT, typename LibObjT, typename RefFuncsT>
-class SharedObj final
+class SharedObject final
 {
     /*
      * This makes it possible for a
-     * `SharedObj<Something, bt_something, ...>` instance to get
+     * `SharedObject<Something, bt_something, ...>` instance to get
      * assigned an instance of
-     * `SharedObj<SpecificSomething, bt_something, ...>` (copy/move
+     * `SharedObject<SpecificSomething, bt_something, ...>` (copy/move
      * constructors and assignment operators), given that
      * `SpecificSomething` inherits `Something`.
      */
     template <typename, typename, typename>
-    friend class SharedObj;
+    friend class SharedObject;
 
 private:
     /*
      * Builds a shared object from `obj` without getting a reference.
      */
-    explicit SharedObj(const ObjT& obj) noexcept : _mObj {obj}
+    explicit SharedObject(const ObjT& obj) noexcept : _mObj {obj}
     {
     }
 
@@ -63,7 +63,7 @@ private:
      * parameters when delegating to a constructor template.
      */
     template <typename OtherObjT, typename OtherLibObjT>
-    SharedObj(const SharedObj<OtherObjT, OtherLibObjT, RefFuncsT>& other, int) noexcept :
+    SharedObject(const SharedObject<OtherObjT, OtherLibObjT, RefFuncsT>& other, int) noexcept :
         _mObj {other._mObj}
     {
         this->_getRef();
@@ -75,7 +75,7 @@ private:
      * See the comment of the common generic "copy" constructor above.
      */
     template <typename OtherObjT, typename OtherLibObjT>
-    SharedObj(SharedObj<OtherObjT, OtherLibObjT, RefFuncsT>&& other, int) noexcept :
+    SharedObject(SharedObject<OtherObjT, OtherLibObjT, RefFuncsT>&& other, int) noexcept :
         _mObj {other._mObj}
     {
         /* Reset moved-from object */
@@ -86,59 +86,59 @@ public:
     /*
      * Builds a shared object from `obj` without getting a reference.
      */
-    static SharedObj createWithoutRef(const ObjT& obj) noexcept
+    static SharedObject createWithoutRef(const ObjT& obj) noexcept
     {
-        return SharedObj {obj};
+        return SharedObject {obj};
     }
 
     /*
      * Builds a shared object from `libObjPtr` without getting a
      * reference.
      */
-    static SharedObj createWithoutRef(LibObjT * const libObjPtr) noexcept
+    static SharedObject createWithoutRef(LibObjT * const libObjPtr) noexcept
     {
-        return SharedObj::createWithoutRef(ObjT {libObjPtr});
+        return SharedObject::createWithoutRef(ObjT {libObjPtr});
     }
 
     /*
      * Builds a shared object from `obj`, immediately getting a new
      * reference.
      */
-    static SharedObj createWithRef(const ObjT& obj) noexcept
+    static SharedObject createWithRef(const ObjT& obj) noexcept
     {
-        SharedObj sharedObj {obj};
+        SharedObject sharedObj {obj};
 
         sharedObj._getRef();
         return sharedObj;
     }
 
     /*
-     * Builds a shared object from `libObjPtr`, immediately getting a new
-     * reference.
+     * Builds a shared object from `libObjPtr`, immediately getting a
+     * new reference.
      */
-    static SharedObj createWithRef(LibObjT * const libObjPtr) noexcept
+    static SharedObject createWithRef(LibObjT * const libObjPtr) noexcept
     {
-        return SharedObj::createWithRef(ObjT {libObjPtr});
+        return SharedObject::createWithRef(ObjT {libObjPtr});
     }
 
     /*
      * Copy constructor.
      */
-    SharedObj(const SharedObj& other) noexcept : SharedObj {other, 0}
+    SharedObject(const SharedObject& other) noexcept : SharedObject {other, 0}
     {
     }
 
     /*
      * Move constructor.
      */
-    SharedObj(SharedObj&& other) noexcept : SharedObj {std::move(other), 0}
+    SharedObject(SharedObject&& other) noexcept : SharedObject {std::move(other), 0}
     {
     }
 
     /*
      * Copy assignment operator.
      */
-    SharedObj& operator=(const SharedObj& other) noexcept
+    SharedObject& operator=(const SharedObject& other) noexcept
     {
         /* Use generic "copy" assignment operator */
         return this->operator=<ObjT, LibObjT>(other);
@@ -147,7 +147,7 @@ public:
     /*
      * Move assignment operator.
      */
-    SharedObj& operator=(SharedObj&& other) noexcept
+    SharedObject& operator=(SharedObject&& other) noexcept
     {
         /* Use generic "move" assignment operator */
         return this->operator=<ObjT, LibObjT>(std::move(other));
@@ -156,32 +156,32 @@ public:
     /*
      * Generic "copy" constructor.
      *
-     * See the `friend class SharedObj` comment above.
+     * See the `friend class SharedObject` comment above.
      */
     template <typename OtherObjT, typename OtherLibObjT>
-    SharedObj(const SharedObj<OtherObjT, OtherLibObjT, RefFuncsT>& other) noexcept :
-        SharedObj {other, 0}
+    SharedObject(const SharedObject<OtherObjT, OtherLibObjT, RefFuncsT>& other) noexcept :
+        SharedObject {other, 0}
     {
     }
 
     /*
      * Generic "move" constructor.
      *
-     * See the `friend class SharedObj` comment above.
+     * See the `friend class SharedObject` comment above.
      */
     template <typename OtherObjT, typename OtherLibObjT>
-    SharedObj(SharedObj<OtherObjT, OtherLibObjT, RefFuncsT>&& other) noexcept :
-        SharedObj {std::move(other), 0}
+    SharedObject(SharedObject<OtherObjT, OtherLibObjT, RefFuncsT>&& other) noexcept :
+        SharedObject {std::move(other), 0}
     {
     }
 
     /*
      * Generic "copy" assignment operator.
      *
-     * See the `friend class SharedObj` comment above.
+     * See the `friend class SharedObject` comment above.
      */
     template <typename OtherObjT, typename OtherLibObjT>
-    SharedObj& operator=(const SharedObj<OtherObjT, OtherLibObjT, RefFuncsT>& other) noexcept
+    SharedObject& operator=(const SharedObject<OtherObjT, OtherLibObjT, RefFuncsT>& other) noexcept
     {
         /* Put current object's reference */
         this->_putRef();
@@ -196,10 +196,10 @@ public:
     /*
      * Generic "move" assignment operator.
      *
-     * See the `friend class SharedObj` comment above.
+     * See the `friend class SharedObject` comment above.
      */
     template <typename OtherObjT, typename OtherLibObjT>
-    SharedObj& operator=(SharedObj<OtherObjT, OtherLibObjT, RefFuncsT>&& other) noexcept
+    SharedObject& operator=(SharedObject<OtherObjT, OtherLibObjT, RefFuncsT>&& other) noexcept
     {
         /* Put current object's reference */
         this->_putRef();
@@ -213,7 +213,7 @@ public:
         return *this;
     }
 
-    ~SharedObj()
+    ~SharedObject()
     {
         this->_putRef();
     }
@@ -244,8 +244,8 @@ public:
 
     /*
      * Transfers the reference of the object which this shared object
-     * wrapper manages and returns it, making the caller become an active
-     * owner.
+     * wrapper manages and returns it, making the caller become an
+     * active owner.
      *
      * This method makes this object invalid.
      */
@@ -295,4 +295,4 @@ private:
 
 } /* namespace bt2 */
 
-#endif /* BABELTRACE_CPP_COMMON_BT2_SHARED_OBJ_HPP */
+#endif /* BABELTRACE_CPP_COMMON_BT2_SHARED_OBJECT_HPP */
