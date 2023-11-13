@@ -618,10 +618,6 @@ struct TypeDescr<ConstIntegerFieldClass> : public IntegerFieldClassTypeDescr
 {
 };
 
-} /* namespace internal */
-
-namespace internal {
-
 template <typename LibObjT>
 struct ConstEnumerationFieldClassMappingSpec;
 
