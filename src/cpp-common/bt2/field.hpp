@@ -19,6 +19,7 @@
 #include "borrowed-object.hpp"
 #include "field-class.hpp"
 #include "internal/utils.hpp"
+#include "raw-value-proxy.hpp"
 
 namespace bt2 {
 
@@ -282,22 +283,21 @@ public:
         return CommonBoolField<const bt_field> {*this};
     }
 
-    CommonBoolField<LibObjT> operator=(const Value val) const noexcept
+    RawValueProxy<CommonBoolField> operator*() const noexcept
+    {
+        return RawValueProxy<CommonBoolField> {*this};
+    }
+
+    void value(const Value val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstBoolField`.");
 
         bt_field_bool_set_value(this->libObjPtr(), static_cast<bt_bool>(val));
-        return *this;
     }
 
     Value value() const noexcept
     {
         return static_cast<Value>(bt_field_bool_get_value(this->libObjPtr()));
-    }
-
-    operator Value() const noexcept
-    {
-        return this->value();
     }
 };
 
@@ -368,13 +368,12 @@ public:
         return Class {internal::CommonFieldSpec<LibObjT>::cls(this->libObjPtr())};
     }
 
-    CommonBitArrayField<LibObjT> operator=(const std::uint64_t bits) const noexcept
+    void valueAsInteger(const std::uint64_t bits) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstBitArrayField`.");
 
         bt_field_bit_array_set_value_as_integer(this->libObjPtr(), bits);
-        return *this;
     }
 
     std::uint64_t valueAsInteger() const noexcept
@@ -456,23 +455,22 @@ public:
         return Class {internal::CommonFieldSpec<LibObjT>::cls(this->libObjPtr())};
     }
 
-    CommonUnsignedIntegerField<LibObjT> operator=(const Value val) const noexcept
+    RawValueProxy<CommonUnsignedIntegerField> operator*() const noexcept
+    {
+        return RawValueProxy<CommonUnsignedIntegerField> {*this};
+    }
+
+    void value(const Value val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstUnsignedIntegerField`.");
 
         bt_field_integer_unsigned_set_value(this->libObjPtr(), val);
-        return *this;
     }
 
     Value value() const noexcept
     {
         return bt_field_integer_unsigned_get_value(this->libObjPtr());
-    }
-
-    operator Value() const noexcept
-    {
-        return this->value();
     }
 };
 
@@ -543,23 +541,22 @@ public:
         return Class {internal::CommonFieldSpec<LibObjT>::cls(this->libObjPtr())};
     }
 
-    CommonSignedIntegerField<LibObjT> operator=(const Value val) const noexcept
+    RawValueProxy<CommonSignedIntegerField> operator*() const noexcept
+    {
+        return RawValueProxy<CommonSignedIntegerField> {*this};
+    }
+
+    void value(const Value val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstSignedIntegerField`.");
 
         bt_field_integer_signed_set_value(this->libObjPtr(), val);
-        return *this;
     }
 
     Value value() const noexcept
     {
         return bt_field_integer_signed_get_value(this->libObjPtr());
-    }
-
-    operator Value() const noexcept
-    {
-        return this->value();
     }
 };
 
@@ -654,8 +651,6 @@ public:
         return CommonUnsignedEnumerationField<const bt_field> {*this};
     }
 
-    using CommonUnsignedIntegerField<LibObjT>::operator=;
-
     Class cls() const noexcept
     {
         return Class {internal::CommonFieldSpec<LibObjT>::cls(this->libObjPtr())};
@@ -734,8 +729,6 @@ public:
     {
         return CommonSignedEnumerationField<const bt_field> {*this};
     }
-
-    using CommonSignedIntegerField<LibObjT>::operator=;
 
     Class cls() const noexcept
     {
@@ -816,23 +809,22 @@ public:
         return CommonSinglePrecisionRealField<const bt_field> {*this};
     }
 
-    CommonSinglePrecisionRealField<LibObjT> operator=(const Value val) const noexcept
+    RawValueProxy<CommonSinglePrecisionRealField> operator*() const noexcept
+    {
+        return RawValueProxy<CommonSinglePrecisionRealField> {*this};
+    }
+
+    void value(const Value val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstSinglePrecisionRealField`.");
 
         bt_field_real_single_precision_set_value(this->libObjPtr(), val);
-        return *this;
     }
 
     Value value() const noexcept
     {
         return bt_field_real_single_precision_get_value(this->libObjPtr());
-    }
-
-    operator Value() const noexcept
-    {
-        return this->value();
     }
 };
 
@@ -895,23 +887,22 @@ public:
         return CommonDoublePrecisionRealField<const bt_field> {*this};
     }
 
-    CommonDoublePrecisionRealField<LibObjT> operator=(const Value val) const noexcept
+    RawValueProxy<CommonDoublePrecisionRealField> operator*() const noexcept
+    {
+        return RawValueProxy<CommonDoublePrecisionRealField> {*this};
+    }
+
+    void value(const Value val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstDoublePrecisionRealField`.");
 
         bt_field_real_double_precision_set_value(this->libObjPtr(), val);
-        return *this;
     }
 
     Value value() const noexcept
     {
         return bt_field_real_double_precision_get_value(this->libObjPtr());
-    }
-
-    operator Value() const noexcept
-    {
-        return this->value();
     }
 };
 
@@ -946,6 +937,8 @@ private:
     using typename CommonField<LibObjT>::_ThisCommonField;
 
 public:
+    using Value = const char *;
+
     explicit CommonStringField(const _LibObjPtr libObjPtr) noexcept : _ThisCommonField {libObjPtr}
     {
         BT_ASSERT_DBG(this->isString());
@@ -968,7 +961,12 @@ public:
         return CommonStringField<const bt_field> {*this};
     }
 
-    CommonStringField<LibObjT> operator=(const char * const val) const
+    RawStringValueProxy<CommonStringField> operator*() const noexcept
+    {
+        return RawStringValueProxy<CommonStringField> {*this};
+    }
+
+    void value(const char * const val) const
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstStringField`.");
@@ -978,13 +976,11 @@ public:
         if (status == BT_FIELD_STRING_SET_VALUE_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
-
-        return *this;
     }
 
-    CommonStringField<LibObjT> operator=(const std::string& val) const
+    void value(const std::string& val) const
     {
-        return *this = val.data();
+        this->value(val.data());
     }
 
     void append(const char * const begin, const std::uint64_t len) const
@@ -1012,7 +1008,7 @@ public:
         bt_field_string_clear(this->libObjPtr());
     }
 
-    bpstd::string_view value() const noexcept
+    const char *value() const noexcept
     {
         return bt_field_string_get_value(this->libObjPtr());
     }
