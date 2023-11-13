@@ -252,7 +252,9 @@ public:
     ObjT release() noexcept
     {
         BT_ASSERT_DBG(_mObj);
+
         const auto obj = *_mObj;
+
         this->_reset();
         return obj;
     }
