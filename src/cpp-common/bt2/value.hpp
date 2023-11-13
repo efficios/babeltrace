@@ -21,8 +21,8 @@
 #include "borrowed-object.hpp"
 #include "common-iter.hpp"
 #include "exc.hpp"
-#include "internal/shared-obj.hpp"
 #include "internal/utils.hpp"
+#include "shared-obj.hpp"
 
 namespace bt2 {
 namespace internal {
@@ -40,10 +40,10 @@ struct ValueRefFuncs final
     }
 };
 
-template <typename ObjT, typename LibObjT>
-using SharedValue = internal::SharedObj<ObjT, LibObjT, internal::ValueRefFuncs>;
-
 } /* namespace internal */
+
+template <typename ObjT, typename LibObjT>
+using SharedValue = SharedObj<ObjT, LibObjT, internal::ValueRefFuncs>;
 
 template <typename LibObjT>
 class CommonNullValue;
@@ -128,7 +128,7 @@ protected:
     using _ThisCommonValue = CommonValue<LibObjT>;
 
 public:
-    using Shared = internal::SharedValue<CommonValue<LibObjT>, LibObjT>;
+    using Shared = SharedValue<CommonValue<LibObjT>, LibObjT>;
 
     explicit CommonValue(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
@@ -265,7 +265,7 @@ private:
     using typename CommonValue<LibObjT>::_ThisCommonValue;
 
 public:
-    using Shared = internal::SharedValue<CommonNullValue<LibObjT>, LibObjT>;
+    using Shared = SharedValue<CommonNullValue<LibObjT>, LibObjT>;
 
     CommonNullValue() noexcept : _ThisCommonValue {bt_value_null}
     {
@@ -320,7 +320,7 @@ private:
     using typename CommonValue<LibObjT>::_ThisCommonValue;
 
 public:
-    using Shared = internal::SharedValue<CommonBoolValue<LibObjT>, LibObjT>;
+    using Shared = SharedValue<CommonBoolValue<LibObjT>, LibObjT>;
     using Value = bool;
 
     explicit CommonBoolValue(const _LibObjPtr libObjPtr) noexcept : _ThisCommonValue {libObjPtr}
@@ -403,7 +403,7 @@ private:
     using typename CommonValue<LibObjT>::_ThisCommonValue;
 
 public:
-    using Shared = internal::SharedValue<CommonUnsignedIntegerValue<LibObjT>, LibObjT>;
+    using Shared = SharedValue<CommonUnsignedIntegerValue<LibObjT>, LibObjT>;
     using Value = std::uint64_t;
 
     explicit CommonUnsignedIntegerValue(const _LibObjPtr libObjPtr) noexcept :
@@ -489,7 +489,7 @@ private:
     using typename CommonValue<LibObjT>::_ThisCommonValue;
 
 public:
-    using Shared = internal::SharedValue<CommonSignedIntegerValue<LibObjT>, LibObjT>;
+    using Shared = SharedValue<CommonSignedIntegerValue<LibObjT>, LibObjT>;
     using Value = std::int64_t;
 
     explicit CommonSignedIntegerValue(const _LibObjPtr libObjPtr) noexcept :
@@ -575,7 +575,7 @@ private:
     using typename CommonValue<LibObjT>::_ThisCommonValue;
 
 public:
-    using Shared = internal::SharedValue<CommonRealValue<LibObjT>, LibObjT>;
+    using Shared = SharedValue<CommonRealValue<LibObjT>, LibObjT>;
     using Value = double;
 
     explicit CommonRealValue(const _LibObjPtr libObjPtr) noexcept : _ThisCommonValue {libObjPtr}
@@ -658,7 +658,7 @@ private:
     using typename CommonValue<LibObjT>::_ThisCommonValue;
 
 public:
-    using Shared = internal::SharedValue<CommonStringValue<LibObjT>, LibObjT>;
+    using Shared = SharedValue<CommonStringValue<LibObjT>, LibObjT>;
 
     explicit CommonStringValue(const _LibObjPtr libObjPtr) noexcept : _ThisCommonValue {libObjPtr}
     {
@@ -774,7 +774,7 @@ private:
     using typename CommonValue<LibObjT>::_ThisCommonValue;
 
 public:
-    using Shared = internal::SharedValue<CommonArrayValue<LibObjT>, LibObjT>;
+    using Shared = SharedValue<CommonArrayValue<LibObjT>, LibObjT>;
     using Iterator = CommonIterator<CommonArrayValue<LibObjT>, CommonValue<LibObjT>>;
 
     explicit CommonArrayValue(const _LibObjPtr libObjPtr) noexcept : _ThisCommonValue {libObjPtr}
@@ -1085,7 +1085,7 @@ private:
     using typename CommonValue<LibObjT>::_ThisCommonValue;
 
 public:
-    using Shared = internal::SharedValue<CommonMapValue<LibObjT>, LibObjT>;
+    using Shared = SharedValue<CommonMapValue<LibObjT>, LibObjT>;
 
     explicit CommonMapValue(const _LibObjPtr libObjPtr) noexcept : _ThisCommonValue {libObjPtr}
     {

@@ -21,8 +21,8 @@
 #include "exc.hpp"
 #include "field-path.hpp"
 #include "integer-range-set.hpp"
-#include "internal/shared-obj.hpp"
 #include "internal/utils.hpp"
+#include "shared-obj.hpp"
 #include "value.hpp"
 
 namespace bt2 {
@@ -40,9 +40,6 @@ struct FieldClassRefFuncs final
         bt_field_class_put_ref(libObjPtr);
     }
 };
-
-template <typename ObjT, typename LibObjT>
-using SharedFieldClass = internal::SharedObj<ObjT, LibObjT, internal::FieldClassRefFuncs>;
 
 template <typename LibObjT>
 struct CommonFieldClassSpec;
@@ -68,6 +65,9 @@ struct CommonFieldClassSpec<const bt_field_class> final
 };
 
 } /* namespace internal */
+
+template <typename ObjT, typename LibObjT>
+using SharedFieldClass = SharedObj<ObjT, LibObjT, internal::FieldClassRefFuncs>;
 
 template <typename LibObjT>
 class CommonBitArrayFieldClass;
@@ -194,7 +194,7 @@ protected:
     using _ThisCommonFieldClass = CommonFieldClass<LibObjT>;
 
 public:
-    using Shared = internal::SharedFieldClass<CommonFieldClass<LibObjT>, LibObjT>;
+    using Shared = SharedFieldClass<CommonFieldClass<LibObjT>, LibObjT>;
 
     using UserAttributes =
         typename std::conditional<std::is_const<LibObjT>::value, ConstMapValue, MapValue>::type;
@@ -483,7 +483,7 @@ private:
     using typename CommonFieldClass<LibObjT>::_ThisCommonFieldClass;
 
 public:
-    using Shared = internal::SharedFieldClass<CommonBitArrayFieldClass<LibObjT>, LibObjT>;
+    using Shared = SharedFieldClass<CommonBitArrayFieldClass<LibObjT>, LibObjT>;
 
     explicit CommonBitArrayFieldClass(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonFieldClass {libObjPtr}
@@ -558,7 +558,7 @@ protected:
     using _ThisCommonIntegerFieldClass = CommonIntegerFieldClass<LibObjT>;
 
 public:
-    using Shared = internal::SharedFieldClass<CommonIntegerFieldClass<LibObjT>, LibObjT>;
+    using Shared = SharedFieldClass<CommonIntegerFieldClass<LibObjT>, LibObjT>;
 
     explicit CommonIntegerFieldClass(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonFieldClass {libObjPtr}
@@ -791,7 +791,7 @@ protected:
     using _ThisCommonBaseEnumerationFieldClass = CommonBaseEnumerationFieldClass<LibObjT>;
 
 public:
-    using Shared = internal::SharedFieldClass<_ThisCommonBaseEnumerationFieldClass, LibObjT>;
+    using Shared = SharedFieldClass<_ThisCommonBaseEnumerationFieldClass, LibObjT>;
 
     explicit CommonBaseEnumerationFieldClass(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonIntegerFieldClass {libObjPtr}
@@ -834,7 +834,7 @@ private:
     using _ThisCommonEnumerationFieldClass = CommonEnumerationFieldClass<LibObjT, MappingT>;
 
 public:
-    using Shared = internal::SharedFieldClass<_ThisCommonEnumerationFieldClass, LibObjT>;
+    using Shared = SharedFieldClass<_ThisCommonEnumerationFieldClass, LibObjT>;
     using Iterator = CommonIterator<CommonEnumerationFieldClass, MappingT>;
     using Mapping = MappingT;
 
@@ -1143,7 +1143,7 @@ private:
     using typename CommonFieldClass<LibObjT>::_ThisCommonFieldClass;
 
 public:
-    using Shared = internal::SharedFieldClass<CommonStructureFieldClass<LibObjT>, LibObjT>;
+    using Shared = SharedFieldClass<CommonStructureFieldClass<LibObjT>, LibObjT>;
     using Member =
         typename std::conditional<std::is_const<LibObjT>::value, ConstStructureFieldClassMember,
                                   StructureFieldClassMember>::type;
@@ -1317,7 +1317,7 @@ protected:
     using _ThisCommonArrayFieldClass = CommonArrayFieldClass<LibObjT>;
 
 public:
-    using Shared = internal::SharedFieldClass<CommonArrayFieldClass<LibObjT>, LibObjT>;
+    using Shared = SharedFieldClass<CommonArrayFieldClass<LibObjT>, LibObjT>;
 
     explicit CommonArrayFieldClass(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonFieldClass {libObjPtr}
@@ -1388,7 +1388,7 @@ private:
     using typename CommonFieldClass<LibObjT>::_LibObjPtr;
 
 public:
-    using Shared = internal::SharedFieldClass<CommonStaticArrayFieldClass<LibObjT>, LibObjT>;
+    using Shared = SharedFieldClass<CommonStaticArrayFieldClass<LibObjT>, LibObjT>;
 
     explicit CommonStaticArrayFieldClass(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonArrayFieldClass {libObjPtr}
@@ -1452,8 +1452,7 @@ private:
     using typename CommonFieldClass<LibObjT>::_LibObjPtr;
 
 public:
-    using Shared =
-        internal::SharedFieldClass<CommonDynamicArrayWithLengthFieldClass<LibObjT>, LibObjT>;
+    using Shared = SharedFieldClass<CommonDynamicArrayWithLengthFieldClass<LibObjT>, LibObjT>;
 
     explicit CommonDynamicArrayWithLengthFieldClass(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonArrayFieldClass {libObjPtr}
@@ -1553,7 +1552,7 @@ protected:
     using _ThisCommonOptionFieldClass = CommonOptionFieldClass<LibObjT>;
 
 public:
-    using Shared = internal::SharedFieldClass<CommonOptionFieldClass<LibObjT>, LibObjT>;
+    using Shared = SharedFieldClass<CommonOptionFieldClass<LibObjT>, LibObjT>;
 
     explicit CommonOptionFieldClass(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonFieldClass {libObjPtr}
@@ -1627,7 +1626,7 @@ protected:
     using _ThisCommonOptionWithSelectorFieldClass = CommonOptionWithSelectorFieldClass<LibObjT>;
 
 public:
-    using Shared = internal::SharedFieldClass<CommonOptionWithSelectorFieldClass<LibObjT>, LibObjT>;
+    using Shared = SharedFieldClass<CommonOptionWithSelectorFieldClass<LibObjT>, LibObjT>;
 
     explicit CommonOptionWithSelectorFieldClass(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonOptionFieldClass {libObjPtr}
@@ -1696,8 +1695,7 @@ private:
         LibObjT>::_ThisCommonOptionWithSelectorFieldClass;
 
 public:
-    using Shared =
-        internal::SharedFieldClass<CommonOptionWithBoolSelectorFieldClass<LibObjT>, LibObjT>;
+    using Shared = SharedFieldClass<CommonOptionWithBoolSelectorFieldClass<LibObjT>, LibObjT>;
 
     explicit CommonOptionWithBoolSelectorFieldClass(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonOptionWithSelectorFieldClass {libObjPtr}
@@ -1799,8 +1797,7 @@ private:
         CommonOptionWithIntegerSelectorFieldClass<LibObjT, RangeSetT>;
 
 public:
-    using Shared =
-        internal::SharedFieldClass<_ThisCommonOptionWithIntegerSelectorFieldClass, LibObjT>;
+    using Shared = SharedFieldClass<_ThisCommonOptionWithIntegerSelectorFieldClass, LibObjT>;
 
     using RangeSet = RangeSetT;
 
@@ -2191,7 +2188,7 @@ protected:
     using _ThisCommonVariantFieldClass = CommonVariantFieldClass<LibObjT>;
 
 public:
-    using Shared = internal::SharedFieldClass<CommonVariantFieldClass<LibObjT>, LibObjT>;
+    using Shared = SharedFieldClass<CommonVariantFieldClass<LibObjT>, LibObjT>;
 
     using Option =
         typename std::conditional<std::is_const<LibObjT>::value, ConstVariantFieldClassOption,
@@ -2320,8 +2317,7 @@ private:
     using typename CommonFieldClass<LibObjT>::_LibObjPtr;
 
 public:
-    using Shared =
-        internal::SharedFieldClass<CommonVariantWithoutSelectorFieldClass<LibObjT>, LibObjT>;
+    using Shared = SharedFieldClass<CommonVariantWithoutSelectorFieldClass<LibObjT>, LibObjT>;
 
     explicit CommonVariantWithoutSelectorFieldClass(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonVariantFieldClass {libObjPtr}
@@ -2468,7 +2464,7 @@ protected:
     using _ThisCommonVariantWithSelectorFieldClass = CommonVariantWithSelectorFieldClass<LibObjT>;
 
 public:
-    using Shared = internal::SharedFieldClass<_ThisCommonVariantWithSelectorFieldClass, LibObjT>;
+    using Shared = SharedFieldClass<_ThisCommonVariantWithSelectorFieldClass, LibObjT>;
 
     explicit CommonVariantWithSelectorFieldClass(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonVariantFieldClass {libObjPtr}
@@ -2522,8 +2518,7 @@ private:
     using _Spec = internal::CommonVariantWithIntegerSelectorFieldClassSpec<OptionT>;
 
 public:
-    using Shared =
-        internal::SharedFieldClass<_ThisCommonVariantWithIntegerSelectorFieldClass, LibObjT>;
+    using Shared = SharedFieldClass<_ThisCommonVariantWithIntegerSelectorFieldClass, LibObjT>;
 
     using Option = OptionT;
     using Iterator =

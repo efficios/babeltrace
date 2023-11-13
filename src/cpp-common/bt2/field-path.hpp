@@ -15,7 +15,7 @@
 
 #include "borrowed-object.hpp"
 #include "common-iter.hpp"
-#include "internal/shared-obj.hpp"
+#include "shared-obj.hpp"
 
 namespace bt2 {
 
@@ -127,8 +127,7 @@ struct FieldPathRefFuncs final
 class ConstFieldPath final : public BorrowedObject<const bt_field_path>
 {
 public:
-    using Shared =
-        internal::SharedObj<ConstFieldPath, const bt_field_path, internal::FieldPathRefFuncs>;
+    using Shared = SharedObj<ConstFieldPath, const bt_field_path, internal::FieldPathRefFuncs>;
 
     using Iterator = CommonIterator<ConstFieldPath, ConstFieldPathItem>;
 

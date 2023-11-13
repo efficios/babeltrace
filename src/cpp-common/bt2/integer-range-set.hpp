@@ -17,6 +17,7 @@
 #include "exc.hpp"
 #include "integer-range.hpp"
 #include "internal/utils.hpp"
+#include "shared-obj.hpp"
 
 namespace bt2 {
 
@@ -172,7 +173,7 @@ private:
     using _ThisCommonIntegerRangeSet = CommonIntegerRangeSet<LibObjT>;
 
 public:
-    using Shared = internal::SharedObj<_ThisCommonIntegerRangeSet, LibObjT, _RefFuncs>;
+    using Shared = SharedObj<_ThisCommonIntegerRangeSet, LibObjT, _RefFuncs>;
 
     using Range = typename std::conditional<
         std::is_same<_ConstLibObjT, const bt_integer_range_set_unsigned>::value,

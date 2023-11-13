@@ -22,10 +22,10 @@ noinst_HEADERS = \
 	cpp-common/bt2/field-path.hpp \
 	cpp-common/bt2/integer-range.hpp \
 	cpp-common/bt2/integer-range-set.hpp \
-	cpp-common/bt2/internal/shared-obj.hpp \
 	cpp-common/bt2/internal/utils.hpp \
 	cpp-common/bt2/logging.hpp \
 	cpp-common/bt2/message.hpp \
+	cpp-common/bt2/shared-obj.hpp \
 	cpp-common/bt2/trace-ir.hpp \
 	cpp-common/bt2/type-traits.hpp \
 	cpp-common/bt2/value.hpp \

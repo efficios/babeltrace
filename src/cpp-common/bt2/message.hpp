@@ -18,8 +18,8 @@
 #include "cpp-common/optional.hpp"
 
 #include "borrowed-object.hpp"
-#include "internal/shared-obj.hpp"
 #include "internal/utils.hpp"
+#include "shared-obj.hpp"
 
 namespace bt2 {
 namespace internal {
@@ -37,10 +37,10 @@ struct MessageRefFuncs final
     }
 };
 
-template <typename ObjT, typename LibObjT>
-using SharedMessage = internal::SharedObj<ObjT, LibObjT, internal::MessageRefFuncs>;
-
 } /* namespace internal */
+
+template <typename ObjT, typename LibObjT>
+using SharedMessage = SharedObj<ObjT, LibObjT, internal::MessageRefFuncs>;
 
 template <typename LibObjT>
 class CommonStreamBeginningMessage;
@@ -89,7 +89,7 @@ protected:
     using _ThisCommonMessage = CommonMessage<LibObjT>;
 
 public:
-    using Shared = internal::SharedMessage<CommonMessage<LibObjT>, LibObjT>;
+    using Shared = SharedMessage<CommonMessage<LibObjT>, LibObjT>;
 
     explicit CommonMessage(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
@@ -231,7 +231,7 @@ private:
                                   CommonStream<bt_stream>>::type;
 
 public:
-    using Shared = internal::SharedMessage<CommonStreamBeginningMessage<LibObjT>, LibObjT>;
+    using Shared = SharedMessage<CommonStreamBeginningMessage<LibObjT>, LibObjT>;
 
     explicit CommonStreamBeginningMessage(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonMessage {libObjPtr}
@@ -349,7 +349,7 @@ private:
                                   CommonStream<bt_stream>>::type;
 
 public:
-    using Shared = internal::SharedMessage<CommonStreamEndMessage<LibObjT>, LibObjT>;
+    using Shared = SharedMessage<CommonStreamEndMessage<LibObjT>, LibObjT>;
 
     explicit CommonStreamEndMessage(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonMessage {libObjPtr}
@@ -466,7 +466,7 @@ private:
                                   CommonPacket<bt_packet>>::type;
 
 public:
-    using Shared = internal::SharedMessage<CommonPacketBeginningMessage<LibObjT>, LibObjT>;
+    using Shared = SharedMessage<CommonPacketBeginningMessage<LibObjT>, LibObjT>;
 
     explicit CommonPacketBeginningMessage(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonMessage {libObjPtr}
@@ -579,7 +579,7 @@ private:
                                   CommonPacket<bt_packet>>::type;
 
 public:
-    using Shared = internal::SharedMessage<CommonPacketEndMessage<LibObjT>, LibObjT>;
+    using Shared = SharedMessage<CommonPacketEndMessage<LibObjT>, LibObjT>;
 
     explicit CommonPacketEndMessage(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonMessage {libObjPtr}
@@ -691,7 +691,7 @@ private:
                                   CommonEvent<bt_event>>::type;
 
 public:
-    using Shared = internal::SharedMessage<CommonEventMessage<LibObjT>, LibObjT>;
+    using Shared = SharedMessage<CommonEventMessage<LibObjT>, LibObjT>;
 
     explicit CommonEventMessage(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonMessage {libObjPtr}
@@ -795,7 +795,7 @@ private:
                                   CommonStream<bt_stream>>::type;
 
 public:
-    using Shared = internal::SharedMessage<CommonDiscardedEventsMessage<LibObjT>, LibObjT>;
+    using Shared = SharedMessage<CommonDiscardedEventsMessage<LibObjT>, LibObjT>;
 
     explicit CommonDiscardedEventsMessage(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonMessage {libObjPtr}
@@ -929,7 +929,7 @@ private:
                                   CommonStream<bt_stream>>::type;
 
 public:
-    using Shared = internal::SharedMessage<CommonDiscardedPacketsMessage<LibObjT>, LibObjT>;
+    using Shared = SharedMessage<CommonDiscardedPacketsMessage<LibObjT>, LibObjT>;
 
     explicit CommonDiscardedPacketsMessage(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonMessage {libObjPtr}
@@ -1036,8 +1036,7 @@ private:
     using typename CommonMessage<LibObjT>::_ThisCommonMessage;
 
 public:
-    using Shared =
-        internal::SharedMessage<CommonMessageIteratorInactivityMessage<LibObjT>, LibObjT>;
+    using Shared = SharedMessage<CommonMessageIteratorInactivityMessage<LibObjT>, LibObjT>;
 
     explicit CommonMessageIteratorInactivityMessage(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonMessage {libObjPtr}

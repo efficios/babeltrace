@@ -4,14 +4,13 @@
  * SPDX-License-Identifier: MIT
  */
 
-#ifndef BABELTRACE_CPP_COMMON_BT2_INTERNAL_SHARED_OBJ_HPP
-#define BABELTRACE_CPP_COMMON_BT2_INTERNAL_SHARED_OBJ_HPP
+#ifndef BABELTRACE_CPP_COMMON_BT2_SHARED_OBJ_HPP
+#define BABELTRACE_CPP_COMMON_BT2_SHARED_OBJ_HPP
 
 #include "common/assert.h"
 #include "cpp-common/optional.hpp"
 
 namespace bt2 {
-namespace internal {
 
 /*
  * An instance of this class wraps an optional instance of `ObjT` and
@@ -294,7 +293,6 @@ private:
     nonstd::optional<ObjT> _mObj;
 };
 
-} /* namespace internal */
 } /* namespace bt2 */
 
-#endif /* BABELTRACE_CPP_COMMON_BT2_INTERNAL_SHARED_OBJ_HPP */
+#endif /* BABELTRACE_CPP_COMMON_BT2_SHARED_OBJ_HPP */
