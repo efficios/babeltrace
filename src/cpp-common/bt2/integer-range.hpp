@@ -12,7 +12,7 @@
 
 #include <babeltrace2/babeltrace.h>
 
-#include "borrowed-obj.hpp"
+#include "borrowed-object.hpp"
 
 namespace bt2 {
 
@@ -66,11 +66,11 @@ struct ConstIntegerRangeSpec<const bt_integer_range_signed> final
 } /* namespace internal */
 
 template <typename LibObjT>
-class ConstIntegerRange final : public BorrowedObj<LibObjT>
+class ConstIntegerRange final : public BorrowedObject<LibObjT>
 {
 private:
-    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
-    using typename BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
+    using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _ThisConstIntegerRange = ConstIntegerRange<LibObjT>;
 
 public:
@@ -79,17 +79,18 @@ public:
                                   std::uint64_t, std::int64_t>::type;
 
 public:
-    explicit ConstIntegerRange(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObj {libObjPtr}
+    explicit ConstIntegerRange(const _LibObjPtr libObjPtr) noexcept :
+        _ThisBorrowedObject {libObjPtr}
     {
     }
 
-    ConstIntegerRange(const _ThisConstIntegerRange& range) noexcept : _ThisBorrowedObj {range}
+    ConstIntegerRange(const _ThisConstIntegerRange& range) noexcept : _ThisBorrowedObject {range}
     {
     }
 
     _ThisConstIntegerRange& operator=(const _ThisConstIntegerRange& range) noexcept
     {
-        _ThisBorrowedObj::operator=(range);
+        _ThisBorrowedObject::operator=(range);
         return *this;
     }
 

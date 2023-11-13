@@ -17,7 +17,7 @@
 #include "cpp-common/bt2/trace-ir.hpp"
 #include "cpp-common/optional.hpp"
 
-#include "borrowed-obj.hpp"
+#include "borrowed-object.hpp"
 #include "internal/shared-obj.hpp"
 #include "internal/utils.hpp"
 
@@ -79,31 +79,31 @@ enum class MessageType
 };
 
 template <typename LibObjT>
-class CommonMessage : public BorrowedObj<LibObjT>
+class CommonMessage : public BorrowedObject<LibObjT>
 {
 private:
-    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
+    using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
 
 protected:
-    using typename BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _ThisCommonMessage = CommonMessage<LibObjT>;
 
 public:
     using Shared = internal::SharedMessage<CommonMessage<LibObjT>, LibObjT>;
 
-    explicit CommonMessage(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObj {libObjPtr}
+    explicit CommonMessage(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
     }
 
     template <typename OtherLibObjT>
-    CommonMessage(const CommonMessage<OtherLibObjT> val) noexcept : _ThisBorrowedObj {val}
+    CommonMessage(const CommonMessage<OtherLibObjT> val) noexcept : _ThisBorrowedObject {val}
     {
     }
 
     template <typename OtherLibObjT>
     _ThisCommonMessage& operator=(const CommonMessage<OtherLibObjT> val) noexcept
     {
-        _ThisBorrowedObj::operator=(val);
+        _ThisBorrowedObject::operator=(val);
         return *this;
     }
 

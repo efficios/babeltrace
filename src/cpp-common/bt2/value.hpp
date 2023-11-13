@@ -18,7 +18,7 @@
 #include "cpp-common/optional.hpp"
 #include "cpp-common/string_view.hpp"
 
-#include "borrowed-obj.hpp"
+#include "borrowed-object.hpp"
 #include "common-iter.hpp"
 #include "exc.hpp"
 #include "internal/shared-obj.hpp"
@@ -100,7 +100,7 @@ template <typename LibObjT>
 class CommonStream;
 
 template <typename LibObjT>
-class CommonValue : public BorrowedObj<LibObjT>
+class CommonValue : public BorrowedObject<LibObjT>
 {
     /* Allow append() to call `val.libObjPtr()` */
     friend class CommonArrayValue<bt_value>;
@@ -121,28 +121,28 @@ class CommonValue : public BorrowedObj<LibObjT>
     friend class CommonValue<const bt_value>;
 
 private:
-    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
+    using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
 
 protected:
-    using typename BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _ThisCommonValue = CommonValue<LibObjT>;
 
 public:
     using Shared = internal::SharedValue<CommonValue<LibObjT>, LibObjT>;
 
-    explicit CommonValue(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObj {libObjPtr}
+    explicit CommonValue(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
     }
 
     template <typename OtherLibObjT>
-    CommonValue(const CommonValue<OtherLibObjT> val) noexcept : _ThisBorrowedObj {val}
+    CommonValue(const CommonValue<OtherLibObjT> val) noexcept : _ThisBorrowedObject {val}
     {
     }
 
     template <typename OtherLibObjT>
     _ThisCommonValue& operator=(const CommonValue<OtherLibObjT> val) noexcept
     {
-        _ThisBorrowedObj::operator=(val);
+        _ThisBorrowedObject::operator=(val);
         return *this;
     }
 

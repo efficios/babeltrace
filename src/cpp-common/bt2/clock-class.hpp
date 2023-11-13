@@ -17,7 +17,7 @@
 #include "cpp-common/string_view.hpp"
 #include "cpp-common/uuid-view.hpp"
 
-#include "borrowed-obj.hpp"
+#include "borrowed-object.hpp"
 #include "exc.hpp"
 #include "internal/shared-obj.hpp"
 #include "internal/utils.hpp"
@@ -92,11 +92,11 @@ private:
 };
 
 template <typename LibObjT>
-class CommonClockClass final : public BorrowedObj<LibObjT>
+class CommonClockClass final : public BorrowedObject<LibObjT>
 {
 private:
-    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
-    using typename BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
+    using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _ThisCommonClockClass = CommonClockClass<LibObjT>;
 
 public:
@@ -106,20 +106,20 @@ public:
     using UserAttributes =
         typename std::conditional<std::is_const<LibObjT>::value, ConstMapValue, MapValue>::type;
 
-    explicit CommonClockClass(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObj {libObjPtr}
+    explicit CommonClockClass(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
     }
 
     template <typename OtherLibObjT>
     CommonClockClass(const CommonClockClass<OtherLibObjT> clkClass) noexcept :
-        _ThisBorrowedObj {clkClass}
+        _ThisBorrowedObject {clkClass}
     {
     }
 
     template <typename OtherLibObjT>
     _ThisCommonClockClass& operator=(const CommonClockClass<OtherLibObjT> clkClass) noexcept
     {
-        _ThisBorrowedObj::operator=(clkClass);
+        _ThisBorrowedObject::operator=(clkClass);
         return *this;
     }
 

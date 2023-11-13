@@ -13,7 +13,7 @@
 
 #include "common/assert.h"
 
-#include "borrowed-obj.hpp"
+#include "borrowed-object.hpp"
 #include "common-iter.hpp"
 #include "internal/shared-obj.hpp"
 
@@ -28,20 +28,21 @@ enum class FieldPathItemType
     CURRENT_OPTION_CONTENT = BT_FIELD_PATH_ITEM_TYPE_CURRENT_OPTION_CONTENT,
 };
 
-class ConstFieldPathItem : public BorrowedObj<const bt_field_path_item>
+class ConstFieldPathItem : public BorrowedObject<const bt_field_path_item>
 {
 public:
-    explicit ConstFieldPathItem(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObj {libObjPtr}
+    explicit ConstFieldPathItem(const _LibObjPtr libObjPtr) noexcept :
+        _ThisBorrowedObject {libObjPtr}
     {
     }
 
-    ConstFieldPathItem(const ConstFieldPathItem& fpItem) noexcept : _ThisBorrowedObj {fpItem}
+    ConstFieldPathItem(const ConstFieldPathItem& fpItem) noexcept : _ThisBorrowedObject {fpItem}
     {
     }
 
     ConstFieldPathItem& operator=(const ConstFieldPathItem& fpItem) noexcept
     {
-        _ThisBorrowedObj::operator=(fpItem);
+        _ThisBorrowedObject::operator=(fpItem);
         return *this;
     }
 
@@ -123,7 +124,7 @@ struct FieldPathRefFuncs final
 
 } /* namespace internal */
 
-class ConstFieldPath final : public BorrowedObj<const bt_field_path>
+class ConstFieldPath final : public BorrowedObject<const bt_field_path>
 {
 public:
     using Shared =
@@ -139,17 +140,17 @@ public:
         EVENT_PAYLOAD = BT_FIELD_PATH_SCOPE_EVENT_PAYLOAD,
     };
 
-    explicit ConstFieldPath(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObj {libObjPtr}
+    explicit ConstFieldPath(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
     }
 
-    ConstFieldPath(const ConstFieldPath& fieldPath) noexcept : _ThisBorrowedObj {fieldPath}
+    ConstFieldPath(const ConstFieldPath& fieldPath) noexcept : _ThisBorrowedObject {fieldPath}
     {
     }
 
     ConstFieldPath& operator=(const ConstFieldPath& fieldPath) noexcept
     {
-        _ThisBorrowedObj::operator=(fieldPath);
+        _ThisBorrowedObject::operator=(fieldPath);
         return *this;
     }
 

@@ -16,7 +16,7 @@
 #include "cpp-common/optional.hpp"
 #include "cpp-common/string_view.hpp"
 
-#include "borrowed-obj.hpp"
+#include "borrowed-object.hpp"
 #include "common-iter.hpp"
 #include "exc.hpp"
 #include "field-path.hpp"
@@ -161,7 +161,7 @@ enum class FieldClassType
 };
 
 template <typename LibObjT>
-class CommonFieldClass : public BorrowedObj<LibObjT>
+class CommonFieldClass : public BorrowedObject<LibObjT>
 {
     /* Allow appendMember() to call `fc.libObjPtr()` */
     friend class CommonStructureFieldClass<bt_field_class>;
@@ -187,10 +187,10 @@ class CommonFieldClass : public BorrowedObj<LibObjT>
     friend class CommonTraceClass<bt_trace_class>;
 
 private:
-    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
+    using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
 
 protected:
-    using typename BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _ThisCommonFieldClass = CommonFieldClass<LibObjT>;
 
 public:
@@ -199,19 +199,19 @@ public:
     using UserAttributes =
         typename std::conditional<std::is_const<LibObjT>::value, ConstMapValue, MapValue>::type;
 
-    explicit CommonFieldClass(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObj {libObjPtr}
+    explicit CommonFieldClass(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
     }
 
     template <typename OtherLibObjT>
-    CommonFieldClass(const CommonFieldClass<OtherLibObjT> fc) noexcept : _ThisBorrowedObj {fc}
+    CommonFieldClass(const CommonFieldClass<OtherLibObjT> fc) noexcept : _ThisBorrowedObject {fc}
     {
     }
 
     template <typename OtherLibObjT>
     CommonFieldClass& operator=(const CommonFieldClass<OtherLibObjT> fc) noexcept
     {
-        _ThisBorrowedObj::operator=(fc);
+        _ThisBorrowedObject::operator=(fc);
         return *this;
     }
 
@@ -679,11 +679,11 @@ struct ConstEnumerationFieldClassMappingSpec<const bt_field_class_enumeration_si
 } /* namespace internal */
 
 template <typename LibObjT>
-class ConstEnumerationFieldClassMapping final : public BorrowedObj<LibObjT>
+class ConstEnumerationFieldClassMapping final : public BorrowedObject<LibObjT>
 {
 private:
-    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
-    using typename BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
+    using typename BorrowedObject<LibObjT>::_LibObjPtr;
 
 public:
     using RangeSet = typename std::conditional<
@@ -691,19 +691,19 @@ public:
         ConstUnsignedIntegerRangeSet, ConstSignedIntegerRangeSet>::type;
 
     explicit ConstEnumerationFieldClassMapping(const _LibObjPtr libObjPtr) noexcept :
-        _ThisBorrowedObj {libObjPtr}
+        _ThisBorrowedObject {libObjPtr}
     {
     }
 
     ConstEnumerationFieldClassMapping(const ConstEnumerationFieldClassMapping& mapping) noexcept :
-        _ThisBorrowedObj {mapping}
+        _ThisBorrowedObject {mapping}
     {
     }
 
     ConstEnumerationFieldClassMapping&
     operator=(const ConstEnumerationFieldClassMapping& mapping) noexcept
     {
-        _ThisBorrowedObj::operator=(mapping);
+        _ThisBorrowedObject::operator=(mapping);
         return *this;
     }
 
@@ -1000,11 +1000,11 @@ struct CommonStructureFieldClassMemberSpec<const bt_field_class_structure_member
 } /* namespace internal */
 
 template <typename LibObjT>
-class CommonStructureFieldClassMember final : public BorrowedObj<LibObjT>
+class CommonStructureFieldClassMember final : public BorrowedObject<LibObjT>
 {
 private:
-    using typename BorrowedObj<LibObjT>::_LibObjPtr;
-    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
+    using typename BorrowedObject<LibObjT>::_LibObjPtr;
+    using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
 
     using _FieldClass =
         typename std::conditional<std::is_const<LibObjT>::value, ConstFieldClass, FieldClass>::type;
@@ -1014,14 +1014,14 @@ public:
         typename std::conditional<std::is_const<LibObjT>::value, ConstMapValue, MapValue>::type;
 
     explicit CommonStructureFieldClassMember(const _LibObjPtr libObjPtr) noexcept :
-        _ThisBorrowedObj {libObjPtr}
+        _ThisBorrowedObject {libObjPtr}
     {
     }
 
     template <typename OtherLibObjT>
     CommonStructureFieldClassMember(const CommonStructureFieldClassMember<OtherLibObjT> fc) noexcept
         :
-        _ThisBorrowedObj {fc}
+        _ThisBorrowedObject {fc}
     {
     }
 
@@ -1029,7 +1029,7 @@ public:
     CommonStructureFieldClassMember<LibObjT>&
     operator=(const CommonStructureFieldClassMember<OtherLibObjT> fc) noexcept
     {
-        _ThisBorrowedObj::operator=(fc);
+        _ThisBorrowedObject::operator=(fc);
         return *this;
     }
 
@@ -1925,11 +1925,11 @@ struct CommonVariantFieldClassOptionSpec<const bt_field_class_variant_option> fi
 } /* namespace internal */
 
 template <typename LibObjT>
-class CommonVariantFieldClassOption : public BorrowedObj<LibObjT>
+class CommonVariantFieldClassOption : public BorrowedObject<LibObjT>
 {
 private:
-    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
-    using typename BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
+    using typename BorrowedObject<LibObjT>::_LibObjPtr;
 
     using _FieldClass =
         typename std::conditional<std::is_const<LibObjT>::value, ConstFieldClass, FieldClass>::type;
@@ -1939,13 +1939,13 @@ public:
         typename std::conditional<std::is_const<LibObjT>::value, ConstMapValue, MapValue>::type;
 
     explicit CommonVariantFieldClassOption(const _LibObjPtr libObjPtr) noexcept :
-        _ThisBorrowedObj {libObjPtr}
+        _ThisBorrowedObject {libObjPtr}
     {
     }
 
     template <typename OtherLibObjT>
     CommonVariantFieldClassOption(const CommonVariantFieldClassOption<OtherLibObjT> fc) noexcept :
-        _ThisBorrowedObj {fc}
+        _ThisBorrowedObject {fc}
     {
     }
 
@@ -1953,7 +1953,7 @@ public:
     CommonVariantFieldClassOption&
     operator=(const CommonVariantFieldClassOption<OtherLibObjT> fc) noexcept
     {
-        _ThisBorrowedObj::operator=(fc);
+        _ThisBorrowedObject::operator=(fc);
         return *this;
     }
 
@@ -2076,11 +2076,11 @@ struct ConstVariantWithIntegerSelectorFieldClassOptionSpec<
 } /* namespace internal */
 
 template <typename LibObjT>
-class ConstVariantWithIntegerSelectorFieldClassOption : public BorrowedObj<LibObjT>
+class ConstVariantWithIntegerSelectorFieldClassOption : public BorrowedObject<LibObjT>
 {
 private:
-    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
-    using typename BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
+    using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _Spec = internal::ConstVariantWithIntegerSelectorFieldClassOptionSpec<LibObjT>;
 
 public:
@@ -2091,14 +2091,14 @@ public:
         ConstUnsignedIntegerRangeSet, ConstSignedIntegerRangeSet>::type;
 
     explicit ConstVariantWithIntegerSelectorFieldClassOption(const _LibObjPtr libObjPtr) noexcept :
-        _ThisBorrowedObj {libObjPtr}
+        _ThisBorrowedObject {libObjPtr}
     {
     }
 
     template <typename OtherLibObjT>
     ConstVariantWithIntegerSelectorFieldClassOption(
         const ConstVariantWithIntegerSelectorFieldClassOption<OtherLibObjT> fc) noexcept :
-        _ThisBorrowedObj {fc}
+        _ThisBorrowedObject {fc}
     {
     }
 
@@ -2106,7 +2106,7 @@ public:
     ConstVariantWithIntegerSelectorFieldClassOption&
     operator=(const ConstVariantWithIntegerSelectorFieldClassOption<OtherLibObjT> fc) noexcept
     {
-        _ThisBorrowedObj::operator=(fc);
+        _ThisBorrowedObject::operator=(fc);
         return *this;
     }
 

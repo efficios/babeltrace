@@ -16,7 +16,7 @@
 #include "cpp-common/optional.hpp"
 #include "cpp-common/string_view.hpp"
 
-#include "borrowed-obj.hpp"
+#include "borrowed-object.hpp"
 #include "field-class.hpp"
 #include "internal/utils.hpp"
 
@@ -92,32 +92,32 @@ struct CommonFieldSpec<const bt_field> final
 } /* namespace internal */
 
 template <typename LibObjT>
-class CommonField : public BorrowedObj<LibObjT>
+class CommonField : public BorrowedObject<LibObjT>
 {
 private:
-    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
+    using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
 
 protected:
-    using typename BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _ThisCommonField = CommonField<LibObjT>;
 
 public:
     using Class =
         typename std::conditional<std::is_const<LibObjT>::value, ConstFieldClass, FieldClass>::type;
 
-    explicit CommonField(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObj {libObjPtr}
+    explicit CommonField(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
     }
 
     template <typename OtherLibObjT>
-    CommonField(const CommonField<OtherLibObjT> val) noexcept : _ThisBorrowedObj {val}
+    CommonField(const CommonField<OtherLibObjT> val) noexcept : _ThisBorrowedObject {val}
     {
     }
 
     template <typename OtherLibObjT>
     _ThisCommonField& operator=(const CommonField<OtherLibObjT> val) noexcept
     {
-        _ThisBorrowedObj::operator=(val);
+        _ThisBorrowedObject::operator=(val);
         return *this;
     }
 

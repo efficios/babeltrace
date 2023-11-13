@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-#ifndef BABELTRACE_CPP_COMMON_BT2_BORROWED_OBJ_HPP
-#define BABELTRACE_CPP_COMMON_BT2_BORROWED_OBJ_HPP
+#ifndef BABELTRACE_CPP_COMMON_BT2_BORROWED_OBJECT_HPP
+#define BABELTRACE_CPP_COMMON_BT2_BORROWED_OBJECT_HPP
 
 #include <functional>
 #include <type_traits>
@@ -27,20 +27,20 @@ namespace bt2 {
  * libbabeltrace2 object pointer.
  */
 template <typename LibObjT>
-class BorrowedObj
+class BorrowedObject
 {
     static_assert(!std::is_pointer<LibObjT>::value, "`LibObjT` must not be a pointer");
 
     /*
-     * This makes it possible for a `BorrowedObj<const bt_something>`
+     * This makes it possible for a `BorrowedObject<const bt_something>`
      * instance to get assigned an instance of
-     * `BorrowedObj<bt_something>` ("copy" constructor and "assignment"
-     * operator).
+     * `BorrowedObject<bt_something>` ("copy" constructor and
+     * "assignment" operator).
      *
      * C++ forbids the other way around.
      */
     template <typename>
-    friend class BorrowedObj;
+    friend class BorrowedObject;
 
 private:
     /*
@@ -74,7 +74,7 @@ protected:
     using _LibObjPtr = LibObjT *;
 
     /* This complete borrowed object */
-    using _ThisBorrowedObj = BorrowedObj<LibObjT>;
+    using _ThisBorrowedObject = BorrowedObject<LibObjT>;
 
     /*
      * Builds a borrowed object to wrap the libbabeltrace2 object
@@ -82,29 +82,30 @@ protected:
      *
      * `libObjPtr` must not be `nullptr`.
      */
-    explicit BorrowedObj(const _LibObjPtr libObjPtr) noexcept : _mLibObjPtr {libObjPtr}
+    explicit BorrowedObject(const _LibObjPtr libObjPtr) noexcept : _mLibObjPtr {libObjPtr}
     {
         BT_ASSERT(libObjPtr);
     }
 
     /* Default copy operations */
-    BorrowedObj(const BorrowedObj&) noexcept = default;
-    BorrowedObj& operator=(const BorrowedObj&) noexcept = default;
+    BorrowedObject(const BorrowedObject&) noexcept = default;
+    BorrowedObject& operator=(const BorrowedObject&) noexcept = default;
 
     /*
      * Generic "copy" constructor.
      *
      * This converting constructor accepts both an instance of
-     * `_ThisBorrowedObj` and an instance (`other`) of
-     * `BorrowedObj<ConstLibObjT>`, where `ConstLibObjT` is the `const`
-     * version of `LibObjT`, if applicable.
+     * `_ThisBorrowedObject` and an instance (`other`) of
+     * `BorrowedObject<ConstLibObjT>`, where `ConstLibObjT` is the
+     * `const` version of `LibObjT`, if applicable.
      *
-     * This makes it possible for a `BorrowedObj<const bt_something>`
+     * This makes it possible for a `BorrowedObject<const bt_something>`
      * instance to be built from an instance of
-     * `BorrowedObj<bt_something>`. C++ forbids the other way around.
+     * `BorrowedObject<bt_something>`. C++ forbids the other way around.
      */
     template <typename OtherLibObjT>
-    BorrowedObj(const BorrowedObj<OtherLibObjT>& other) noexcept : BorrowedObj {other._mLibObjPtr}
+    BorrowedObject(const BorrowedObject<OtherLibObjT>& other) noexcept :
+        BorrowedObject {other._mLibObjPtr}
     {
         static_assert(_AssignableFromConst<OtherLibObjT>::val,
                       "Don't assign a non-const wrapper from a const wrapper.");
@@ -114,18 +115,18 @@ protected:
      * Generic "assignment" operator.
      *
      * This operator accepts both an instance of
-     * `_ThisBorrowedObj` and an instance (`other`) of
-     * `BorrowedObj<ConstLibObjT>`, where `ConstLibObjT` is the `const`
-     * version of `LibObjT`, if applicable.
+     * `_ThisBorrowedObject` and an instance (`other`) of
+     * `BorrowedObject<ConstLibObjT>`, where `ConstLibObjT` is the
+     * `const` version of `LibObjT`, if applicable.
      *
-     * This makes it possible for a `BorrowedObj<const bt_something>`
+     * This makes it possible for a `BorrowedObject<const bt_something>`
      * instance to get assigned an instance of
-     * `BorrowedObj<bt_something>`. C++ forbids the other way around,
+     * `BorrowedObject<bt_something>`. C++ forbids the other way around,
      * therefore we use `_EnableIfAssignableT` to show a more relevant
      * context in the compiler error message.
      */
     template <typename OtherLibObjT>
-    _ThisBorrowedObj& operator=(const BorrowedObj<OtherLibObjT>& other) noexcept
+    _ThisBorrowedObject& operator=(const BorrowedObject<OtherLibObjT>& other) noexcept
     {
         static_assert(_AssignableFromConst<OtherLibObjT>::val,
                       "Don't assign a non-const wrapper from a const wrapper.");
@@ -136,8 +137,8 @@ protected:
 
 public:
     /*
-     * Returns a hash of this object, solely based on its raw libbabeltrace2
-     * pointer.
+     * Returns a hash of this object, solely based on its raw
+     * libbabeltrace2 pointer.
      */
     std::size_t hash() const noexcept
     {
@@ -148,7 +149,7 @@ public:
      * Returns whether or not this object is the exact same as `other`,
      * solely based on the raw libbabeltrace2 pointers.
      */
-    bool isSame(const _ThisBorrowedObj& other) const noexcept
+    bool isSame(const _ThisBorrowedObject& other) const noexcept
     {
         return _mLibObjPtr == other._mLibObjPtr;
     }
@@ -165,4 +166,4 @@ private:
 
 } /* namespace bt2 */
 
-#endif /* BABELTRACE_CPP_COMMON_BT2_BORROWED_OBJ_HPP */
+#endif /* BABELTRACE_CPP_COMMON_BT2_BORROWED_OBJECT_HPP */

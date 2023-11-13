@@ -12,7 +12,7 @@
 
 #include <babeltrace2/babeltrace.h>
 
-#include "borrowed-obj.hpp"
+#include "borrowed-object.hpp"
 #include "common-iter.hpp"
 #include "exc.hpp"
 #include "integer-range.hpp"
@@ -141,7 +141,7 @@ template <typename LibObjT>
 class CommonTraceClass;
 
 template <typename LibObjT>
-class CommonIntegerRangeSet final : public BorrowedObj<LibObjT>
+class CommonIntegerRangeSet final : public BorrowedObject<LibObjT>
 {
     /* Allow operator==() to call `other.libObjPtr()` */
     friend class CommonIntegerRangeSet<bt_integer_range_set_unsigned>;
@@ -164,8 +164,8 @@ class CommonIntegerRangeSet final : public BorrowedObj<LibObjT>
     friend class CommonTraceClass<bt_trace_class>;
 
 private:
-    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
-    using typename BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
+    using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _ConstLibObjT = typename std::add_const<LibObjT>::type;
     using _RefFuncs = internal::IntegerRangeSetRefFuncs<_ConstLibObjT>;
     using _Spec = internal::CommonIntegerRangeSetSpec<_ConstLibObjT>;
@@ -182,7 +182,7 @@ public:
     using Iterator = CommonIterator<CommonIntegerRangeSet, Range>;
 
     explicit CommonIntegerRangeSet(const _LibObjPtr libObjPtr) noexcept :
-        _ThisBorrowedObj {libObjPtr}
+        _ThisBorrowedObject {libObjPtr}
     {
     }
 
@@ -196,7 +196,7 @@ public:
 
     template <typename OtherLibObjT>
     CommonIntegerRangeSet(const CommonIntegerRangeSet<OtherLibObjT> rangeSet) noexcept :
-        _ThisBorrowedObj {rangeSet}
+        _ThisBorrowedObject {rangeSet}
     {
     }
 
@@ -204,7 +204,7 @@ public:
     _ThisCommonIntegerRangeSet&
     operator=(const CommonIntegerRangeSet<OtherLibObjT> rangeSet) noexcept
     {
-        _ThisBorrowedObj::operator=(rangeSet);
+        _ThisBorrowedObject::operator=(rangeSet);
         return *this;
     }
 

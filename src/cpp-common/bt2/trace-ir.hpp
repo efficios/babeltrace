@@ -15,7 +15,7 @@
 #include "cpp-common/optional.hpp"
 #include "cpp-common/string_view.hpp"
 
-#include "borrowed-obj.hpp"
+#include "borrowed-object.hpp"
 #include "clock-class.hpp"
 #include "field-class.hpp"
 #include "field.hpp"
@@ -123,11 +123,11 @@ struct CommonEventSpec<const bt_event> final
 } /* namespace internal */
 
 template <typename LibObjT>
-class CommonEvent final : public BorrowedObj<LibObjT>
+class CommonEvent final : public BorrowedObject<LibObjT>
 {
 private:
-    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
-    using typename BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
+    using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _ConstSpec = internal::CommonEventSpec<const bt_event>;
     using _Spec = internal::CommonEventSpec<LibObjT>;
 
@@ -147,19 +147,19 @@ public:
                                             CommonEventClass<const bt_event_class>,
                                             CommonEventClass<bt_event_class>>::type;
 
-    explicit CommonEvent(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObj {libObjPtr}
+    explicit CommonEvent(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
     }
 
     template <typename OtherLibObjT>
-    CommonEvent(const CommonEvent<OtherLibObjT> event) noexcept : _ThisBorrowedObj {event}
+    CommonEvent(const CommonEvent<OtherLibObjT> event) noexcept : _ThisBorrowedObject {event}
     {
     }
 
     template <typename OtherLibObjT>
     CommonEvent<LibObjT>& operator=(const CommonEvent<OtherLibObjT> event) noexcept
     {
-        _ThisBorrowedObj::operator=(event);
+        _ThisBorrowedObject::operator=(event);
         return *this;
     }
 
@@ -307,11 +307,11 @@ struct CommonPacketSpec<const bt_packet> final
 } /* namespace internal */
 
 template <typename LibObjT>
-class CommonPacket final : public BorrowedObj<LibObjT>
+class CommonPacket final : public BorrowedObject<LibObjT>
 {
 private:
-    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
-    using typename BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
+    using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _ConstSpec = internal::CommonPacketSpec<const bt_packet>;
     using _Spec = internal::CommonPacketSpec<LibObjT>;
     using _ThisCommonPacket = CommonPacket<LibObjT>;
@@ -326,19 +326,19 @@ private:
 public:
     using Shared = internal::SharedObj<_ThisCommonPacket, LibObjT, internal::PacketRefFuncs>;
 
-    explicit CommonPacket(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObj {libObjPtr}
+    explicit CommonPacket(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
     }
 
     template <typename OtherLibObjT>
-    CommonPacket(const CommonPacket<OtherLibObjT> packet) noexcept : _ThisBorrowedObj {packet}
+    CommonPacket(const CommonPacket<OtherLibObjT> packet) noexcept : _ThisBorrowedObject {packet}
     {
     }
 
     template <typename OtherLibObjT>
     _ThisCommonPacket& operator=(const CommonPacket<OtherLibObjT> packet) noexcept
     {
-        _ThisBorrowedObj::operator=(packet);
+        _ThisBorrowedObject::operator=(packet);
         return *this;
     }
 
@@ -481,11 +481,11 @@ struct CommonStreamSpec<const bt_stream> final
 } /* namespace internal */
 
 template <typename LibObjT>
-class CommonStream final : public BorrowedObj<LibObjT>
+class CommonStream final : public BorrowedObject<LibObjT>
 {
 private:
-    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
-    using typename BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
+    using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _ConstSpec = internal::CommonStreamSpec<const bt_stream>;
     using _Spec = internal::CommonStreamSpec<LibObjT>;
     using _ThisCommonStream = CommonStream<LibObjT>;
@@ -504,19 +504,19 @@ public:
     using UserAttributes =
         typename std::conditional<std::is_const<LibObjT>::value, ConstMapValue, MapValue>::type;
 
-    explicit CommonStream(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObj {libObjPtr}
+    explicit CommonStream(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
     }
 
     template <typename OtherLibObjT>
-    CommonStream(const CommonStream<OtherLibObjT> stream) noexcept : _ThisBorrowedObj {stream}
+    CommonStream(const CommonStream<OtherLibObjT> stream) noexcept : _ThisBorrowedObject {stream}
     {
     }
 
     template <typename OtherLibObjT>
     _ThisCommonStream& operator=(const CommonStream<OtherLibObjT> stream) noexcept
     {
-        _ThisBorrowedObj::operator=(stream);
+        _ThisBorrowedObject::operator=(stream);
         return *this;
     }
 
@@ -711,14 +711,14 @@ struct CommonTraceSpec<const bt_trace> final
 } /* namespace internal */
 
 template <typename LibObjT>
-class CommonTrace final : public BorrowedObj<LibObjT>
+class CommonTrace final : public BorrowedObject<LibObjT>
 {
     /* Allow instantiate() to call `trace.libObjPtr()` */
     friend class CommonStreamClass<bt_stream_class>;
 
 private:
-    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
-    using typename BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
+    using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _ConstSpec = internal::CommonTraceSpec<const bt_trace>;
     using _Spec = internal::CommonTraceSpec<LibObjT>;
     using _ThisCommonTrace = CommonTrace<LibObjT>;
@@ -743,19 +743,19 @@ public:
         ConstValue value;
     };
 
-    explicit CommonTrace(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObj {libObjPtr}
+    explicit CommonTrace(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
     }
 
     template <typename OtherLibObjT>
-    CommonTrace(const CommonTrace<OtherLibObjT> trace) noexcept : _ThisBorrowedObj {trace}
+    CommonTrace(const CommonTrace<OtherLibObjT> trace) noexcept : _ThisBorrowedObject {trace}
     {
     }
 
     template <typename OtherLibObjT>
     _ThisCommonTrace& operator=(const CommonTrace<OtherLibObjT> trace) noexcept
     {
-        _ThisBorrowedObj::operator=(trace);
+        _ThisBorrowedObject::operator=(trace);
         return *this;
     }
 
@@ -1047,11 +1047,11 @@ struct CommonEventClassSpec<const bt_event_class> final
 } /* namespace internal */
 
 template <typename LibObjT>
-class CommonEventClass final : public BorrowedObj<LibObjT>
+class CommonEventClass final : public BorrowedObject<LibObjT>
 {
 private:
-    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
-    using typename BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
+    using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _ConstSpec = internal::CommonEventClassSpec<const bt_event_class>;
     using _Spec = internal::CommonEventClassSpec<LibObjT>;
     using _ThisCommonEventClass = CommonEventClass<LibObjT>;
@@ -1090,20 +1090,20 @@ public:
         DEBUG = BT_EVENT_CLASS_LOG_LEVEL_DEBUG,
     };
 
-    explicit CommonEventClass(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObj {libObjPtr}
+    explicit CommonEventClass(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
     }
 
     template <typename OtherLibObjT>
     CommonEventClass(const CommonEventClass<OtherLibObjT> eventClass) noexcept :
-        _ThisBorrowedObj {eventClass}
+        _ThisBorrowedObject {eventClass}
     {
     }
 
     template <typename OtherLibObjT>
     _ThisCommonEventClass& operator=(const CommonEventClass<OtherLibObjT> eventClass) noexcept
     {
-        _ThisBorrowedObj::operator=(eventClass);
+        _ThisBorrowedObject::operator=(eventClass);
         return *this;
     }
 
@@ -1423,11 +1423,11 @@ struct CommonStreamClassSpec<const bt_stream_class> final
 } /* namespace internal */
 
 template <typename LibObjT>
-class CommonStreamClass final : public BorrowedObj<LibObjT>
+class CommonStreamClass final : public BorrowedObject<LibObjT>
 {
 private:
-    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
-    using typename BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
+    using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _ConstSpec = internal::CommonStreamClassSpec<const bt_stream_class>;
     using _Spec = internal::CommonStreamClassSpec<LibObjT>;
     using _ThisCommonStreamClass = CommonStreamClass<LibObjT>;
@@ -1454,20 +1454,21 @@ public:
     using UserAttributes =
         typename std::conditional<std::is_const<LibObjT>::value, ConstMapValue, MapValue>::type;
 
-    explicit CommonStreamClass(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObj {libObjPtr}
+    explicit CommonStreamClass(const _LibObjPtr libObjPtr) noexcept :
+        _ThisBorrowedObject {libObjPtr}
     {
     }
 
     template <typename OtherLibObjT>
     CommonStreamClass(const CommonStreamClass<OtherLibObjT> streamClass) noexcept :
-        _ThisBorrowedObj {streamClass}
+        _ThisBorrowedObject {streamClass}
     {
     }
 
     template <typename OtherLibObjT>
     _ThisCommonStreamClass& operator=(const CommonStreamClass<OtherLibObjT> streamClass) noexcept
     {
-        _ThisBorrowedObj::operator=(streamClass);
+        _ThisBorrowedObject::operator=(streamClass);
         return *this;
     }
 
@@ -1916,11 +1917,11 @@ struct CommonTraceClassSpec<const bt_trace_class> final
 } /* namespace internal */
 
 template <typename LibObjT>
-class CommonTraceClass final : public BorrowedObj<LibObjT>
+class CommonTraceClass final : public BorrowedObject<LibObjT>
 {
 private:
-    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
-    using typename BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
+    using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _ConstSpec = internal::CommonTraceClassSpec<const bt_trace_class>;
     using _Spec = internal::CommonTraceClassSpec<LibObjT>;
     using _ThisCommonTraceClass = CommonTraceClass<LibObjT>;
@@ -1936,20 +1937,20 @@ public:
     using UserAttributes =
         typename std::conditional<std::is_const<LibObjT>::value, ConstMapValue, MapValue>::type;
 
-    explicit CommonTraceClass(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObj {libObjPtr}
+    explicit CommonTraceClass(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
     }
 
     template <typename OtherLibObjT>
     CommonTraceClass(const CommonTraceClass<OtherLibObjT> traceClass) noexcept :
-        _ThisBorrowedObj {traceClass}
+        _ThisBorrowedObject {traceClass}
     {
     }
 
     template <typename OtherLibObjT>
     _ThisCommonTraceClass& operator=(const CommonTraceClass<OtherLibObjT> traceClass) noexcept
     {
-        _ThisBorrowedObj::operator=(traceClass);
+        _ThisBorrowedObject::operator=(traceClass);
         return *this;
     }
 
