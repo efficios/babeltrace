@@ -102,6 +102,7 @@ noinst_LTLIBRARIES = \
 	autodisc/libautodisc.la \
 	common/libcommon.la \
 	compat/libcompat.la \
+	cpp-common/vendor/fmt/libfmt.la \
 	ctfser/libctfser.la \
 	fd-cache/libfd-cache.la \
 	logging/liblogging.la \
@@ -157,6 +158,23 @@ compat_libcompat_la_SOURCES = \
 	compat/time.h \
 	compat/unistd.h \
 	compat/utc.h
+
+cpp_common_vendor_fmt_libfmt_la_SOURCES = \
+	cpp-common/vendor/fmt/args.h \
+	cpp-common/vendor/fmt/chrono.h \
+	cpp-common/vendor/fmt/color.h \
+	cpp-common/vendor/fmt/compile.h \
+	cpp-common/vendor/fmt/core.h \
+	cpp-common/vendor/fmt/format-inl.h \
+	cpp-common/vendor/fmt/format.cc \
+	cpp-common/vendor/fmt/format.h \
+	cpp-common/vendor/fmt/os.cc \
+	cpp-common/vendor/fmt/os.h \
+	cpp-common/vendor/fmt/ostream.h \
+	cpp-common/vendor/fmt/printf.h \
+	cpp-common/vendor/fmt/ranges.h \
+	cpp-common/vendor/fmt/std.h \
+	cpp-common/vendor/fmt/xchar.h
 
 ctfser_libctfser_la_SOURCES = \
 	ctfser/ctfser.c \

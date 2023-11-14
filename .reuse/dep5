@@ -1,0 +1,7 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+
+Files:
+  src/cpp-common/vendor/fmt/*.h
+  src/cpp-common/vendor/fmt/*.cc
+Copyright: 2012 - present, Victor Zverovich
+License: MIT
