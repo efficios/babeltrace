@@ -22,7 +22,7 @@ EXTRA_DIST = \
 	LICENSES/BSL-1.0 \
 	LICENSES/CC-BY-SA-4.0 \
 	LICENSES/GPL-2.0-only \
-	LICENSES/GPL-3.0 \
+	LICENSES/GPL-3.0-or-later \
 	LICENSES/LGPL-2.1-only \
 	LICENSES/MIT \
 	std-ext-lib.txt \
