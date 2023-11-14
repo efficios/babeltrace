@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2022 Simon Marchi <simon.marchi@efficios.com>
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 #ifndef SRC_CPP_COMMON_VECTOR_HPP
 #define SRC_CPP_COMMON_VECTOR_HPP
 

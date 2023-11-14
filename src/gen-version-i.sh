@@ -1,8 +1,7 @@
 #!/usr/bin/env sh
 #
+# SPDX-FileCopyrightText: 2023 EfficiOS, Inc.
 # SPDX-License-Identifier: GPL-2.0-only
-#
-# Copyright (C) 2023 EfficiOS, Inc.
 
 # This file generates an include file that contains the git version
 # string of the current branch, it must be continuously updated when

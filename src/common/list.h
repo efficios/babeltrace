@@ -1,7 +1,7 @@
 /*
+ * SPDX-FileCopyrightText: 2002 Free Software Foundation, Inc.
  * SPDX-License-Identifier: LGPL-2.1-only
  *
- * Copyright (C) 2002 Free Software Foundation, Inc.
  * This file is part of the GNU C Library.
  * Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
  */

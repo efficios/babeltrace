@@ -1,3 +1,4 @@
+# SPDX-FileCopyrightText: 2019-2023 EfficiOS, Inc.
 # SPDX-License-Identifier: MIT
 
 # Build the current dir containing the library and plugins before the cli and
@@ -705,3 +706,5 @@ plugins_lttng_utils_babeltrace_plugin_lttng_utils_la_LIBADD += \
 	plugins/common/param-validation/libparam-validation.la
 endif # !ENABLE_BUILT_IN_PLUGINS
 endif # ENABLE_DEBUG_INFO
+
+EXTRA_DIST = cpp-common/optional.hpp.license

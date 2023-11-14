@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Philippe Proulx <pproulx@efficios.com>
+ * SPDX-FileCopyrightText: 2020 Philippe Proulx <pproulx@efficios.com>
  *
  * SPDX-License-Identifier: MIT
  */

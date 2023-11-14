@@ -1,3 +1,4 @@
+# SPDX-FileCopyrightText: 2019-2023 EfficiOS, Inc.
 # SPDX-License-Identifier: MIT
 
 PLUGINS_PATH = $(abs_top_builddir)/src/plugins

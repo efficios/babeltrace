@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2019-2020 EfficiOS, Inc.
+# SPDX-License-Identifier: MIT
+
 bt2/native_bt.py
 bt2/native_bt.c
 bt2/native_bt.d
