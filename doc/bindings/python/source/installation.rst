@@ -1,3 +1,7 @@
+..
+   SPDX-FileCopyrightText: 2020 Philippe Proulx <eeppeliteloop@gmail.com>
+   SPDX-License-Identifier: CC-BY-SA-4.0
+
 .. include:: common.rst
 
 Installation
