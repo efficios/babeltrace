@@ -41,17 +41,11 @@ noinst_HEADERS = \
 	cpp-common/bt2/value.hpp \
 	cpp-common/bt2/wrap.hpp \
 	cpp-common/align.hpp \
-	cpp-common/cfg-error-reporting.hpp \
-	cpp-common/cfg-error-reporting-throw.hpp \
-	cpp-common/cfg-logging-error-reporting.hpp \
-	cpp-common/cfg-logging-error-reporting-throw.hpp \
-	cpp-common/cfg-logging.hpp \
 	cpp-common/endian.hpp \
 	cpp-common/exc.hpp \
 	cpp-common/glib-up.hpp \
 	cpp-common/libc-up.hpp \
 	cpp-common/lib-str.hpp \
-	cpp-common/log-cfg.hpp \
 	cpp-common/make-unique.hpp \
 	cpp-common/nlohmann/json.hpp \
 	cpp-common/optional.hpp \
