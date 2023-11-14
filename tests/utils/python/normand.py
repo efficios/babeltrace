@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2023 Philippe Proulx <eeppeliteloop@gmail.com>
+# SPDX-License-Identifier: MIT
+#
 # The MIT License (MIT)
 #
 # Copyright (c) 2023 Philippe Proulx <eeppeliteloop@gmail.com>
