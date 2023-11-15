@@ -14,7 +14,7 @@
 #include <babeltrace2/babeltrace.h>
 
 #include "common/assert.h"
-#include "cpp-common/nlohmann/json.hpp"
+#include "cpp-common/vendor/nlohmann/json.hpp"
 
 #include "../utils/run-in.hpp"
 #include "utils.hpp"

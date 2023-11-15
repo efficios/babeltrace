@@ -56,7 +56,7 @@ noinst_HEADERS = \
 	cpp-common/bt2s/make-unique.hpp \
 	cpp-common/bt2s/optional.hpp \
 	cpp-common/bt2s/string-view.hpp \
-	cpp-common/nlohmann/json.hpp \
+	cpp-common/vendor/nlohmann/json.hpp \
 	cpp-common/vendor/optional-lite/optional.hpp \
 	cpp-common/vendor/string_view-standalone/string_view.hpp
 
