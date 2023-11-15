@@ -45,7 +45,6 @@ format_cpp() {
 	# files in specific subdirectories.
 	find "$(realpath "$root_dir")" \( -name '*.cpp' -o -name '*.hpp' \) \
 		! -path '*/src/cpp-common/vendor/*' \
-		! -path '*/src/cpp-common/string_view.hpp' \
 		! -path '*/src/cpp-common/nlohmann/json.hpp' \
 		! -path '*/src/plugins/ctf/common/metadata/parser.*' \
 		! -path '*/src/plugins/ctf/common/metadata/lexer.*' \
