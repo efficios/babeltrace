@@ -17,9 +17,13 @@ namespace bt2 {
  * manages the reference counting of the underlying libbabeltrace2
  * object.
  *
- * When you move a shared object, it becomes invalid, in that
- * operator*() and operator->() will either fail to assert in debug mode
- * or trigger a segmentation fault.
+ * When you move a shared object, it becomes empty, in that operator*()
+ * and operator->() will either fail to assert in debug mode or trigger
+ * a segmentation fault.
+ *
+ * The default constructor builds an empty shared object. You may also
+ * call the reset() method to make a shared object empty. Check whether
+ * or not a shared object is empty with the `bool` operator.
  *
  * `LibObjT` is the direct libbabeltrace2 object type, for example
  * `bt_stream_class` or `const bt_value`.
@@ -43,6 +47,14 @@ class SharedObject final
      */
     template <typename, typename, typename>
     friend class SharedObject;
+
+public:
+    /*
+     * Builds an empty shared object.
+     */
+    explicit SharedObject() noexcept
+    {
+    }
 
 private:
     /*
@@ -242,12 +254,28 @@ public:
         return &*_mObj;
     }
 
+    operator bool() const noexcept
+    {
+        return _mObj.has_value();
+    }
+
+    /*
+     * Makes this shared object empty.
+     */
+    void reset() noexcept
+    {
+        if (_mObj) {
+            this->_putRef();
+            this->_reset();
+        }
+    }
+
     /*
      * Transfers the reference of the object which this shared object
      * wrapper manages and returns it, making the caller become an
      * active owner.
      *
-     * This method makes this object invalid.
+     * This method makes this object empty.
      */
     ObjT release() noexcept
     {
