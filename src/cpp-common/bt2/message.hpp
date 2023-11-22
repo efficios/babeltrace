@@ -712,6 +712,16 @@ public:
         return _Event {internal::CommonEventMessageSpec<LibObjT>::event(this->libObjPtr())};
     }
 
+    bt2s::optional<ConstClockClass> streamClassDefaultClockClass() const noexcept
+    {
+        if (const auto libClkClsPtr =
+                bt_message_event_borrow_stream_class_default_clock_class_const(this->libObjPtr())) {
+            return ConstClockClass {libClkClsPtr};
+        }
+
+        return bt2s::nullopt;
+    }
+
     ConstClockSnapshot defaultClockSnapshot() const noexcept
     {
         const auto libObjPtr =
