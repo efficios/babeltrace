@@ -49,6 +49,7 @@ noinst_HEADERS = \
 	cpp-common/bt2c/lib-str.hpp \
 	cpp-common/bt2c/libc-up.hpp \
 	cpp-common/bt2c/logging.hpp \
+	cpp-common/bt2c/prio-heap.hpp \
 	cpp-common/bt2c/read-fixed-len-int.hpp \
 	cpp-common/bt2c/safe-ops.hpp \
 	cpp-common/bt2c/std-int.hpp \
@@ -409,8 +410,6 @@ lib_libbabeltrace2_la_SOURCES = \
 	lib/plugin/plugin.h \
 	lib/plugin/plugin-so.c \
 	lib/plugin/plugin-so.h \
-	lib/prio-heap/prio-heap.c \
-	lib/prio-heap/prio-heap.h \
 	lib/trace-ir/attributes.c \
 	lib/trace-ir/attributes.h \
 	lib/trace-ir/clock-class.c \

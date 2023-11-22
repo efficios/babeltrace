@@ -7,8 +7,8 @@
  * chapter 6.
  */
 
-#ifndef _BABELTRACE_PRIO_HEAP_H
-#define _BABELTRACE_PRIO_HEAP_H
+#ifndef BABELTRACE_COMMON_PRIO_HEAP_H
+#define BABELTRACE_COMMON_PRIO_HEAP_H
 
 #include <unistd.h>
 #include "common/macros.h"
@@ -113,4 +113,4 @@ extern void *bt_heap_replace_max(struct ptr_heap *heap, void *p);
  */
 extern int bt_heap_copy(struct ptr_heap *dst, struct ptr_heap *src);
 
-#endif /* _BABELTRACE_PRIO_HEAP_H */
+#endif /* BABELTRACE_COMMON_PRIO_HEAP_H */

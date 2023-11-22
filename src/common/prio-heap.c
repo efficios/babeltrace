@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "prio-heap.h"
+#include "common/prio-heap.h"
 
 #ifdef DEBUG_HEAP
 void check_heap(const struct ptr_heap *heap)
