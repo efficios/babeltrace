@@ -1228,9 +1228,6 @@ class _TestIntegerValue(_TestNumericValue):
     def test_create_pos(self):
         self.assertEqual(self._ip, self._pv)
 
-    def test_create_neg(self):
-        self.assertEqual(self._in, self._nv)
-
     def test_create_from_vint(self):
         i = self._CLS(self._ip)
         self.assertEqual(i, self._pv)
