@@ -12,6 +12,7 @@
 #include <babeltrace2/babeltrace.h>
 
 #include "borrowed-object.hpp"
+#include "clock-class.hpp"
 #include "exc.hpp"
 
 namespace bt2 {
@@ -22,6 +23,11 @@ public:
     explicit ConstClockSnapshot(const _LibObjPtr libObjPtr) noexcept :
         _ThisBorrowedObject {libObjPtr}
     {
+    }
+
+    ConstClockClass clockClass() const noexcept
+    {
+        return ConstClockClass {bt_clock_snapshot_borrow_clock_class_const(this->libObjPtr())};
     }
 
     std::uint64_t value() const noexcept
