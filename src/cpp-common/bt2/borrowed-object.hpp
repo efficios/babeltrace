@@ -25,6 +25,9 @@ namespace bt2 {
  *
  * The user of a borrowed object, including methods of a derived class,
  * can call libObjPtr() to access the libbabeltrace2 object pointer.
+ *
+ * You may only build a borrowed object with a pointer which isn't
+ * `nullptr`. See `bt2::OptionalBorrowedObject` for an optional version.
  */
 template <typename LibObjT>
 class BorrowedObject
