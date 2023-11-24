@@ -130,17 +130,18 @@ class CommonEvent final : public BorrowedObject<LibObjT>
 {
 private:
     using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
-    using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _Spec = internal::CommonEventSpec<LibObjT>;
     using _Packet = internal::DepPacket<LibObjT>;
     using _Stream = internal::DepStream<LibObjT>;
     using _StructureField = internal::DepStructField<LibObjT>;
 
 public:
+    using typename BorrowedObject<LibObjT>::LibObjPtr;
+
     using Class = internal::DepType<LibObjT, CommonEventClass<bt_event_class>,
                                     CommonEventClass<const bt_event_class>>;
 
-    explicit CommonEvent(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
+    explicit CommonEvent(const LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
     }
 
@@ -273,15 +274,15 @@ class CommonPacket final : public BorrowedObject<LibObjT>
 {
 private:
     using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
-    using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _Spec = internal::CommonPacketSpec<LibObjT>;
     using _Stream = internal::DepStream<LibObjT>;
     using _StructureField = internal::DepStructField<LibObjT>;
 
 public:
+    using typename BorrowedObject<LibObjT>::LibObjPtr;
     using Shared = SharedObject<CommonPacket, LibObjT, internal::PacketRefFuncs>;
 
-    explicit CommonPacket(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
+    explicit CommonPacket(const LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
     }
 
@@ -421,18 +422,18 @@ class CommonStream final : public BorrowedObject<LibObjT>
 {
 private:
     using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
-    using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _Spec = internal::CommonStreamSpec<LibObjT>;
     using _Trace = internal::DepType<LibObjT, CommonTrace<bt_trace>, CommonTrace<const bt_trace>>;
 
 public:
+    using typename BorrowedObject<LibObjT>::LibObjPtr;
     using Shared = SharedObject<CommonStream, LibObjT, internal::StreamRefFuncs>;
     using UserAttributes = internal::DepUserAttrs<LibObjT>;
 
     using Class = internal::DepType<LibObjT, CommonStreamClass<bt_stream_class>,
                                     CommonStreamClass<const bt_stream_class>>;
 
-    explicit CommonStream(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
+    explicit CommonStream(const LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
     }
 
@@ -623,11 +624,11 @@ class CommonTrace final : public BorrowedObject<LibObjT>
 {
 private:
     using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
-    using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _Spec = internal::CommonTraceSpec<LibObjT>;
     using _Stream = internal::DepStream<LibObjT>;
 
 public:
+    using typename BorrowedObject<LibObjT>::LibObjPtr;
     using Shared = SharedObject<CommonTrace, LibObjT, internal::TraceRefFuncs>;
     using UserAttributes = internal::DepUserAttrs<LibObjT>;
 
@@ -640,7 +641,7 @@ public:
         ConstValue value;
     };
 
-    explicit CommonTrace(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
+    explicit CommonTrace(const LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
     }
 
@@ -922,7 +923,6 @@ class CommonEventClass final : public BorrowedObject<LibObjT>
 {
 private:
     using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
-    using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _Spec = internal::CommonEventClassSpec<LibObjT>;
     using _StructureFieldClass = internal::DepStructFc<LibObjT>;
 
@@ -930,6 +930,7 @@ private:
                                            CommonStreamClass<const bt_stream_class>>;
 
 public:
+    using typename BorrowedObject<LibObjT>::LibObjPtr;
     using Shared = SharedObject<CommonEventClass, LibObjT, internal::EventClassRefFuncs>;
     using UserAttributes = internal::DepUserAttrs<LibObjT>;
 
@@ -952,7 +953,7 @@ public:
         DEBUG = BT_EVENT_CLASS_LOG_LEVEL_DEBUG,
     };
 
-    explicit CommonEventClass(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
+    explicit CommonEventClass(const LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
     }
 
@@ -1248,7 +1249,6 @@ class CommonStreamClass final : public BorrowedObject<LibObjT>
 {
 private:
     using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
-    using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _Spec = internal::CommonStreamClassSpec<LibObjT>;
     using _StructureFieldClass = internal::DepStructFc<LibObjT>;
 
@@ -1261,11 +1261,11 @@ private:
     using _ClockClass = internal::DepType<LibObjT, ClockClass, ConstClockClass>;
 
 public:
+    using typename BorrowedObject<LibObjT>::LibObjPtr;
     using Shared = SharedObject<CommonStreamClass, LibObjT, internal::StreamClassRefFuncs>;
     using UserAttributes = internal::DepUserAttrs<LibObjT>;
 
-    explicit CommonStreamClass(const _LibObjPtr libObjPtr) noexcept :
-        _ThisBorrowedObject {libObjPtr}
+    explicit CommonStreamClass(const LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
     }
 
@@ -1678,17 +1678,18 @@ class CommonTraceClass final : public BorrowedObject<LibObjT>
 {
 private:
     using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
-    using typename BorrowedObject<LibObjT>::_LibObjPtr;
+
     using _Spec = internal::CommonTraceClassSpec<LibObjT>;
 
     using _StreamClass = internal::DepType<LibObjT, CommonStreamClass<bt_stream_class>,
                                            CommonStreamClass<const bt_stream_class>>;
 
 public:
+    using typename BorrowedObject<LibObjT>::LibObjPtr;
     using Shared = SharedObject<CommonTraceClass, LibObjT, internal::TraceClassRefFuncs>;
     using UserAttributes = internal::DepUserAttrs<LibObjT>;
 
-    explicit CommonTraceClass(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
+    explicit CommonTraceClass(const LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
     }
 

@@ -70,19 +70,24 @@ private:
     };
 
 protected:
-    /* libbabeltrace2 object pointer */
-    using _LibObjPtr = LibObjT *;
-
     /* This complete borrowed object */
     using _ThisBorrowedObject = BorrowedObject<LibObjT>;
 
+public:
+    /* libbabeltrace2 object */
+    using LibObj = LibObjT;
+
+    /* libbabeltrace2 object pointer */
+    using LibObjPtr = LibObjT *;
+
+protected:
     /*
      * Builds a borrowed object to wrap the libbabeltrace2 object
      * pointer `libObjPtr`.
      *
      * `libObjPtr` must not be `nullptr`.
      */
-    explicit BorrowedObject(const _LibObjPtr libObjPtr) noexcept : _mLibObjPtr {libObjPtr}
+    explicit BorrowedObject(const LibObjPtr libObjPtr) noexcept : _mLibObjPtr {libObjPtr}
     {
         BT_ASSERT_DBG(libObjPtr);
     }
@@ -138,7 +143,7 @@ public:
      */
     std::size_t hash() const noexcept
     {
-        return std::hash<_LibObjPtr> {}(_mLibObjPtr);
+        return std::hash<LibObjPtr> {}(_mLibObjPtr);
     }
 
     /*
@@ -151,13 +156,13 @@ public:
     }
 
     /* Wrapped libbabeltrace2 object pointer */
-    _LibObjPtr libObjPtr() const noexcept
+    LibObjPtr libObjPtr() const noexcept
     {
         return _mLibObjPtr;
     }
 
 private:
-    _LibObjPtr _mLibObjPtr;
+    LibObjPtr _mLibObjPtr;
 };
 
 } /* namespace bt2 */

@@ -30,7 +30,7 @@ class SelfSinkComponent;
 class SelfComponent final : public BorrowedObject<bt_self_component>
 {
 public:
-    explicit SelfComponent(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
+    explicit SelfComponent(const LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
     }
 
@@ -113,10 +113,10 @@ private:
     using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
 
 public:
-    using typename BorrowedObject<LibObjT>::_LibObjPtr;
+    using typename BorrowedObject<LibObjT>::LibObjPtr;
 
 protected:
-    explicit SelfSpecificComponent(const _LibObjPtr libObjPtr) noexcept :
+    explicit SelfSpecificComponent(const LibObjPtr libObjPtr) noexcept :
         _ThisBorrowedObject {libObjPtr}
     {
     }
@@ -281,11 +281,11 @@ private:
     using _Spec = internal::SelfComponentPortsSpec<LibSelfCompT, LibSelfCompPortT>;
 
 public:
-    using typename BorrowedObject<LibSelfCompT>::_LibObjPtr;
+    using typename BorrowedObject<LibSelfCompT>::LibObjPtr;
     using Port = SelfComponentPort<LibSelfCompPortT, LibPortT>;
     using Iterator = BorrowedObjectIterator<SelfComponentPorts>;
 
-    explicit SelfComponentPorts(const _LibObjPtr libObjPtr) noexcept :
+    explicit SelfComponentPorts(const LibObjPtr libObjPtr) noexcept :
         _ThisBorrowedObject {libObjPtr}
     {
     }
@@ -503,9 +503,9 @@ template <typename LibSelfCompPortT, typename LibPortT>
 class SelfComponentPort final : public BorrowedObject<LibSelfCompPortT>
 {
 public:
-    using typename BorrowedObject<LibSelfCompPortT>::_LibObjPtr;
+    using typename BorrowedObject<LibSelfCompPortT>::LibObjPtr;
 
-    explicit SelfComponentPort(const _LibObjPtr libObjPtr) noexcept :
+    explicit SelfComponentPort(const LibObjPtr libObjPtr) noexcept :
         BorrowedObject<LibSelfCompPortT> {libObjPtr}
     {
     }

@@ -136,11 +136,12 @@ class CommonIntegerRangeSet final : public BorrowedObject<LibObjT>
 {
 private:
     using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
-    using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _ConstLibObjT = typename std::add_const<LibObjT>::type;
     using _Spec = internal::CommonIntegerRangeSetSpec<_ConstLibObjT>;
 
 public:
+    using typename BorrowedObject<LibObjT>::LibObjPtr;
+
     using Shared = SharedObject<CommonIntegerRangeSet, LibObjT,
                                 internal::IntegerRangeSetRefFuncs<_ConstLibObjT>>;
 
@@ -151,7 +152,7 @@ public:
     using Value = typename Range::Value;
     using Iterator = BorrowedObjectIterator<CommonIntegerRangeSet>;
 
-    explicit CommonIntegerRangeSet(const _LibObjPtr libObjPtr) noexcept :
+    explicit CommonIntegerRangeSet(const LibObjPtr libObjPtr) noexcept :
         _ThisBorrowedObject {libObjPtr}
     {
     }

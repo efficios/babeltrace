@@ -31,7 +31,7 @@ enum class FieldPathItemType
 class ConstFieldPathItem : public BorrowedObject<const bt_field_path_item>
 {
 public:
-    explicit ConstFieldPathItem(const _LibObjPtr libObjPtr) noexcept :
+    explicit ConstFieldPathItem(const LibObjPtr libObjPtr) noexcept :
         _ThisBorrowedObject {libObjPtr}
     {
     }
@@ -68,7 +68,7 @@ private:
 class ConstIndexFieldPathItem final : public ConstFieldPathItem
 {
 public:
-    explicit ConstIndexFieldPathItem(const _LibObjPtr libObjPtr) noexcept :
+    explicit ConstIndexFieldPathItem(const LibObjPtr libObjPtr) noexcept :
         ConstFieldPathItem {libObjPtr}
     {
         BT_ASSERT_DBG(this->isIndex());
@@ -117,7 +117,7 @@ public:
         EVENT_PAYLOAD = BT_FIELD_PATH_SCOPE_EVENT_PAYLOAD,
     };
 
-    explicit ConstFieldPath(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
+    explicit ConstFieldPath(const LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
     }
 

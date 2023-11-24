@@ -18,7 +18,7 @@ template <typename ObjT>
 class BorrowedObjectProxy final
 {
 public:
-    explicit BorrowedObjectProxy(typename ObjT::_LibObjPtr libObjPtr) noexcept : _mObj {libObjPtr}
+    explicit BorrowedObjectProxy(typename ObjT::LibObjPtr libObjPtr) noexcept : _mObj {libObjPtr}
     {
     }
 

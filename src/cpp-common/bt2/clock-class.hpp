@@ -91,13 +91,13 @@ class CommonClockClass final : public BorrowedObject<LibObjT>
 {
 private:
     using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
-    using typename BorrowedObject<LibObjT>::_LibObjPtr;
 
 public:
+    using typename BorrowedObject<LibObjT>::LibObjPtr;
     using Shared = SharedObject<CommonClockClass, LibObjT, internal::ClockClassRefFuncs>;
     using UserAttributes = internal::DepUserAttrs<LibObjT>;
 
-    explicit CommonClockClass(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
+    explicit CommonClockClass(const LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
     }
 

@@ -69,16 +69,16 @@ class ConstIntegerRange final : public BorrowedObject<LibObjT>
 {
 private:
     using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
-    using typename BorrowedObject<LibObjT>::_LibObjPtr;
 
 public:
+    using typename BorrowedObject<LibObjT>::LibObjPtr;
+
     using Value =
         typename std::conditional<std::is_same<LibObjT, const bt_integer_range_unsigned>::value,
                                   std::uint64_t, std::int64_t>::type;
 
 public:
-    explicit ConstIntegerRange(const _LibObjPtr libObjPtr) noexcept :
-        _ThisBorrowedObject {libObjPtr}
+    explicit ConstIntegerRange(const LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
     }
 

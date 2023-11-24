@@ -85,13 +85,13 @@ private:
     using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
 
 protected:
-    using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _ThisCommonMessage = CommonMessage<LibObjT>;
 
 public:
+    using typename BorrowedObject<LibObjT>::LibObjPtr;
     using Shared = SharedMessage<CommonMessage<LibObjT>, LibObjT>;
 
-    explicit CommonMessage(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
+    explicit CommonMessage(const LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
     }
 
@@ -228,14 +228,14 @@ template <typename LibObjT>
 class CommonStreamBeginningMessage final : public CommonMessage<LibObjT>
 {
 private:
-    using typename CommonMessage<LibObjT>::_LibObjPtr;
     using typename CommonMessage<LibObjT>::_ThisCommonMessage;
     using _Stream = internal::DepStream<LibObjT>;
 
 public:
+    using typename CommonMessage<LibObjT>::LibObjPtr;
     using Shared = SharedMessage<CommonStreamBeginningMessage<LibObjT>, LibObjT>;
 
-    explicit CommonStreamBeginningMessage(const _LibObjPtr libObjPtr) noexcept :
+    explicit CommonStreamBeginningMessage(const LibObjPtr libObjPtr) noexcept :
         _ThisCommonMessage {libObjPtr}
     {
         BT_ASSERT_DBG(this->isStreamBeginning());
@@ -343,14 +343,14 @@ template <typename LibObjT>
 class CommonStreamEndMessage final : public CommonMessage<LibObjT>
 {
 private:
-    using typename CommonMessage<LibObjT>::_LibObjPtr;
     using typename CommonMessage<LibObjT>::_ThisCommonMessage;
     using _Stream = internal::DepStream<LibObjT>;
 
 public:
+    using typename CommonMessage<LibObjT>::LibObjPtr;
     using Shared = SharedMessage<CommonStreamEndMessage<LibObjT>, LibObjT>;
 
-    explicit CommonStreamEndMessage(const _LibObjPtr libObjPtr) noexcept :
+    explicit CommonStreamEndMessage(const LibObjPtr libObjPtr) noexcept :
         _ThisCommonMessage {libObjPtr}
     {
         BT_ASSERT_DBG(this->isStreamEnd());
@@ -457,14 +457,14 @@ template <typename LibObjT>
 class CommonPacketBeginningMessage final : public CommonMessage<LibObjT>
 {
 private:
-    using typename CommonMessage<LibObjT>::_LibObjPtr;
     using typename CommonMessage<LibObjT>::_ThisCommonMessage;
     using _Packet = internal::DepPacket<LibObjT>;
 
 public:
+    using typename CommonMessage<LibObjT>::LibObjPtr;
     using Shared = SharedMessage<CommonPacketBeginningMessage<LibObjT>, LibObjT>;
 
-    explicit CommonPacketBeginningMessage(const _LibObjPtr libObjPtr) noexcept :
+    explicit CommonPacketBeginningMessage(const LibObjPtr libObjPtr) noexcept :
         _ThisCommonMessage {libObjPtr}
     {
         BT_ASSERT_DBG(this->isPacketBeginning());
@@ -567,14 +567,14 @@ template <typename LibObjT>
 class CommonPacketEndMessage final : public CommonMessage<LibObjT>
 {
 private:
-    using typename CommonMessage<LibObjT>::_LibObjPtr;
     using typename CommonMessage<LibObjT>::_ThisCommonMessage;
     using _Packet = internal::DepPacket<LibObjT>;
 
 public:
+    using typename CommonMessage<LibObjT>::LibObjPtr;
     using Shared = SharedMessage<CommonPacketEndMessage<LibObjT>, LibObjT>;
 
-    explicit CommonPacketEndMessage(const _LibObjPtr libObjPtr) noexcept :
+    explicit CommonPacketEndMessage(const LibObjPtr libObjPtr) noexcept :
         _ThisCommonMessage {libObjPtr}
     {
         BT_ASSERT_DBG(this->isPacketEnd());
@@ -676,15 +676,14 @@ template <typename LibObjT>
 class CommonEventMessage final : public CommonMessage<LibObjT>
 {
 private:
-    using typename CommonMessage<LibObjT>::_LibObjPtr;
     using typename CommonMessage<LibObjT>::_ThisCommonMessage;
     using _Event = internal::DepType<LibObjT, CommonEvent<bt_event>, CommonEvent<const bt_event>>;
 
 public:
+    using typename CommonMessage<LibObjT>::LibObjPtr;
     using Shared = SharedMessage<CommonEventMessage<LibObjT>, LibObjT>;
 
-    explicit CommonEventMessage(const _LibObjPtr libObjPtr) noexcept :
-        _ThisCommonMessage {libObjPtr}
+    explicit CommonEventMessage(const LibObjPtr libObjPtr) noexcept : _ThisCommonMessage {libObjPtr}
     {
         BT_ASSERT_DBG(this->isEvent());
     }
@@ -786,14 +785,14 @@ template <typename LibObjT>
 class CommonDiscardedEventsMessage final : public CommonMessage<LibObjT>
 {
 private:
-    using typename CommonMessage<LibObjT>::_LibObjPtr;
     using typename CommonMessage<LibObjT>::_ThisCommonMessage;
     using _Stream = internal::DepStream<LibObjT>;
 
 public:
+    using typename CommonMessage<LibObjT>::LibObjPtr;
     using Shared = SharedMessage<CommonDiscardedEventsMessage<LibObjT>, LibObjT>;
 
-    explicit CommonDiscardedEventsMessage(const _LibObjPtr libObjPtr) noexcept :
+    explicit CommonDiscardedEventsMessage(const LibObjPtr libObjPtr) noexcept :
         _ThisCommonMessage {libObjPtr}
     {
         BT_ASSERT_DBG(this->isDiscardedEvents());
@@ -917,14 +916,14 @@ template <typename LibObjT>
 class CommonDiscardedPacketsMessage final : public CommonMessage<LibObjT>
 {
 private:
-    using typename CommonMessage<LibObjT>::_LibObjPtr;
     using typename CommonMessage<LibObjT>::_ThisCommonMessage;
     using _Stream = internal::DepStream<LibObjT>;
 
 public:
+    using typename CommonMessage<LibObjT>::LibObjPtr;
     using Shared = SharedMessage<CommonDiscardedPacketsMessage<LibObjT>, LibObjT>;
 
-    explicit CommonDiscardedPacketsMessage(const _LibObjPtr libObjPtr) noexcept :
+    explicit CommonDiscardedPacketsMessage(const LibObjPtr libObjPtr) noexcept :
         _ThisCommonMessage {libObjPtr}
     {
         BT_ASSERT_DBG(this->isDiscardedPackets());
@@ -1025,13 +1024,13 @@ template <typename LibObjT>
 class CommonMessageIteratorInactivityMessage final : public CommonMessage<LibObjT>
 {
 private:
-    using typename CommonMessage<LibObjT>::_LibObjPtr;
     using typename CommonMessage<LibObjT>::_ThisCommonMessage;
 
 public:
+    using typename CommonMessage<LibObjT>::LibObjPtr;
     using Shared = SharedMessage<CommonMessageIteratorInactivityMessage<LibObjT>, LibObjT>;
 
-    explicit CommonMessageIteratorInactivityMessage(const _LibObjPtr libObjPtr) noexcept :
+    explicit CommonMessageIteratorInactivityMessage(const LibObjPtr libObjPtr) noexcept :
         _ThisCommonMessage {libObjPtr}
     {
         BT_ASSERT_DBG(this->isMessageIteratorInactivity());

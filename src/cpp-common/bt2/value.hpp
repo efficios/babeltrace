@@ -112,13 +112,13 @@ private:
     using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
 
 protected:
-    using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _ThisCommonValue = CommonValue<LibObjT>;
 
 public:
+    using typename BorrowedObject<LibObjT>::LibObjPtr;
     using Shared = SharedValue<CommonValue<LibObjT>, LibObjT>;
 
-    explicit CommonValue(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
+    explicit CommonValue(const LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
     }
 
@@ -453,14 +453,14 @@ template <typename LibObjT>
 class CommonBoolValue final : public CommonValue<LibObjT>
 {
 private:
-    using typename CommonValue<LibObjT>::_LibObjPtr;
     using typename CommonValue<LibObjT>::_ThisCommonValue;
 
 public:
+    using typename CommonValue<LibObjT>::LibObjPtr;
     using Shared = SharedValue<CommonBoolValue<LibObjT>, LibObjT>;
     using Value = bool;
 
-    explicit CommonBoolValue(const _LibObjPtr libObjPtr) noexcept : _ThisCommonValue {libObjPtr}
+    explicit CommonBoolValue(const LibObjPtr libObjPtr) noexcept : _ThisCommonValue {libObjPtr}
     {
         BT_ASSERT_DBG(this->isBool());
     }
@@ -540,14 +540,14 @@ template <typename LibObjT>
 class CommonUnsignedIntegerValue final : public CommonValue<LibObjT>
 {
 private:
-    using typename CommonValue<LibObjT>::_LibObjPtr;
     using typename CommonValue<LibObjT>::_ThisCommonValue;
 
 public:
+    using typename CommonValue<LibObjT>::LibObjPtr;
     using Shared = SharedValue<CommonUnsignedIntegerValue<LibObjT>, LibObjT>;
     using Value = std::uint64_t;
 
-    explicit CommonUnsignedIntegerValue(const _LibObjPtr libObjPtr) noexcept :
+    explicit CommonUnsignedIntegerValue(const LibObjPtr libObjPtr) noexcept :
         _ThisCommonValue {libObjPtr}
     {
         BT_ASSERT_DBG(this->isUnsignedInteger());
@@ -631,14 +631,14 @@ template <typename LibObjT>
 class CommonSignedIntegerValue final : public CommonValue<LibObjT>
 {
 private:
-    using typename CommonValue<LibObjT>::_LibObjPtr;
     using typename CommonValue<LibObjT>::_ThisCommonValue;
 
 public:
+    using typename CommonValue<LibObjT>::LibObjPtr;
     using Shared = SharedValue<CommonSignedIntegerValue<LibObjT>, LibObjT>;
     using Value = std::int64_t;
 
-    explicit CommonSignedIntegerValue(const _LibObjPtr libObjPtr) noexcept :
+    explicit CommonSignedIntegerValue(const LibObjPtr libObjPtr) noexcept :
         _ThisCommonValue {libObjPtr}
     {
         BT_ASSERT_DBG(this->isSignedInteger());
@@ -722,14 +722,14 @@ template <typename LibObjT>
 class CommonRealValue final : public CommonValue<LibObjT>
 {
 private:
-    using typename CommonValue<LibObjT>::_LibObjPtr;
     using typename CommonValue<LibObjT>::_ThisCommonValue;
 
 public:
+    using typename CommonValue<LibObjT>::LibObjPtr;
     using Shared = SharedValue<CommonRealValue<LibObjT>, LibObjT>;
     using Value = double;
 
-    explicit CommonRealValue(const _LibObjPtr libObjPtr) noexcept : _ThisCommonValue {libObjPtr}
+    explicit CommonRealValue(const LibObjPtr libObjPtr) noexcept : _ThisCommonValue {libObjPtr}
     {
         BT_ASSERT_DBG(this->isReal());
     }
@@ -809,14 +809,14 @@ template <typename LibObjT>
 class CommonStringValue final : public CommonValue<LibObjT>
 {
 private:
-    using typename CommonValue<LibObjT>::_LibObjPtr;
     using typename CommonValue<LibObjT>::_ThisCommonValue;
 
 public:
+    using typename CommonValue<LibObjT>::LibObjPtr;
     using Shared = SharedValue<CommonStringValue<LibObjT>, LibObjT>;
     using Value = const char *;
 
-    explicit CommonStringValue(const _LibObjPtr libObjPtr) noexcept : _ThisCommonValue {libObjPtr}
+    explicit CommonStringValue(const LibObjPtr libObjPtr) noexcept : _ThisCommonValue {libObjPtr}
     {
         BT_ASSERT_DBG(this->isString());
     }
@@ -935,14 +935,14 @@ template <typename LibObjT>
 class CommonArrayValue final : public CommonValue<LibObjT>
 {
 private:
-    using typename CommonValue<LibObjT>::_LibObjPtr;
     using typename CommonValue<LibObjT>::_ThisCommonValue;
 
 public:
+    using typename CommonValue<LibObjT>::LibObjPtr;
     using Shared = SharedValue<CommonArrayValue<LibObjT>, LibObjT>;
     using Iterator = BorrowedObjectIterator<CommonArrayValue<LibObjT>>;
 
-    explicit CommonArrayValue(const _LibObjPtr libObjPtr) noexcept : _ThisCommonValue {libObjPtr}
+    explicit CommonArrayValue(const LibObjPtr libObjPtr) noexcept : _ThisCommonValue {libObjPtr}
     {
         BT_ASSERT_DBG(this->isArray());
     }
@@ -1239,13 +1239,13 @@ template <typename LibObjT>
 class CommonMapValue final : public CommonValue<LibObjT>
 {
 private:
-    using typename CommonValue<LibObjT>::_LibObjPtr;
     using typename CommonValue<LibObjT>::_ThisCommonValue;
 
 public:
+    using typename CommonValue<LibObjT>::LibObjPtr;
     using Shared = SharedValue<CommonMapValue<LibObjT>, LibObjT>;
 
-    explicit CommonMapValue(const _LibObjPtr libObjPtr) noexcept : _ThisCommonValue {libObjPtr}
+    explicit CommonMapValue(const LibObjPtr libObjPtr) noexcept : _ThisCommonValue {libObjPtr}
     {
         BT_ASSERT_DBG(this->isMap());
     }

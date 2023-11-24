@@ -16,7 +16,7 @@ namespace bt2 {
 class SelfComponentClass final : public BorrowedObject<bt_self_component_class>
 {
 public:
-    explicit SelfComponentClass(const _LibObjPtr libObjPtr) noexcept :
+    explicit SelfComponentClass(const LibObjPtr libObjPtr) noexcept :
         _ThisBorrowedObject {libObjPtr}
     {
     }

@@ -98,13 +98,13 @@ private:
     using typename BorrowedObject<LibObjT>::_ThisBorrowedObject;
 
 protected:
-    using typename BorrowedObject<LibObjT>::_LibObjPtr;
     using _ThisCommonField = CommonField<LibObjT>;
 
 public:
+    using typename BorrowedObject<LibObjT>::LibObjPtr;
     using Class = internal::DepFc<LibObjT>;
 
-    explicit CommonField(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
+    explicit CommonField(const LibObjPtr libObjPtr) noexcept : _ThisBorrowedObject {libObjPtr}
     {
     }
 
@@ -254,13 +254,13 @@ template <typename LibObjT>
 class CommonBoolField final : public CommonField<LibObjT>
 {
 private:
-    using typename CommonField<LibObjT>::_LibObjPtr;
     using typename CommonField<LibObjT>::_ThisCommonField;
 
 public:
+    using typename CommonField<LibObjT>::LibObjPtr;
     using Value = bool;
 
-    explicit CommonBoolField(const _LibObjPtr libObjPtr) noexcept : _ThisCommonField {libObjPtr}
+    explicit CommonBoolField(const LibObjPtr libObjPtr) noexcept : _ThisCommonField {libObjPtr}
     {
         BT_ASSERT_DBG(this->isBool());
     }
@@ -327,13 +327,13 @@ template <typename LibObjT>
 class CommonBitArrayField final : public CommonField<LibObjT>
 {
 private:
-    using typename CommonField<LibObjT>::_LibObjPtr;
     using typename CommonField<LibObjT>::_ThisCommonField;
 
 public:
+    using typename CommonField<LibObjT>::LibObjPtr;
     using Class = internal::DepType<LibObjT, BitArrayFieldClass, ConstBitArrayFieldClass>;
 
-    explicit CommonBitArrayField(const _LibObjPtr libObjPtr) noexcept : _ThisCommonField {libObjPtr}
+    explicit CommonBitArrayField(const LibObjPtr libObjPtr) noexcept : _ThisCommonField {libObjPtr}
     {
         BT_ASSERT_DBG(this->isBitArray());
     }
@@ -417,14 +417,14 @@ private:
     using typename CommonField<LibObjT>::_ThisCommonField;
 
 protected:
-    using typename CommonField<LibObjT>::_LibObjPtr;
     using _ThisCommonUnsignedIntegerField = CommonUnsignedIntegerField<LibObjT>;
 
 public:
+    using typename CommonField<LibObjT>::LibObjPtr;
     using Value = std::uint64_t;
     using Class = internal::DepType<LibObjT, IntegerFieldClass, ConstIntegerFieldClass>;
 
-    explicit CommonUnsignedIntegerField(const _LibObjPtr libObjPtr) noexcept :
+    explicit CommonUnsignedIntegerField(const LibObjPtr libObjPtr) noexcept :
         _ThisCommonField {libObjPtr}
     {
         BT_ASSERT_DBG(this->isUnsignedInteger());
@@ -503,14 +503,14 @@ private:
     using typename CommonField<LibObjT>::_ThisCommonField;
 
 protected:
-    using typename CommonField<LibObjT>::_LibObjPtr;
     using _ThisCommonSignedIntegerField = CommonSignedIntegerField<LibObjT>;
 
 public:
+    using typename CommonField<LibObjT>::LibObjPtr;
     using Value = std::int64_t;
     using Class = internal::DepType<LibObjT, IntegerFieldClass, ConstIntegerFieldClass>;
 
-    explicit CommonSignedIntegerField(const _LibObjPtr libObjPtr) noexcept :
+    explicit CommonSignedIntegerField(const LibObjPtr libObjPtr) noexcept :
         _ThisCommonField {libObjPtr}
     {
         BT_ASSERT_DBG(this->isSignedInteger());
@@ -612,13 +612,14 @@ class CommonUnsignedEnumerationField final : public CommonUnsignedIntegerField<L
 {
 private:
     using typename CommonUnsignedIntegerField<LibObjT>::_ThisCommonUnsignedIntegerField;
-    using typename CommonField<LibObjT>::_LibObjPtr;
 
 public:
+    using typename CommonField<LibObjT>::LibObjPtr;
+
     using Class = internal::DepType<LibObjT, UnsignedEnumerationFieldClass,
                                     ConstUnsignedEnumerationFieldClass>;
 
-    explicit CommonUnsignedEnumerationField(const _LibObjPtr libObjPtr) noexcept :
+    explicit CommonUnsignedEnumerationField(const LibObjPtr libObjPtr) noexcept :
         _ThisCommonUnsignedIntegerField {libObjPtr}
     {
         BT_ASSERT_DBG(this->isUnsignedEnumeration());
@@ -692,13 +693,14 @@ class CommonSignedEnumerationField final : public CommonSignedIntegerField<LibOb
 {
 private:
     using typename CommonSignedIntegerField<LibObjT>::_ThisCommonSignedIntegerField;
-    using typename CommonField<LibObjT>::_LibObjPtr;
 
 public:
+    using typename CommonField<LibObjT>::LibObjPtr;
+
     using Class =
         internal::DepType<LibObjT, SignedEnumerationFieldClass, ConstSignedEnumerationFieldClass>;
 
-    explicit CommonSignedEnumerationField(const _LibObjPtr libObjPtr) noexcept :
+    explicit CommonSignedEnumerationField(const LibObjPtr libObjPtr) noexcept :
         _ThisCommonSignedIntegerField {libObjPtr}
     {
         BT_ASSERT_DBG(this->isSignedEnumeration());
@@ -770,13 +772,13 @@ template <typename LibObjT>
 class CommonSinglePrecisionRealField final : public CommonField<LibObjT>
 {
 private:
-    using typename CommonField<LibObjT>::_LibObjPtr;
     using typename CommonField<LibObjT>::_ThisCommonField;
 
 public:
+    using typename CommonField<LibObjT>::LibObjPtr;
     using Value = float;
 
-    explicit CommonSinglePrecisionRealField(const _LibObjPtr libObjPtr) noexcept :
+    explicit CommonSinglePrecisionRealField(const LibObjPtr libObjPtr) noexcept :
         _ThisCommonField {libObjPtr}
     {
         BT_ASSERT_DBG(this->isSinglePrecisionReal());
@@ -848,13 +850,13 @@ template <typename LibObjT>
 class CommonDoublePrecisionRealField final : public CommonField<LibObjT>
 {
 private:
-    using typename CommonField<LibObjT>::_LibObjPtr;
     using typename CommonField<LibObjT>::_ThisCommonField;
 
 public:
+    using typename CommonField<LibObjT>::LibObjPtr;
     using Value = double;
 
-    explicit CommonDoublePrecisionRealField(const _LibObjPtr libObjPtr) noexcept :
+    explicit CommonDoublePrecisionRealField(const LibObjPtr libObjPtr) noexcept :
         _ThisCommonField {libObjPtr}
     {
         BT_ASSERT_DBG(this->isDoublePrecisionReal());
@@ -926,13 +928,13 @@ template <typename LibObjT>
 class CommonStringField final : public CommonField<LibObjT>
 {
 private:
-    using typename CommonField<LibObjT>::_LibObjPtr;
     using typename CommonField<LibObjT>::_ThisCommonField;
 
 public:
+    using typename CommonField<LibObjT>::LibObjPtr;
     using Value = const char *;
 
-    explicit CommonStringField(const _LibObjPtr libObjPtr) noexcept : _ThisCommonField {libObjPtr}
+    explicit CommonStringField(const LibObjPtr libObjPtr) noexcept : _ThisCommonField {libObjPtr}
     {
         BT_ASSERT_DBG(this->isString());
     }
@@ -1070,15 +1072,14 @@ template <typename LibObjT>
 class CommonStructureField final : public CommonField<LibObjT>
 {
 private:
-    using typename CommonField<LibObjT>::_LibObjPtr;
     using typename CommonField<LibObjT>::_ThisCommonField;
     using _Spec = internal::CommonStructureFieldSpec<LibObjT>;
 
 public:
+    using typename CommonField<LibObjT>::LibObjPtr;
     using Class = internal::DepType<LibObjT, StructureFieldClass, ConstStructureFieldClass>;
 
-    explicit CommonStructureField(const _LibObjPtr libObjPtr) noexcept :
-        _ThisCommonField {libObjPtr}
+    explicit CommonStructureField(const LibObjPtr libObjPtr) noexcept : _ThisCommonField {libObjPtr}
     {
         BT_ASSERT_DBG(this->isStructure());
     }
@@ -1189,13 +1190,13 @@ private:
     using _Spec = internal::CommonArrayFieldSpec<LibObjT>;
 
 protected:
-    using typename CommonField<LibObjT>::_LibObjPtr;
     using _ThisCommonArrayField = CommonArrayField<LibObjT>;
 
 public:
+    using typename CommonField<LibObjT>::LibObjPtr;
     using Class = internal::DepType<LibObjT, ArrayFieldClass, ConstArrayFieldClass>;
 
-    explicit CommonArrayField(const _LibObjPtr libObjPtr) noexcept : _ThisCommonField {libObjPtr}
+    explicit CommonArrayField(const LibObjPtr libObjPtr) noexcept : _ThisCommonField {libObjPtr}
     {
         BT_ASSERT_DBG(this->isArray());
     }
@@ -1260,11 +1261,12 @@ template <typename LibObjT>
 class CommonDynamicArrayField : public CommonArrayField<LibObjT>
 {
 private:
-    using typename CommonField<LibObjT>::_LibObjPtr;
     using typename CommonArrayField<LibObjT>::_ThisCommonArrayField;
 
 public:
-    explicit CommonDynamicArrayField(const _LibObjPtr libObjPtr) noexcept :
+    using typename CommonField<LibObjT>::LibObjPtr;
+
+    explicit CommonDynamicArrayField(const LibObjPtr libObjPtr) noexcept :
         _ThisCommonArrayField {libObjPtr}
     {
         BT_ASSERT_DBG(this->isDynamicArray());
@@ -1357,14 +1359,14 @@ template <typename LibObjT>
 class CommonOptionField : public CommonField<LibObjT>
 {
 private:
-    using typename CommonField<LibObjT>::_LibObjPtr;
     using typename CommonField<LibObjT>::_ThisCommonField;
     using _Spec = internal::CommonOptionFieldSpec<LibObjT>;
 
 public:
+    using typename CommonField<LibObjT>::LibObjPtr;
     using Class = internal::DepType<LibObjT, OptionFieldClass, ConstOptionFieldClass>;
 
-    explicit CommonOptionField(const _LibObjPtr libObjPtr) noexcept : _ThisCommonField {libObjPtr}
+    explicit CommonOptionField(const LibObjPtr libObjPtr) noexcept : _ThisCommonField {libObjPtr}
     {
         BT_ASSERT_DBG(this->isOption());
     }
@@ -1466,14 +1468,14 @@ template <typename LibObjT>
 class CommonVariantField : public CommonField<LibObjT>
 {
 private:
-    using typename CommonField<LibObjT>::_LibObjPtr;
     using typename CommonField<LibObjT>::_ThisCommonField;
     using _Spec = internal::CommonVariantFieldSpec<LibObjT>;
 
 public:
+    using typename CommonField<LibObjT>::LibObjPtr;
     using Class = internal::DepType<LibObjT, VariantFieldClass, ConstVariantFieldClass>;
 
-    explicit CommonVariantField(const _LibObjPtr libObjPtr) noexcept : _ThisCommonField {libObjPtr}
+    explicit CommonVariantField(const LibObjPtr libObjPtr) noexcept : _ThisCommonField {libObjPtr}
     {
         BT_ASSERT_DBG(this->isVariant());
     }

@@ -18,7 +18,7 @@ namespace bt2 {
 class PrivateQueryExecutor final : public BorrowedObject<bt_private_query_executor>
 {
 public:
-    explicit PrivateQueryExecutor(const _LibObjPtr libObjPtr) noexcept :
+    explicit PrivateQueryExecutor(const LibObjPtr libObjPtr) noexcept :
         _ThisBorrowedObject {libObjPtr}
     {
     }

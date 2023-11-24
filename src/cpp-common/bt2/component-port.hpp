@@ -113,10 +113,10 @@ template <typename LibObjT>
 class ConstSpecificComponent : public BorrowedObject<LibObjT>
 {
 public:
-    using typename BorrowedObject<LibObjT>::_LibObjPtr;
+    using typename BorrowedObject<LibObjT>::LibObjPtr;
 
 protected:
-    explicit ConstSpecificComponent(const _LibObjPtr libObjPtr) noexcept :
+    explicit ConstSpecificComponent(const LibObjPtr libObjPtr) noexcept :
         BorrowedObject<LibObjT> {libObjPtr}
     {
     }
@@ -245,11 +245,11 @@ private:
     using _Spec = internal::ConstComponentPortsSpec<LibCompT, LibPortT>;
 
 public:
-    using typename BorrowedObject<LibCompT>::_LibObjPtr;
+    using typename BorrowedObject<LibCompT>::LibObjPtr;
     using Port = ConstPort<LibPortT>;
     using Iterator = BorrowedObjectIterator<ConstComponentPorts>;
 
-    explicit ConstComponentPorts(const _LibObjPtr libObjPtr) noexcept :
+    explicit ConstComponentPorts(const LibObjPtr libObjPtr) noexcept :
         BorrowedObject<LibCompT> {libObjPtr}
     {
     }
@@ -460,10 +460,10 @@ template <typename LibObjT>
 class ConstPort final : public BorrowedObject<LibObjT>
 {
 public:
-    using typename BorrowedObject<LibObjT>::_LibObjPtr;
+    using typename BorrowedObject<LibObjT>::LibObjPtr;
     using Shared = SharedObject<ConstPort, LibObjT, internal::ConstPortRefFuncs<LibObjT>>;
 
-    explicit ConstPort(const _LibObjPtr libObjPtr) noexcept : BorrowedObject<LibObjT> {libObjPtr}
+    explicit ConstPort(const LibObjPtr libObjPtr) noexcept : BorrowedObject<LibObjT> {libObjPtr}
     {
     }
 
