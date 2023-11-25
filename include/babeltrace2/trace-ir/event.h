@@ -169,7 +169,7 @@ An event has the following properties:
 @sa bt_event_borrow_class_const() &mdash;
     \c const version of this function.
 */
-extern bt_event_class *bt_event_borrow_class(bt_event *event);
+extern bt_event_class *bt_event_borrow_class(bt_event *event) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -179,7 +179,7 @@ extern bt_event_class *bt_event_borrow_class(bt_event *event);
 See bt_event_borrow_class().
 */
 extern const bt_event_class *bt_event_borrow_class_const(
-		const bt_event *event);
+		const bt_event *event) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -205,7 +205,7 @@ extern const bt_event_class *bt_event_borrow_class_const(
 @sa bt_event_borrow_stream_const() &mdash;
     \c const version of this function.
 */
-extern bt_stream *bt_event_borrow_stream(bt_event *event);
+extern bt_stream *bt_event_borrow_stream(bt_event *event) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -215,7 +215,7 @@ extern bt_stream *bt_event_borrow_stream(bt_event *event);
 See bt_event_borrow_stream().
 */
 extern const bt_stream *bt_event_borrow_stream_const(
-		const bt_event *event);
+		const bt_event *event) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -245,7 +245,7 @@ extern const bt_stream *bt_event_borrow_stream_const(
 @sa bt_event_borrow_packet_const() &mdash;
     \c const version of this function.
 */
-extern bt_packet *bt_event_borrow_packet(bt_event *event);
+extern bt_packet *bt_event_borrow_packet(bt_event *event) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -255,7 +255,7 @@ extern bt_packet *bt_event_borrow_packet(bt_event *event);
 See bt_event_borrow_packet().
 */
 extern const bt_packet *bt_event_borrow_packet_const(
-		const bt_event *event);
+		const bt_event *event) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -282,7 +282,7 @@ See the \ref api-tir-ev-prop-payload "payload field" property.
 @sa bt_event_borrow_payload_field_const() &mdash;
     \c const version of this function.
 */
-extern bt_field *bt_event_borrow_payload_field(bt_event *event);
+extern bt_field *bt_event_borrow_payload_field(bt_event *event) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -292,7 +292,7 @@ extern bt_field *bt_event_borrow_payload_field(bt_event *event);
 See bt_event_borrow_payload_field().
 */
 extern const bt_field *bt_event_borrow_payload_field_const(
-		const bt_event *event);
+		const bt_event *event) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -313,7 +313,7 @@ See the \ref api-tir-ev-prop-spec-ctx "specific context field" property.
     \c const version of this function.
 */
 extern bt_field *
-bt_event_borrow_specific_context_field(bt_event *event);
+bt_event_borrow_specific_context_field(bt_event *event) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -323,7 +323,7 @@ bt_event_borrow_specific_context_field(bt_event *event);
 See bt_event_borrow_specific_context_field().
 */
 extern const bt_field *bt_event_borrow_specific_context_field_const(
-		const bt_event *event);
+		const bt_event *event) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -344,7 +344,7 @@ See the \ref api-tir-ev-prop-common-ctx "common context field" property.
     \c const version of this function.
 */
 extern bt_field *
-bt_event_borrow_common_context_field(bt_event *event);
+bt_event_borrow_common_context_field(bt_event *event) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -354,7 +354,7 @@ bt_event_borrow_common_context_field(bt_event *event);
 See bt_event_borrow_common_context_field().
 */
 extern const bt_field *bt_event_borrow_common_context_field_const(
-		const bt_event *event);
+		const bt_event *event) __BT_NOEXCEPT;
 
 /*! @} */
 

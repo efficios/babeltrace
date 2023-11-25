@@ -238,7 +238,7 @@ typedef enum bt_component_class_type {
     Returns whether or not a component class is a \bt_sink_comp_cls.
 */
 extern bt_component_class_type bt_component_class_get_type(
-		const bt_component_class *component_class);
+		const bt_component_class *component_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -258,7 +258,7 @@ extern bt_component_class_type bt_component_class_get_type(
 */
 static inline
 bt_bool bt_component_class_is_source(
-		const bt_component_class *component_class)
+		const bt_component_class *component_class) __BT_NOEXCEPT
 {
 	return bt_component_class_get_type(component_class) ==
 		BT_COMPONENT_CLASS_TYPE_SOURCE;
@@ -282,7 +282,7 @@ bt_bool bt_component_class_is_source(
 */
 static inline
 bt_bool bt_component_class_is_filter(
-		const bt_component_class *component_class)
+		const bt_component_class *component_class) __BT_NOEXCEPT
 {
 	return bt_component_class_get_type(component_class) ==
 		BT_COMPONENT_CLASS_TYPE_FILTER;
@@ -306,7 +306,7 @@ bt_bool bt_component_class_is_filter(
 */
 static inline
 bt_bool bt_component_class_is_sink(
-		const bt_component_class *component_class)
+		const bt_component_class *component_class) __BT_NOEXCEPT
 {
 	return bt_component_class_get_type(component_class) ==
 		BT_COMPONENT_CLASS_TYPE_SINK;
@@ -339,7 +339,7 @@ See the \ref api-comp-cls-prop-name "name" property.
 @bt_pre_not_null{component_class}
 */
 extern const char *bt_component_class_get_name(
-		const bt_component_class *component_class);
+		const bt_component_class *component_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -362,7 +362,7 @@ See the \ref api-comp-cls-prop-descr "description" property.
 @bt_pre_not_null{component_class}
 */
 extern const char *bt_component_class_get_description(
-		const bt_component_class *component_class);
+		const bt_component_class *component_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -384,7 +384,7 @@ See the \ref api-comp-cls-prop-help "help text" property.
 @bt_pre_not_null{component_class}
 */
 extern const char *bt_component_class_get_help(
-		const bt_component_class *component_class);
+		const bt_component_class *component_class) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -409,7 +409,7 @@ extern const char *bt_component_class_get_help(
     Decrements the reference count of a component class.
 */
 extern void bt_component_class_get_ref(
-		const bt_component_class *component_class);
+		const bt_component_class *component_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -427,7 +427,7 @@ extern void bt_component_class_get_ref(
     Increments the reference count of a component class.
 */
 extern void bt_component_class_put_ref(
-		const bt_component_class *component_class);
+		const bt_component_class *component_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -509,7 +509,7 @@ expression
 static inline
 const bt_component_class *
 bt_component_class_source_as_component_class_const(
-		const bt_component_class_source *component_class)
+		const bt_component_class_source *component_class) __BT_NOEXCEPT
 {
 	return __BT_UPCAST_CONST(bt_component_class, component_class);
 }
@@ -537,7 +537,7 @@ bt_component_class_source_as_component_class_const(
     Decrements the reference count of a source component class.
 */
 extern void bt_component_class_source_get_ref(
-		const bt_component_class_source *component_class);
+		const bt_component_class_source *component_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -555,7 +555,7 @@ extern void bt_component_class_source_get_ref(
     Increments the reference count of a source component class.
 */
 extern void bt_component_class_source_put_ref(
-		const bt_component_class_source *component_class);
+		const bt_component_class_source *component_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -636,7 +636,7 @@ existing \bt_p{_dst} reference.
 static inline
 const bt_component_class *
 bt_component_class_filter_as_component_class_const(
-		const bt_component_class_filter *component_class)
+		const bt_component_class_filter *component_class) __BT_NOEXCEPT
 {
 	return __BT_UPCAST_CONST(bt_component_class, component_class);
 }
@@ -664,7 +664,7 @@ bt_component_class_filter_as_component_class_const(
     Decrements the reference count of a filter component class.
 */
 extern void bt_component_class_filter_get_ref(
-		const bt_component_class_filter *component_class);
+		const bt_component_class_filter *component_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -682,7 +682,7 @@ extern void bt_component_class_filter_get_ref(
     Increments the reference count of a filter component class.
 */
 extern void bt_component_class_filter_put_ref(
-		const bt_component_class_filter *component_class);
+		const bt_component_class_filter *component_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -763,7 +763,7 @@ existing \bt_p{_dst} reference.
 static inline
 const bt_component_class *
 bt_component_class_sink_as_component_class_const(
-		const bt_component_class_sink *component_class)
+		const bt_component_class_sink *component_class) __BT_NOEXCEPT
 {
 	return __BT_UPCAST_CONST(bt_component_class, component_class);
 }
@@ -791,7 +791,7 @@ bt_component_class_sink_as_component_class_const(
     Decrements the reference count of a sink component class.
 */
 extern void bt_component_class_sink_get_ref(
-		const bt_component_class_sink *component_class);
+		const bt_component_class_sink *component_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -809,7 +809,7 @@ extern void bt_component_class_sink_get_ref(
     Increments the reference count of a sink component class.
 */
 extern void bt_component_class_sink_put_ref(
-		const bt_component_class_sink *component_class);
+		const bt_component_class_sink *component_class) __BT_NOEXCEPT;
 
 /*!
 @brief

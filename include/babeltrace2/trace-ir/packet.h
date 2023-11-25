@@ -147,7 +147,7 @@ On success, the returned packet has the following property value:
     <code>bt_stream_class_supports_packets(bt_stream_borrow_class_const(stream))</code>
     returns #BT_TRUE.
 */
-extern bt_packet *bt_packet_create(const bt_stream *stream);
+extern bt_packet *bt_packet_create(const bt_stream *stream) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -173,7 +173,7 @@ extern bt_packet *bt_packet_create(const bt_stream *stream);
 @sa bt_packet_borrow_stream_const() &mdash;
     \c const version of this function.
 */
-extern bt_stream *bt_packet_borrow_stream(bt_packet *packet);
+extern bt_stream *bt_packet_borrow_stream(bt_packet *packet) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -183,7 +183,7 @@ extern bt_stream *bt_packet_borrow_stream(bt_packet *packet);
 See bt_packet_borrow_stream().
 */
 extern const bt_stream *bt_packet_borrow_stream_const(
-		const bt_packet *packet);
+		const bt_packet *packet) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -211,7 +211,7 @@ See the \ref api-tir-pkt-prop-ctx "context field" property.
     \c const version of this function.
 */
 extern
-bt_field *bt_packet_borrow_context_field(bt_packet *packet);
+bt_field *bt_packet_borrow_context_field(bt_packet *packet) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -222,7 +222,7 @@ See bt_packet_borrow_context_field().
 */
 extern
 const bt_field *bt_packet_borrow_context_field_const(
-		const bt_packet *packet);
+		const bt_packet *packet) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -246,7 +246,7 @@ const bt_field *bt_packet_borrow_context_field_const(
 @sa bt_packet_put_ref() &mdash;
     Decrements the reference count of a packet.
 */
-extern void bt_packet_get_ref(const bt_packet *packet);
+extern void bt_packet_get_ref(const bt_packet *packet) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -263,7 +263,7 @@ extern void bt_packet_get_ref(const bt_packet *packet);
 @sa bt_packet_get_ref() &mdash;
     Increments the reference count of a packet.
 */
-extern void bt_packet_put_ref(const bt_packet *packet);
+extern void bt_packet_put_ref(const bt_packet *packet) __BT_NOEXCEPT;
 
 /*!
 @brief

@@ -561,7 +561,7 @@ On success, the returned stream class has the following property values:
     trace class.
 */
 extern bt_stream_class *bt_stream_class_create(
-		bt_trace_class *trace_class);
+		bt_trace_class *trace_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -658,7 +658,7 @@ On success, the returned stream class has the following property values:
     trace class.
 */
 extern bt_stream_class *bt_stream_class_create_with_id(
-		bt_trace_class *trace_class, uint64_t id);
+		bt_trace_class *trace_class, uint64_t id) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -684,7 +684,7 @@ extern bt_stream_class *bt_stream_class_create_with_id(
     \c const version of this function.
 */
 extern bt_trace_class *bt_stream_class_borrow_trace_class(
-		bt_stream_class *stream_class);
+		bt_stream_class *stream_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -694,7 +694,7 @@ extern bt_trace_class *bt_stream_class_borrow_trace_class(
 See bt_stream_class_borrow_trace_class().
 */
 extern const bt_trace_class *bt_stream_class_borrow_trace_class_const(
-		const bt_stream_class *stream_class);
+		const bt_stream_class *stream_class) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -717,7 +717,7 @@ extern const bt_trace_class *bt_stream_class_borrow_trace_class_const(
 @bt_pre_not_null{stream_class}
 */
 extern uint64_t bt_stream_class_get_event_class_count(
-		const bt_stream_class *stream_class);
+		const bt_stream_class *stream_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -752,7 +752,7 @@ extern uint64_t bt_stream_class_get_event_class_count(
 */
 extern bt_event_class *
 bt_stream_class_borrow_event_class_by_index(
-		bt_stream_class *stream_class, uint64_t index);
+		bt_stream_class *stream_class, uint64_t index) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -763,7 +763,8 @@ See bt_stream_class_borrow_event_class_by_index().
 */
 extern const bt_event_class *
 bt_stream_class_borrow_event_class_by_index_const(
-		const bt_stream_class *stream_class, uint64_t index);
+		const bt_stream_class *stream_class, uint64_t index)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -796,7 +797,7 @@ If there's no event class having the numeric ID \bt_p{id} in
 */
 extern bt_event_class *
 bt_stream_class_borrow_event_class_by_id(
-		bt_stream_class *stream_class, uint64_t id);
+		bt_stream_class *stream_class, uint64_t id) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -807,7 +808,7 @@ See bt_stream_class_borrow_event_class_by_id().
 */
 extern const bt_event_class *
 bt_stream_class_borrow_event_class_by_id_const(
-		const bt_stream_class *stream_class, uint64_t id);
+		const bt_stream_class *stream_class, uint64_t id) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -835,7 +836,7 @@ See the \ref api-tir-stream-cls-prop-id "numeric ID" property.
     trace class.
 */
 extern uint64_t bt_stream_class_get_id(
-		const bt_stream_class *stream_class);
+		const bt_stream_class *stream_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -880,7 +881,7 @@ See the \ref api-tir-stream-cls-prop-name "name" property.
     Returns the name of a stream class.
 */
 extern bt_stream_class_set_name_status bt_stream_class_set_name(
-		bt_stream_class *stream_class, const char *name);
+		bt_stream_class *stream_class, const char *name) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -907,7 +908,7 @@ If \bt_p{stream_class} has no name, this function returns \c NULL.
     Sets the name of a stream class.
 */
 extern const char *bt_stream_class_get_name(
-		const bt_stream_class *stream_class);
+		const bt_stream_class *stream_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -950,7 +951,7 @@ property.
 extern bt_stream_class_set_default_clock_class_status
 bt_stream_class_set_default_clock_class(
 		bt_stream_class *stream_class,
-		bt_clock_class *clock_class);
+		bt_clock_class *clock_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -978,7 +979,7 @@ returns \c NULL.
     \c const version of this function.
 */
 extern bt_clock_class *bt_stream_class_borrow_default_clock_class(
-		bt_stream_class *stream_class);
+		bt_stream_class *stream_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -989,7 +990,7 @@ See bt_stream_class_borrow_default_clock_class().
 */
 extern const bt_clock_class *
 bt_stream_class_borrow_default_clock_class_const(
-		const bt_stream_class *stream_class);
+		const bt_stream_class *stream_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1064,7 +1065,7 @@ bt_stream_class_set_supports_packets()).
 extern bt_stream_class_set_field_class_status
 bt_stream_class_set_packet_context_field_class(
 		bt_stream_class *stream_class,
-		bt_field_class *field_class);
+		bt_field_class *field_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1093,7 +1094,7 @@ returns \c NULL.
 */
 extern bt_field_class *
 bt_stream_class_borrow_packet_context_field_class(
-		bt_stream_class *stream_class);
+		bt_stream_class *stream_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1104,7 +1105,7 @@ See bt_stream_class_borrow_packet_context_field_class().
 */
 extern const bt_field_class *
 bt_stream_class_borrow_packet_context_field_class_const(
-		const bt_stream_class *stream_class);
+		const bt_stream_class *stream_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1149,7 +1150,7 @@ property.
 extern bt_stream_class_set_field_class_status
 bt_stream_class_set_event_common_context_field_class(
 		bt_stream_class *stream_class,
-		bt_field_class *field_class);
+		bt_field_class *field_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1180,7 +1181,7 @@ function returns \c NULL.
 
 extern bt_field_class *
 bt_stream_class_borrow_event_common_context_field_class(
-		bt_stream_class *stream_class);
+		bt_stream_class *stream_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1191,7 +1192,7 @@ See bt_stream_class_borrow_event_common_context_field_class().
 */
 extern const bt_field_class *
 bt_stream_class_borrow_event_common_context_field_class_const(
-		const bt_stream_class *stream_class);
+		const bt_stream_class *stream_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1218,7 +1219,7 @@ property.
 */
 extern void bt_stream_class_set_assigns_automatic_event_class_id(
 		bt_stream_class *stream_class,
-    bt_bool assigns_automatic_event_class_id);
+		bt_bool assigns_automatic_event_class_id) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1244,7 +1245,7 @@ property.
     event class IDs.
 */
 extern bt_bool bt_stream_class_assigns_automatic_event_class_id(
-		const bt_stream_class *stream_class);
+		const bt_stream_class *stream_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1270,7 +1271,8 @@ property.
     stream IDs.
 */
 extern void bt_stream_class_set_assigns_automatic_stream_id(
-		bt_stream_class *stream_class, bt_bool assigns_automatic_stream_id);
+		bt_stream_class *stream_class,
+		bt_bool assigns_automatic_stream_id) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1295,7 +1297,7 @@ property.
     stream IDs.
 */
 extern bt_bool bt_stream_class_assigns_automatic_stream_id(
-		const bt_stream_class *stream_class);
+		const bt_stream_class *stream_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1351,7 +1353,7 @@ properties.
 extern void bt_stream_class_set_supports_packets(
 		bt_stream_class *stream_class, bt_bool supports_packets,
 		bt_bool with_beginning_default_clock_snapshot,
-		bt_bool with_end_default_clock_snapshot);
+		bt_bool with_end_default_clock_snapshot) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1374,7 +1376,7 @@ property.
     Sets whether or not a stream class's streams have packets.
 */
 extern bt_bool bt_stream_class_supports_packets(
-		const bt_stream_class *stream_class);
+		const bt_stream_class *stream_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1403,7 +1405,7 @@ property.
     have an end default clock snapshot.
 */
 extern bt_bool bt_stream_class_packets_have_beginning_default_clock_snapshot(
-		const bt_stream_class *stream_class);
+		const bt_stream_class *stream_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1432,7 +1434,7 @@ property.
     have a beginning default clock snapshot.
 */
 extern bt_bool bt_stream_class_packets_have_end_default_clock_snapshot(
-		const bt_stream_class *stream_class);
+		const bt_stream_class *stream_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1478,7 +1480,7 @@ properties.
 extern void bt_stream_class_set_supports_discarded_events(
 		bt_stream_class *stream_class,
 		bt_bool supports_discarded_events,
-		bt_bool with_default_clock_snapshots);
+		bt_bool with_default_clock_snapshots) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1504,7 +1506,7 @@ property.
     events.
 */
 extern bt_bool bt_stream_class_supports_discarded_events(
-		const bt_stream_class *stream_class);
+		const bt_stream_class *stream_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1531,7 +1533,7 @@ property.
     events.
 */
 extern bt_bool bt_stream_class_discarded_events_have_default_clock_snapshots(
-		const bt_stream_class *stream_class);
+		const bt_stream_class *stream_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1583,7 +1585,7 @@ bt_stream_class_set_supports_packets()).
 extern void bt_stream_class_set_supports_discarded_packets(
 		bt_stream_class *stream_class,
 		bt_bool supports_discarded_packets,
-		bt_bool with_default_clock_snapshots);
+		bt_bool with_default_clock_snapshots) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1609,7 +1611,7 @@ property.
     packets.
 */
 extern bt_bool bt_stream_class_supports_discarded_packets(
-		const bt_stream_class *stream_class);
+		const bt_stream_class *stream_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1636,7 +1638,7 @@ property.
     packets.
 */
 extern bt_bool bt_stream_class_discarded_packets_have_default_clock_snapshots(
-		const bt_stream_class *stream_class);
+		const bt_stream_class *stream_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1668,7 +1670,8 @@ property.
     Borrows the user attributes of a stream class.
 */
 extern void bt_stream_class_set_user_attributes(
-		bt_stream_class *stream_class, const bt_value *user_attributes);
+		bt_stream_class *stream_class,
+		const bt_value *user_attributes) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1696,7 +1699,7 @@ property.
     \c const version of this function.
 */
 extern bt_value *bt_stream_class_borrow_user_attributes(
-		bt_stream_class *stream_class);
+		bt_stream_class *stream_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1706,7 +1709,7 @@ extern bt_value *bt_stream_class_borrow_user_attributes(
 See bt_stream_class_borrow_user_attributes().
 */
 extern const bt_value *bt_stream_class_borrow_user_attributes_const(
-		const bt_stream_class *stream_class);
+		const bt_stream_class *stream_class) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1730,7 +1733,8 @@ extern const bt_value *bt_stream_class_borrow_user_attributes_const(
 @sa bt_stream_class_put_ref() &mdash;
     Decrements the reference count of a stream class.
 */
-extern void bt_stream_class_get_ref(const bt_stream_class *stream_class);
+extern void bt_stream_class_get_ref(
+		const bt_stream_class *stream_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1747,7 +1751,8 @@ extern void bt_stream_class_get_ref(const bt_stream_class *stream_class);
 @sa bt_stream_class_get_ref() &mdash;
     Increments the reference count of a stream class.
 */
-extern void bt_stream_class_put_ref(const bt_stream_class *stream_class);
+extern void bt_stream_class_put_ref(
+		const bt_stream_class *stream_class) __BT_NOEXCEPT;
 
 /*!
 @brief

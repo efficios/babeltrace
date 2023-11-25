@@ -377,7 +377,8 @@ If this function doesn't find any plugin, it returns
 extern bt_plugin_find_status bt_plugin_find(const char *plugin_name,
 		bt_bool find_in_std_env_var, bt_bool find_in_user_dir,
 		bt_bool find_in_sys_dir, bt_bool find_in_static,
-		bt_bool fail_on_load_error, const bt_plugin **plugin);
+		bt_bool fail_on_load_error, const bt_plugin **plugin)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -501,7 +502,7 @@ If this function doesn't find any plugin, it returns
 bt_plugin_find_all_status bt_plugin_find_all(bt_bool find_in_std_env_var,
 		bt_bool find_in_user_dir, bt_bool find_in_sys_dir,
 		bt_bool find_in_static, bt_bool fail_on_load_error,
-		const bt_plugin_set **plugins);
+		const bt_plugin_set **plugins) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -588,7 +589,7 @@ If this function doesn't find any plugin, it returns
 */
 extern bt_plugin_find_all_from_file_status bt_plugin_find_all_from_file(
 		const char *path, bt_bool fail_on_load_error,
-		const bt_plugin_set **plugins);
+		const bt_plugin_set **plugins) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -683,7 +684,7 @@ If this function doesn't find any plugin, it returns
 */
 extern bt_plugin_find_all_from_dir_status bt_plugin_find_all_from_dir(
 		const char *path, bt_bool recurse, bt_bool fail_on_load_error,
-		const bt_plugin_set **plugins);
+		const bt_plugin_set **plugins) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -759,7 +760,8 @@ If this function doesn't find any plugin, it returns
 @bt_pre_not_null{plugins}
 */
 extern bt_plugin_find_all_from_static_status bt_plugin_find_all_from_static(
-		bt_bool fail_on_load_error, const bt_plugin_set **plugins);
+		bt_bool fail_on_load_error, const bt_plugin_set **plugins)
+		__BT_NOEXCEPT;
 
 /*! @} */
 
@@ -786,7 +788,7 @@ See the \ref api-plugin-prop-name "name" property.
 
 @bt_pre_not_null{plugin}
 */
-extern const char *bt_plugin_get_name(const bt_plugin *plugin);
+extern const char *bt_plugin_get_name(const bt_plugin *plugin) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -806,7 +808,8 @@ See the \ref api-plugin-prop-descr "description" property.
 
 @bt_pre_not_null{plugin}
 */
-extern const char *bt_plugin_get_description(const bt_plugin *plugin);
+extern const char *bt_plugin_get_description(const bt_plugin *plugin)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -826,7 +829,7 @@ See the \ref api-plugin-prop-author "author name(s)" property.
 
 @bt_pre_not_null{plugin}
 */
-extern const char *bt_plugin_get_author(const bt_plugin *plugin);
+extern const char *bt_plugin_get_author(const bt_plugin *plugin) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -847,7 +850,7 @@ See the \ref api-plugin-prop-license "license" property.
 
 @bt_pre_not_null{plugin}
 */
-extern const char *bt_plugin_get_license(const bt_plugin *plugin);
+extern const char *bt_plugin_get_license(const bt_plugin *plugin) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -872,7 +875,7 @@ because a static plugin has no path property.
 
 @bt_pre_not_null{plugin}
 */
-extern const char *bt_plugin_get_path(const bt_plugin *plugin);
+extern const char *bt_plugin_get_path(const bt_plugin *plugin) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -915,7 +918,8 @@ See the \ref api-plugin-prop-version "version" property.
 */
 extern bt_property_availability bt_plugin_get_version(
 		const bt_plugin *plugin, unsigned int *major,
-		unsigned int *minor, unsigned int *patch, const char **extra);
+		unsigned int *minor, unsigned int *patch, const char **extra)
+		__BT_NOEXCEPT;
 
 /*! @} */
 
@@ -939,7 +943,7 @@ extern bt_property_availability bt_plugin_get_version(
 @bt_pre_not_null{plugin}
 */
 extern uint64_t bt_plugin_get_source_component_class_count(
-		const bt_plugin *plugin);
+		const bt_plugin *plugin) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -956,7 +960,7 @@ extern uint64_t bt_plugin_get_source_component_class_count(
 @bt_pre_not_null{plugin}
 */
 extern uint64_t bt_plugin_get_filter_component_class_count(
-		const bt_plugin *plugin);
+		const bt_plugin *plugin) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -973,7 +977,7 @@ extern uint64_t bt_plugin_get_filter_component_class_count(
 @bt_pre_not_null{plugin}
 */
 extern uint64_t bt_plugin_get_sink_component_class_count(
-		const bt_plugin *plugin);
+		const bt_plugin *plugin) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1005,7 +1009,7 @@ extern uint64_t bt_plugin_get_sink_component_class_count(
 */
 extern const bt_component_class_source *
 bt_plugin_borrow_source_component_class_by_index_const(
-		const bt_plugin *plugin, uint64_t index);
+		const bt_plugin *plugin, uint64_t index) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1037,7 +1041,7 @@ bt_plugin_borrow_source_component_class_by_index_const(
 */
 extern const bt_component_class_filter *
 bt_plugin_borrow_filter_component_class_by_index_const(
-		const bt_plugin *plugin, uint64_t index);
+		const bt_plugin *plugin, uint64_t index) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1069,7 +1073,7 @@ bt_plugin_borrow_filter_component_class_by_index_const(
 */
 extern const bt_component_class_sink *
 bt_plugin_borrow_sink_component_class_by_index_const(
-		const bt_plugin *plugin, uint64_t index);
+		const bt_plugin *plugin, uint64_t index) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1102,7 +1106,7 @@ If no source component class has the name \bt_p{name} within
 */
 extern const bt_component_class_source *
 bt_plugin_borrow_source_component_class_by_name_const(
-		const bt_plugin *plugin, const char *name);
+		const bt_plugin *plugin, const char *name) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1135,7 +1139,7 @@ If no filter component class has the name \bt_p{name} within
 */
 extern const bt_component_class_filter *
 bt_plugin_borrow_filter_component_class_by_name_const(
-		const bt_plugin *plugin, const char *name);
+		const bt_plugin *plugin, const char *name) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1168,7 +1172,7 @@ If no sink component class has the name \bt_p{name} within
 */
 extern const bt_component_class_sink *
 bt_plugin_borrow_sink_component_class_by_name_const(
-		const bt_plugin *plugin, const char *name);
+		const bt_plugin *plugin, const char *name) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1192,7 +1196,7 @@ bt_plugin_borrow_sink_component_class_by_name_const(
 @sa bt_plugin_put_ref() &mdash;
     Decrements the reference count of a plugin.
 */
-extern void bt_plugin_get_ref(const bt_plugin *plugin);
+extern void bt_plugin_get_ref(const bt_plugin *plugin) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1209,7 +1213,7 @@ extern void bt_plugin_get_ref(const bt_plugin *plugin);
 @sa bt_plugin_get_ref() &mdash;
     Increments the reference count of a plugin.
 */
-extern void bt_plugin_put_ref(const bt_plugin *plugin);
+extern void bt_plugin_put_ref(const bt_plugin *plugin) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1284,7 +1288,7 @@ This macro effectively moves a plugin reference from the expression
 @bt_pre_not_null{plugin}
 */
 extern uint64_t bt_plugin_set_get_plugin_count(
-		const bt_plugin_set *plugin_set);
+		const bt_plugin_set *plugin_set) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1311,7 +1315,7 @@ extern uint64_t bt_plugin_set_get_plugin_count(
     \bt_p{plugin_set} (as returned by bt_plugin_set_get_plugin_count()).
 */
 extern const bt_plugin *bt_plugin_set_borrow_plugin_by_index_const(
-		const bt_plugin_set *plugin_set, uint64_t index);
+		const bt_plugin_set *plugin_set, uint64_t index) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1335,7 +1339,8 @@ extern const bt_plugin *bt_plugin_set_borrow_plugin_by_index_const(
 @sa bt_plugin_set_put_ref() &mdash;
     Decrements the reference count of a plugin set.
 */
-extern void bt_plugin_set_get_ref(const bt_plugin_set *plugin_set);
+extern void bt_plugin_set_get_ref(const bt_plugin_set *plugin_set)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1352,7 +1357,8 @@ extern void bt_plugin_set_get_ref(const bt_plugin_set *plugin_set);
 @sa bt_plugin_set_get_ref() &mdash;
     Increments the reference count of a plugin set.
 */
-extern void bt_plugin_set_put_ref(const bt_plugin_set *plugin_set);
+extern void bt_plugin_set_put_ref(const bt_plugin_set *plugin_set)
+		__BT_NOEXCEPT;
 
 /*!
 @brief

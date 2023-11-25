@@ -88,7 +88,7 @@ public #bt_component_class, #bt_component_class_source,
 */
 static inline
 const bt_component_class *bt_self_component_class_as_component_class(
-		bt_self_component_class *self_component_class)
+		bt_self_component_class *self_component_class) __BT_NOEXCEPT
 {
 	return __BT_UPCAST(bt_component_class, self_component_class);
 }
@@ -113,6 +113,7 @@ static inline
 const bt_component_class_source *
 bt_self_component_class_source_as_component_class_source(
 		bt_self_component_class_source *self_component_class)
+		__BT_NOEXCEPT
 {
 	return __BT_UPCAST_CONST(bt_component_class_source,
 		self_component_class);
@@ -138,6 +139,7 @@ static inline
 const bt_component_class_filter *
 bt_self_component_class_filter_as_component_class_filter(
 		bt_self_component_class_filter *self_component_class)
+		__BT_NOEXCEPT
 {
 	return __BT_UPCAST_CONST(bt_component_class_filter,
 		self_component_class);
@@ -163,6 +165,7 @@ static inline
 const bt_component_class_sink *
 bt_self_component_class_sink_as_component_class_sink(
 		bt_self_component_class_sink *self_component_class)
+		__BT_NOEXCEPT
 {
 	return __BT_UPCAST_CONST(bt_component_class_sink, self_component_class);
 }
@@ -194,6 +197,7 @@ static inline
 bt_self_component_class*
 bt_self_component_class_source_as_self_component_class(
 		bt_self_component_class_source *self_component_class)
+		__BT_NOEXCEPT
 {
 	return __BT_UPCAST(bt_self_component_class, self_component_class);
 }
@@ -218,6 +222,7 @@ static inline
 bt_self_component_class*
 bt_self_component_class_filter_as_self_component_class(
 		bt_self_component_class_filter *self_component_class)
+		__BT_NOEXCEPT
 {
 	return __BT_UPCAST(bt_self_component_class, self_component_class);
 }
@@ -242,6 +247,7 @@ static inline
 bt_self_component_class*
 bt_self_component_class_sink_as_self_component_class(
 		bt_self_component_class_sink *self_component_class)
+		__BT_NOEXCEPT
 {
 	return __BT_UPCAST(bt_self_component_class, self_component_class);
 }

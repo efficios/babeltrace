@@ -264,7 +264,7 @@ extern bt_message_iterator_create_from_message_iterator_status
 bt_message_iterator_create_from_message_iterator(
 		bt_self_message_iterator *self_message_iterator,
 		bt_self_component_port_input *port,
-		bt_message_iterator **message_iterator);
+		bt_message_iterator **message_iterator) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -328,7 +328,7 @@ extern bt_message_iterator_create_from_sink_component_status
 bt_message_iterator_create_from_sink_component(
 		bt_self_component_sink *self_component_sink,
 		bt_self_component_port_input *port,
-		bt_message_iterator **message_iterator);
+		bt_message_iterator **message_iterator) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -353,7 +353,7 @@ bt_message_iterator_create_from_sink_component(
 */
 extern bt_component *
 bt_message_iterator_borrow_component(
-		bt_message_iterator *message_iterator);
+		bt_message_iterator *message_iterator) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -454,7 +454,8 @@ messages.
 */
 extern bt_message_iterator_next_status
 bt_message_iterator_next(bt_message_iterator *message_iterator,
-		bt_message_array_const *messages, uint64_t *count);
+		bt_message_array_const *messages, uint64_t *count)
+		__BT_NOEXCEPT;
 
 /*! @} */
 
@@ -530,7 +531,7 @@ call bt_message_iterator_seek_beginning().
 extern bt_message_iterator_can_seek_beginning_status
 bt_message_iterator_can_seek_beginning(
 		bt_message_iterator *message_iterator,
-		bt_bool *can_seek_beginning);
+		bt_bool *can_seek_beginning) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -596,7 +597,7 @@ without performing any other \ref api-msg-iter-ops "operation" on
 */
 extern bt_message_iterator_seek_beginning_status
 bt_message_iterator_seek_beginning(
-		bt_message_iterator *message_iterator);
+		bt_message_iterator *message_iterator) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -673,7 +674,8 @@ call bt_message_iterator_seek_ns_from_origin().
 extern bt_message_iterator_can_seek_ns_from_origin_status
 bt_message_iterator_can_seek_ns_from_origin(
 		bt_message_iterator *message_iterator,
-		int64_t ns_from_origin, bt_bool *can_seek_ns_from_origin);
+		int64_t ns_from_origin, bt_bool *can_seek_ns_from_origin)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -745,7 +747,7 @@ without performing any other \ref api-msg-iter-ops "operation" on
 extern bt_message_iterator_seek_ns_from_origin_status
 bt_message_iterator_seek_ns_from_origin(
 		bt_message_iterator *message_iterator,
-		int64_t ns_from_origin);
+		int64_t ns_from_origin) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -773,7 +775,7 @@ message sequence have some \bt_cs.
 */
 extern bt_bool
 bt_message_iterator_can_seek_forward(
-		bt_message_iterator *message_iterator);
+		bt_message_iterator *message_iterator) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -798,7 +800,7 @@ bt_message_iterator_can_seek_forward(
     Decrements the reference count of a message iterator.
 */
 extern void bt_message_iterator_get_ref(
-		const bt_message_iterator *message_iterator);
+		const bt_message_iterator *message_iterator) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -816,7 +818,7 @@ extern void bt_message_iterator_get_ref(
     Increments the reference count of a message iterator.
 */
 extern void bt_message_iterator_put_ref(
-		const bt_message_iterator *message_iterator);
+		const bt_message_iterator *message_iterator) __BT_NOEXCEPT;
 
 /*!
 @brief

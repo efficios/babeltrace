@@ -230,7 +230,7 @@ See the \ref api-tir-field-path-prop-root "root scope" property.
 @bt_pre_not_null{field_path}
 */
 extern bt_field_path_scope bt_field_path_get_root_scope(
-		const bt_field_path *field_path);
+		const bt_field_path *field_path) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -248,7 +248,7 @@ See the \ref api-tir-field-path-prop-items "items" property.
 @bt_pre_not_null{field_path}
 */
 extern uint64_t bt_field_path_get_item_count(
-		const bt_field_path *field_path);
+		const bt_field_path *field_path) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -280,7 +280,7 @@ See the \ref api-tir-field-path-prop-items "items" property.
     Returns the number of items contained in a field path.
 */
 extern const bt_field_path_item *bt_field_path_borrow_item_by_index_const(
-		const bt_field_path *field_path, uint64_t index);
+		const bt_field_path *field_path, uint64_t index) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -297,7 +297,8 @@ extern const bt_field_path_item *bt_field_path_borrow_item_by_index_const(
 @sa bt_field_path_put_ref() &mdash;
     Decrements the reference count of a field path.
 */
-extern void bt_field_path_get_ref(const bt_field_path *field_path);
+extern void bt_field_path_get_ref(const bt_field_path *field_path)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -314,7 +315,8 @@ extern void bt_field_path_get_ref(const bt_field_path *field_path);
 @sa bt_field_path_get_ref() &mdash;
     Increments the reference count of a field path.
 */
-extern void bt_field_path_put_ref(const bt_field_path *field_path);
+extern void bt_field_path_put_ref(const bt_field_path *field_path)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -422,7 +424,7 @@ See the \ref api-tir-field-path-prop-items "items" property.
 @bt_pre_not_null{item}
 */
 extern bt_field_path_item_type bt_field_path_item_get_type(
-		const bt_field_path_item *item);
+		const bt_field_path_item *item) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -444,7 +446,7 @@ See the \ref api-tir-field-path-prop-items "items" property.
     #BT_FIELD_PATH_ITEM_TYPE_INDEX).
 */
 extern uint64_t bt_field_path_item_index_get_index(
-		const bt_field_path_item *item);
+		const bt_field_path_item *item) __BT_NOEXCEPT;
 
 /*! @} */
 

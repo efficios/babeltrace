@@ -560,7 +560,7 @@ default interrupter with bt_graph_borrow_default_interrupter().
 @pre
     \bt_p{mip_version} is 0.
 */
-extern bt_graph *bt_graph_create(uint64_t mip_version);
+extern bt_graph *bt_graph_create(uint64_t mip_version) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -604,7 +604,7 @@ bt_graph_add_source_component(bt_graph *graph,
 		const bt_component_class_source *component_class,
 		const char *name, const bt_value *params,
 		bt_logging_level logging_level,
-		const bt_component_source **component);
+		const bt_component_source **component) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -685,7 +685,7 @@ bt_graph_add_source_component_with_initialize_method_data(
 		const bt_component_class_source *component_class,
 		const char *name, const bt_value *params,
 		void *initialize_method_data, bt_logging_level logging_level,
-		const bt_component_source **component);
+		const bt_component_source **component) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -697,7 +697,7 @@ bt_graph_add_filter_component(bt_graph *graph,
 		const bt_component_class_filter *component_class,
 		const char *name, const bt_value *params,
 		bt_logging_level logging_level,
-		const bt_component_filter **component);
+		const bt_component_filter **component) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -778,7 +778,7 @@ bt_graph_add_filter_component_with_initialize_method_data(
 		const bt_component_class_filter *component_class,
 		const char *name, const bt_value *params,
 		void *initialize_method_data, bt_logging_level logging_level,
-		const bt_component_filter **component);
+		const bt_component_filter **component) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -790,7 +790,7 @@ bt_graph_add_sink_component(
 		bt_graph *graph, const bt_component_class_sink *component_class,
 		const char *name, const bt_value *params,
 		bt_logging_level logging_level,
-		const bt_component_sink **component);
+		const bt_component_sink **component) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -870,7 +870,7 @@ bt_graph_add_sink_component_with_initialize_method_data(
 		bt_graph *graph, const bt_component_class_sink *component_class,
 		const char *name, const bt_value *params,
 		void *initialize_method_data, bt_logging_level logging_level,
-		const bt_component_sink **component);
+		const bt_component_sink **component) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1130,7 +1130,7 @@ bt_graph_add_simple_sink_component(bt_graph *graph, const char *name,
 		bt_graph_simple_sink_component_initialize_func initialize_func,
 		bt_graph_simple_sink_component_consume_func consume_func,
 		bt_graph_simple_sink_component_finalize_func finalize_func,
-		void *user_data, const bt_component_sink **component);
+		void *user_data, const bt_component_sink **component) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1219,7 +1219,7 @@ this function.
 extern bt_graph_connect_ports_status bt_graph_connect_ports(bt_graph *graph,
 		const bt_port_output *upstream_port,
 		const bt_port_input *downstream_port,
-		const bt_connection **connection);
+		const bt_connection **connection) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1335,7 +1335,7 @@ and what you can and cannot do with a configured graph.
     Calls a single trace processing graph's sink component's consuming
     method once.
 */
-extern bt_graph_run_status bt_graph_run(bt_graph *graph);
+extern bt_graph_run_status bt_graph_run(bt_graph *graph) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1443,7 +1443,7 @@ and what you can and cannot do with a configured graph.
     Runs a trace processing graph, making all its sink components
     consume in a round robin fashion.
 */
-extern bt_graph_run_once_status bt_graph_run_once(bt_graph *graph);
+extern bt_graph_run_once_status bt_graph_run_once(bt_graph *graph) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1517,7 +1517,7 @@ graph's interrupters is set. If so, bt_graph_run() returns
     Borrows the default interrupter from a trace processing graph.
 */
 extern bt_graph_add_interrupter_status bt_graph_add_interrupter(bt_graph *graph,
-		const bt_interrupter *interrupter);
+		const bt_interrupter *interrupter) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1539,7 +1539,8 @@ extern bt_graph_add_interrupter_status bt_graph_add_interrupter(bt_graph *graph,
 @sa bt_graph_add_interrupter() &mdash;
     Adds an interrupter to a trace processing graph.
 */
-extern bt_interrupter *bt_graph_borrow_default_interrupter(bt_graph *graph);
+extern bt_interrupter *bt_graph_borrow_default_interrupter(bt_graph *graph)
+		__BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1668,7 +1669,7 @@ extern bt_graph_add_listener_status
 bt_graph_add_filter_component_input_port_added_listener(
 		bt_graph *graph,
 		bt_graph_filter_component_input_port_added_listener_func user_func,
-		void *user_data, bt_listener_id *listener_id);
+		void *user_data, bt_listener_id *listener_id) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1744,7 +1745,7 @@ extern bt_graph_add_listener_status
 bt_graph_add_sink_component_input_port_added_listener(
 		bt_graph *graph,
 		bt_graph_sink_component_input_port_added_listener_func user_func,
-		void *user_data, bt_listener_id *listener_id);
+		void *user_data, bt_listener_id *listener_id) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1820,7 +1821,7 @@ extern bt_graph_add_listener_status
 bt_graph_add_source_component_output_port_added_listener(
 		bt_graph *graph,
 		bt_graph_source_component_output_port_added_listener_func user_func,
-		void *user_data, bt_listener_id *listener_id);
+		void *user_data, bt_listener_id *listener_id) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1896,7 +1897,7 @@ extern bt_graph_add_listener_status
 bt_graph_add_filter_component_output_port_added_listener(
 		bt_graph *graph,
 		bt_graph_filter_component_output_port_added_listener_func user_func,
-		void *user_data, bt_listener_id *listener_id);
+		void *user_data, bt_listener_id *listener_id) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1920,7 +1921,7 @@ bt_graph_add_filter_component_output_port_added_listener(
 @sa bt_graph_put_ref() &mdash;
     Decrements the reference count of a trace processing graph.
 */
-extern void bt_graph_get_ref(const bt_graph *graph);
+extern void bt_graph_get_ref(const bt_graph *graph) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1937,7 +1938,7 @@ extern void bt_graph_get_ref(const bt_graph *graph);
 @sa bt_graph_get_ref() &mdash;
     Increments the reference count of a trace processing graph.
 */
-extern void bt_graph_put_ref(const bt_graph *graph);
+extern void bt_graph_put_ref(const bt_graph *graph) __BT_NOEXCEPT;
 
 /*!
 @brief

@@ -259,7 +259,7 @@ On success, the returned event class has the following property values:
     stream class.
 */
 extern bt_event_class *bt_event_class_create(
-		bt_stream_class *stream_class);
+		bt_stream_class *stream_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -332,7 +332,7 @@ On success, the returned event class has the following property values:
     stream class.
 */
 extern bt_event_class *bt_event_class_create_with_id(
-		bt_stream_class *stream_class, uint64_t id);
+		bt_stream_class *stream_class, uint64_t id) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -358,7 +358,7 @@ extern bt_event_class *bt_event_class_create_with_id(
     \c const version of this function.
 */
 extern bt_stream_class *bt_event_class_borrow_stream_class(
-		bt_event_class *event_class);
+		bt_event_class *event_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -368,7 +368,7 @@ extern bt_stream_class *bt_event_class_borrow_stream_class(
 See bt_event_class_borrow_stream_class().
 */
 extern const bt_stream_class *bt_event_class_borrow_stream_class_const(
-		const bt_event_class *event_class);
+		const bt_event_class *event_class) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -395,7 +395,8 @@ See the \ref api-tir-ev-cls-prop-id "numeric ID" property.
     Creates an event class with a specific numeric ID and adds it to a
     stream class.
 */
-extern uint64_t bt_event_class_get_id(const bt_event_class *event_class);
+extern uint64_t bt_event_class_get_id(
+		const bt_event_class *event_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -440,7 +441,7 @@ See the \ref api-tir-ev-cls-prop-name "name" property.
     Returns the name of an event class.
 */
 extern bt_event_class_set_name_status bt_event_class_set_name(
-		bt_event_class *event_class, const char *name);
+		bt_event_class *event_class, const char *name) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -466,7 +467,8 @@ If \bt_p{event_class} has no name, this function returns \c NULL.
 @sa bt_event_class_set_name() &mdash;
     Sets the name of an event class.
 */
-extern const char *bt_event_class_get_name(const bt_event_class *event_class);
+extern const char *bt_event_class_get_name(
+		const bt_event_class *event_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -588,7 +590,7 @@ See the \ref api-tir-ev-cls-prop-log-lvl "log level" property.
     Returns the log level of an event class.
 */
 extern void bt_event_class_set_log_level(bt_event_class *event_class,
-		bt_event_class_log_level log_level);
+		bt_event_class_log_level log_level) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -616,7 +618,7 @@ See the \ref api-tir-ev-cls-prop-log-lvl "log level" property.
 */
 extern bt_property_availability bt_event_class_get_log_level(
 		const bt_event_class *event_class,
-		bt_event_class_log_level *log_level);
+		bt_event_class_log_level *log_level) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -661,7 +663,7 @@ See the \ref api-tir-ev-cls-prop-emf-uri "EMF URI" property.
     Returns the EMF URI of an event class.
 */
 extern bt_event_class_set_emf_uri_status bt_event_class_set_emf_uri(
-		bt_event_class *event_class, const char *emf_uri);
+		bt_event_class *event_class, const char *emf_uri) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -689,7 +691,7 @@ If \bt_p{event_class} has no EMF URI, this function returns \c NULL.
     Sets the EMF URI of an event class.
 */
 extern const char *bt_event_class_get_emf_uri(
-		const bt_event_class *event_class);
+		const bt_event_class *event_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -751,7 +753,7 @@ See the \ref api-tir-ev-cls-prop-p-fc "payload field class" property.
 */
 extern bt_event_class_set_field_class_status
 bt_event_class_set_payload_field_class(bt_event_class *event_class,
-		bt_field_class *field_class);
+		bt_field_class *field_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -777,7 +779,7 @@ returns \c NULL.
     \c const version of this function.
 */
 extern bt_field_class *bt_event_class_borrow_payload_field_class(
-		bt_event_class *event_class);
+		bt_event_class *event_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -787,7 +789,7 @@ extern bt_field_class *bt_event_class_borrow_payload_field_class(
 See bt_event_class_borrow_payload_field_class().
 */
 extern const bt_field_class *bt_event_class_borrow_payload_field_class_const(
-		const bt_event_class *event_class);
+		const bt_event_class *event_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -831,7 +833,7 @@ property.
 */
 extern bt_event_class_set_field_class_status
 bt_event_class_set_specific_context_field_class(bt_event_class *event_class,
-		bt_field_class *field_class);
+		bt_field_class *field_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -859,7 +861,8 @@ returns \c NULL.
     \c const version of this function.
 */
 extern bt_field_class *
-bt_event_class_borrow_specific_context_field_class(bt_event_class *event_class);
+bt_event_class_borrow_specific_context_field_class(
+		bt_event_class *event_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -870,7 +873,7 @@ See bt_event_class_borrow_specific_context_field_class().
 */
 extern const bt_field_class *
 bt_event_class_borrow_specific_context_field_class_const(
-		const bt_event_class *event_class);
+		const bt_event_class *event_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -901,7 +904,8 @@ See the \ref api-tir-ev-cls-prop-user-attrs "user attributes" property.
     Borrows the user attributes of an event class.
 */
 extern void bt_event_class_set_user_attributes(
-		bt_event_class *event_class, const bt_value *user_attributes);
+		bt_event_class *event_class, const bt_value *user_attributes)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -928,7 +932,7 @@ See the \ref api-tir-ev-cls-prop-user-attrs "user attributes" property.
     \c const version of this function.
 */
 extern bt_value *bt_event_class_borrow_user_attributes(
-		bt_event_class *event_class);
+		bt_event_class *event_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -938,7 +942,7 @@ extern bt_value *bt_event_class_borrow_user_attributes(
 See bt_event_class_borrow_user_attributes().
 */
 extern const bt_value *bt_event_class_borrow_user_attributes_const(
-		const bt_event_class *event_class);
+		const bt_event_class *event_class) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -962,7 +966,8 @@ extern const bt_value *bt_event_class_borrow_user_attributes_const(
 @sa bt_event_class_put_ref() &mdash;
     Decrements the reference count of an event class.
 */
-extern void bt_event_class_get_ref(const bt_event_class *event_class);
+extern void bt_event_class_get_ref(
+		const bt_event_class *event_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -979,7 +984,8 @@ extern void bt_event_class_get_ref(const bt_event_class *event_class);
 @sa bt_event_class_get_ref() &mdash;
     Increments the reference count of an event class.
 */
-extern void bt_event_class_put_ref(const bt_event_class *event_class);
+extern void bt_event_class_put_ref(
+		const bt_event_class *event_class) __BT_NOEXCEPT;
 
 /*!
 @brief

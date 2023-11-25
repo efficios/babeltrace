@@ -107,7 +107,7 @@ properties of its class.
 @bt_pre_not_null{clock_snapshot}
 */
 extern const bt_clock_class *bt_clock_snapshot_borrow_clock_class_const(
-		const bt_clock_snapshot *clock_snapshot);
+		const bt_clock_snapshot *clock_snapshot) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -127,7 +127,7 @@ extern const bt_clock_class *bt_clock_snapshot_borrow_clock_class_const(
     clock snapshot's value.
 */
 extern uint64_t bt_clock_snapshot_get_value(
-		const bt_clock_snapshot *clock_snapshot);
+		const bt_clock_snapshot *clock_snapshot) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -203,7 +203,7 @@ code if any step of the computation process causes an integer overflow.
 extern bt_clock_snapshot_get_ns_from_origin_status
 bt_clock_snapshot_get_ns_from_origin(
 		const bt_clock_snapshot *clock_snapshot,
-		int64_t *ns_from_origin);
+		int64_t *ns_from_origin) __BT_NOEXCEPT;
 
 /*! @} */
 

@@ -186,7 +186,8 @@ extern bt_self_component_add_port_status
 bt_self_component_source_add_output_port(
 		bt_self_component_source *self_component,
 		const char *name, void *user_data,
-		bt_self_component_port_output **self_component_port);
+		bt_self_component_port_output **self_component_port)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -230,7 +231,8 @@ extern bt_self_component_add_port_status
 bt_self_component_filter_add_input_port(
 		bt_self_component_filter *self_component,
 		const char *name, void *user_data,
-		bt_self_component_port_input **self_component_port);
+		bt_self_component_port_input **self_component_port)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -274,7 +276,8 @@ extern bt_self_component_add_port_status
 bt_self_component_filter_add_output_port(
 		bt_self_component_filter *self_component,
 		const char *name, void *user_data,
-		bt_self_component_port_output **self_component_port);
+		bt_self_component_port_output **self_component_port)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -319,7 +322,8 @@ extern bt_self_component_add_port_status
 bt_self_component_sink_add_input_port(
 		bt_self_component_sink *self_component,
 		const char *name, void *user_data,
-		bt_self_component_port_input **self_component_port);
+		bt_self_component_port_input **self_component_port)
+		__BT_NOEXCEPT;
 
 /*! @} */
 
@@ -359,7 +363,7 @@ bt_self_component_sink_add_input_port(
 extern bt_self_component_port_output *
 bt_self_component_source_borrow_output_port_by_index(
 		bt_self_component_source *self_component,
-		uint64_t index);
+		uint64_t index) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -392,7 +396,7 @@ bt_self_component_source_borrow_output_port_by_index(
 extern bt_self_component_port_input *
 bt_self_component_filter_borrow_input_port_by_index(
 		bt_self_component_filter *self_component,
-		uint64_t index);
+		uint64_t index) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -425,7 +429,7 @@ bt_self_component_filter_borrow_input_port_by_index(
 extern bt_self_component_port_output *
 bt_self_component_filter_borrow_output_port_by_index(
 		bt_self_component_filter *self_component,
-		uint64_t index);
+		uint64_t index) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -457,7 +461,8 @@ bt_self_component_filter_borrow_output_port_by_index(
 */
 extern bt_self_component_port_input *
 bt_self_component_sink_borrow_input_port_by_index(
-		bt_self_component_sink *self_component, uint64_t index);
+		bt_self_component_sink *self_component, uint64_t index)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -487,7 +492,7 @@ function returns \c NULL.
 extern bt_self_component_port_output *
 bt_self_component_source_borrow_output_port_by_name(
 		bt_self_component_source *self_component,
-		const char *name);
+		const char *name) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -517,7 +522,7 @@ function returns \c NULL.
 extern bt_self_component_port_input *
 bt_self_component_filter_borrow_input_port_by_name(
 		bt_self_component_filter *self_component,
-		const char *name);
+		const char *name) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -547,7 +552,7 @@ function returns \c NULL.
 extern bt_self_component_port_output *
 bt_self_component_filter_borrow_output_port_by_name(
 		bt_self_component_filter *self_component,
-		const char *name);
+		const char *name) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -577,7 +582,7 @@ function returns \c NULL.
 extern bt_self_component_port_input *
 bt_self_component_sink_borrow_input_port_by_name(
 		bt_self_component_sink *self_component,
-		const char *name);
+		const char *name) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -602,7 +607,8 @@ bt_self_component_sink_borrow_input_port_by_name(
     Returns the user data of a component.
 */
 extern void bt_self_component_set_data(
-		bt_self_component *self_component, void *user_data);
+		bt_self_component *self_component, void *user_data)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -620,7 +626,7 @@ extern void bt_self_component_set_data(
     Sets the user data of a component.
 */
 extern void *bt_self_component_get_data(
-		const bt_self_component *self_component);
+		const bt_self_component *self_component) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -649,7 +655,7 @@ extern void *bt_self_component_get_data(
 */
 extern
 uint64_t bt_self_component_get_graph_mip_version(
-		bt_self_component *self_component);
+		bt_self_component *self_component) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -679,7 +685,7 @@ uint64_t bt_self_component_get_graph_mip_version(
     Adds an interrupter to a graph.
 */
 extern bt_bool bt_self_component_sink_is_interrupted(
-		const bt_self_component_sink *self_component);
+		const bt_self_component_sink *self_component) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -705,7 +711,7 @@ extern bt_bool bt_self_component_sink_is_interrupted(
 */
 static inline
 const bt_component *bt_self_component_as_component(
-		bt_self_component *self_component)
+		bt_self_component *self_component) __BT_NOEXCEPT
 {
 	return __BT_UPCAST(bt_component, self_component);
 }
@@ -729,7 +735,7 @@ const bt_component *bt_self_component_as_component(
 static inline
 const bt_component_source *
 bt_self_component_source_as_component_source(
-		bt_self_component_source *self_component)
+		bt_self_component_source *self_component) __BT_NOEXCEPT
 {
 	return __BT_UPCAST_CONST(bt_component_source, self_component);
 }
@@ -753,7 +759,7 @@ bt_self_component_source_as_component_source(
 static inline
 const bt_component_filter *
 bt_self_component_filter_as_component_filter(
-		bt_self_component_filter *self_component)
+		bt_self_component_filter *self_component) __BT_NOEXCEPT
 {
 	return __BT_UPCAST_CONST(bt_component_filter, self_component);
 }
@@ -777,7 +783,7 @@ bt_self_component_filter_as_component_filter(
 static inline
 const bt_component_sink *
 bt_self_component_sink_as_component_sink(
-		bt_self_component_sink *self_component)
+		bt_self_component_sink *self_component) __BT_NOEXCEPT
 {
 	return __BT_UPCAST_CONST(bt_component_sink, self_component);
 }
@@ -807,7 +813,7 @@ bt_self_component_sink_as_component_sink(
 */
 static inline
 bt_self_component *bt_self_component_source_as_self_component(
-		bt_self_component_source *self_component)
+		bt_self_component_source *self_component) __BT_NOEXCEPT
 {
 	return __BT_UPCAST(bt_self_component, self_component);
 }
@@ -830,7 +836,7 @@ bt_self_component *bt_self_component_source_as_self_component(
 */
 static inline
 bt_self_component *bt_self_component_filter_as_self_component(
-		bt_self_component_filter *self_component)
+		bt_self_component_filter *self_component) __BT_NOEXCEPT
 {
 	return __BT_UPCAST(bt_self_component, self_component);
 }
@@ -853,7 +859,7 @@ bt_self_component *bt_self_component_filter_as_self_component(
 */
 static inline
 bt_self_component *bt_self_component_sink_as_self_component(
-		bt_self_component_sink *self_component)
+		bt_self_component_sink *self_component) __BT_NOEXCEPT
 {
 	return __BT_UPCAST(bt_self_component, self_component);
 }

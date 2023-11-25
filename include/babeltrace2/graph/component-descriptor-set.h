@@ -95,7 +95,8 @@ bt_component_descriptor_set_add_descriptor_with_initialize_method_data().
 @returns
     New component descriptor set reference, or \c NULL on memory error.
 */
-extern bt_component_descriptor_set *bt_component_descriptor_set_create(void);
+extern bt_component_descriptor_set *bt_component_descriptor_set_create(void)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -134,7 +135,7 @@ extern bt_component_descriptor_set_add_descriptor_status
 bt_component_descriptor_set_add_descriptor(
 		bt_component_descriptor_set *component_descriptor_set,
 		const bt_component_class *component_class,
-		const bt_value *params);
+		const bt_value *params) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -180,7 +181,8 @@ extern bt_component_descriptor_set_add_descriptor_status
 bt_component_descriptor_set_add_descriptor_with_initialize_method_data(
 		bt_component_descriptor_set *component_descriptor_set,
 		const bt_component_class *component_class,
-		const bt_value *params, void *initialize_method_data);
+		const bt_value *params,
+		void *initialize_method_data) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -205,7 +207,8 @@ bt_component_descriptor_set_add_descriptor_with_initialize_method_data(
     Decrements the reference count of a component descriptor set.
 */
 extern void bt_component_descriptor_set_get_ref(
-		const bt_component_descriptor_set *component_descriptor_set);
+		const bt_component_descriptor_set *component_descriptor_set)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -223,7 +226,8 @@ extern void bt_component_descriptor_set_get_ref(
     Increments the reference count of a component descriptor set.
 */
 extern void bt_component_descriptor_set_put_ref(
-		const bt_component_descriptor_set *component_descriptor_set);
+		const bt_component_descriptor_set *component_descriptor_set)
+		__BT_NOEXCEPT;
 
 /*!
 @brief

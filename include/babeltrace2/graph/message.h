@@ -1025,7 +1025,8 @@ typedef enum bt_message_type {
 
 @bt_pre_not_null{message}
 */
-extern bt_message_type bt_message_get_type(const bt_message *message);
+extern bt_message_type bt_message_get_type(const bt_message *message)
+		__BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1099,7 +1100,7 @@ property values:
 extern
 bt_message *bt_message_stream_beginning_create(
 		bt_self_message_iterator *self_message_iterator,
-		const bt_stream *stream);
+		const bt_stream *stream) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1124,7 +1125,7 @@ See the \ref api-msg-sb-prop-stream "stream" property.
     \c const version of this function.
 */
 extern bt_stream *bt_message_stream_beginning_borrow_stream(
-		bt_message *message);
+		bt_message *message) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1134,7 +1135,7 @@ extern bt_stream *bt_message_stream_beginning_borrow_stream(
 See bt_message_stream_beginning_borrow_stream().
 */
 extern const bt_stream *bt_message_stream_beginning_borrow_stream_const(
-		const bt_message *message);
+		const bt_message *message) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1162,7 +1163,7 @@ See the \ref api-msg-sb-prop-cs "default clock snapshot" property.
 */
 extern
 void bt_message_stream_beginning_set_default_clock_snapshot(
-		bt_message *message, uint64_t value);
+		bt_message *message, uint64_t value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1198,7 +1199,7 @@ See the \ref api-msg-sb-prop-cs "default clock snapshot" property.
 extern bt_message_stream_clock_snapshot_state
 bt_message_stream_beginning_borrow_default_clock_snapshot_const(
 		const bt_message *message,
-		const bt_clock_snapshot **clock_snapshot);
+		const bt_clock_snapshot **clock_snapshot) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1230,7 +1231,7 @@ bt_stream_class_borrow_default_clock_class_const(
 */
 extern const bt_clock_class *
 bt_message_stream_beginning_borrow_stream_class_default_clock_class_const(
-		const bt_message *message);
+		const bt_message *message) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1276,7 +1277,7 @@ property values:
 extern
 bt_message *bt_message_stream_end_create(
 		bt_self_message_iterator *self_message_iterator,
-		const bt_stream *stream);
+		const bt_stream *stream) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1301,7 +1302,7 @@ See the \ref api-msg-se-prop-stream "stream" property.
     \c const version of this function.
 */
 extern bt_stream *bt_message_stream_end_borrow_stream(
-		bt_message *message);
+		bt_message *message) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1311,7 +1312,7 @@ extern bt_stream *bt_message_stream_end_borrow_stream(
 See bt_message_stream_end_borrow_stream().
 */
 extern const bt_stream *bt_message_stream_end_borrow_stream_const(
-		const bt_message *message);
+		const bt_message *message) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1339,7 +1340,7 @@ See the \ref api-msg-se-prop-cs "default clock snapshot" property.
 */
 extern
 void bt_message_stream_end_set_default_clock_snapshot(
-		bt_message *message, uint64_t value);
+		bt_message *message, uint64_t value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1375,7 +1376,7 @@ See the \ref api-msg-se-prop-cs "default clock snapshot" property.
 extern bt_message_stream_clock_snapshot_state
 bt_message_stream_end_borrow_default_clock_snapshot_const(
 		const bt_message *message,
-		const bt_clock_snapshot **clock_snapshot);
+		const bt_clock_snapshot **clock_snapshot) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1407,7 +1408,7 @@ bt_stream_class_borrow_default_clock_class_const(
 */
 extern const bt_clock_class *
 bt_message_stream_end_borrow_stream_class_default_clock_class_const(
-		const bt_message *message);
+		const bt_message *message) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1494,7 +1495,7 @@ extern
 bt_message *bt_message_event_create(
 		bt_self_message_iterator *self_message_iterator,
 		const bt_event_class *event_class,
-		const bt_stream *stream);
+		const bt_stream *stream) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1578,7 +1579,8 @@ extern
 bt_message *bt_message_event_create_with_default_clock_snapshot(
 		bt_self_message_iterator *self_message_iterator,
 		const bt_event_class *event_class,
-		const bt_stream *stream, uint64_t clock_snapshot_value);
+		const bt_stream *stream, uint64_t clock_snapshot_value)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1663,7 +1665,7 @@ extern
 bt_message *bt_message_event_create_with_packet(
 		bt_self_message_iterator *self_message_iterator,
 		const bt_event_class *event_class,
-		const bt_packet *packet);
+		const bt_packet *packet) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1752,7 +1754,8 @@ extern
 bt_message *bt_message_event_create_with_packet_and_default_clock_snapshot(
 		bt_self_message_iterator *self_message_iterator,
 		const bt_event_class *event_class,
-		const bt_packet *packet, uint64_t clock_snapshot_value);
+		const bt_packet *packet, uint64_t clock_snapshot_value)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1776,8 +1779,8 @@ See the \ref api-msg-ev-prop-ev "event" property.
 @sa bt_message_event_borrow_event_const() &mdash;
     \c const version of this function.
 */
-extern bt_event *bt_message_event_borrow_event(
-		bt_message *message);
+extern bt_event *bt_message_event_borrow_event(bt_message *message)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1787,7 +1790,7 @@ extern bt_event *bt_message_event_borrow_event(
 See bt_message_event_borrow_event().
 */
 extern const bt_event *bt_message_event_borrow_event_const(
-		const bt_message *message);
+		const bt_message *message) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1808,7 +1811,8 @@ See the \ref api-msg-ev-prop-cs "default clock snapshot" property.
     \ref api-tir-stream-cls-prop-def-clock-cls "default clock class".
 */
 extern const bt_clock_snapshot *
-bt_message_event_borrow_default_clock_snapshot_const(const bt_message *message);
+bt_message_event_borrow_default_clock_snapshot_const(const bt_message *message)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1841,7 +1845,7 @@ bt_stream_class_borrow_default_clock_class_const(
 */
 extern const bt_clock_class *
 bt_message_event_borrow_stream_class_default_clock_class_const(
-		const bt_message *message);
+		const bt_message *message) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1909,7 +1913,7 @@ property values:
 extern
 bt_message *bt_message_packet_beginning_create(
 		bt_self_message_iterator *self_message_iterator,
-		const bt_packet *packet);
+		const bt_packet *packet) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1974,7 +1978,8 @@ property values:
 extern
 bt_message *bt_message_packet_beginning_create_with_default_clock_snapshot(
 		bt_self_message_iterator *self_message_iterator,
-		const bt_packet *packet, uint64_t clock_snapshot_value);
+		const bt_packet *packet, uint64_t clock_snapshot_value)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1999,7 +2004,7 @@ See the \ref api-msg-pb-prop-pkt "packet" property.
     \c const version of this function.
 */
 extern bt_packet *bt_message_packet_beginning_borrow_packet(
-		bt_message *message);
+		bt_message *message) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2009,7 +2014,7 @@ extern bt_packet *bt_message_packet_beginning_borrow_packet(
 See bt_message_packet_beginning_borrow_packet().
 */
 extern const bt_packet *bt_message_packet_beginning_borrow_packet_const(
-		const bt_message *message);
+		const bt_message *message) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2032,7 +2037,7 @@ See the \ref api-msg-pb-prop-cs "default clock snapshot" property.
 */
 extern const bt_clock_snapshot *
 bt_message_packet_beginning_borrow_default_clock_snapshot_const(
-		const bt_message *message);
+		const bt_message *message) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2065,7 +2070,7 @@ bt_stream_class_borrow_default_clock_class_const(
 */
 extern const bt_clock_class *
 bt_message_packet_beginning_borrow_stream_class_default_clock_class_const(
-		const bt_message *message);
+		const bt_message *message) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -2132,7 +2137,7 @@ property values:
 extern
 bt_message *bt_message_packet_end_create(
 		bt_self_message_iterator *self_message_iterator,
-		const bt_packet *packet);
+		const bt_packet *packet) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2197,7 +2202,8 @@ property values:
 extern
 bt_message *bt_message_packet_end_create_with_default_clock_snapshot(
 		bt_self_message_iterator *self_message_iterator,
-		const bt_packet *packet, uint64_t clock_snapshot_value);
+		const bt_packet *packet, uint64_t clock_snapshot_value)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2222,7 +2228,7 @@ See the \ref api-msg-pe-prop-pkt "packet" property.
     \c const version of this function.
 */
 extern bt_packet *bt_message_packet_end_borrow_packet(
-		bt_message *message);
+		bt_message *message) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2232,7 +2238,7 @@ extern bt_packet *bt_message_packet_end_borrow_packet(
 See bt_message_packet_end_borrow_packet().
 */
 extern const bt_packet *bt_message_packet_end_borrow_packet_const(
-		const bt_message *message);
+		const bt_message *message) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2255,7 +2261,7 @@ See the \ref api-msg-pe-prop-cs "default clock snapshot" property.
 */
 extern const bt_clock_snapshot *
 bt_message_packet_end_borrow_default_clock_snapshot_const(
-		const bt_message *message);
+		const bt_message *message) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2288,7 +2294,7 @@ bt_stream_class_borrow_default_clock_class_const(
 */
 extern const bt_clock_class *
 bt_message_packet_end_borrow_stream_class_default_clock_class_const(
-		const bt_message *message);
+		const bt_message *message) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -2357,7 +2363,7 @@ property values:
 */
 extern bt_message *bt_message_discarded_events_create(
 		bt_self_message_iterator *self_message_iterator,
-		const bt_stream *stream);
+		const bt_stream *stream) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2430,7 +2436,8 @@ extern bt_message *bt_message_discarded_events_create_with_default_clock_snapsho
 		bt_self_message_iterator *self_message_iterator,
 		const bt_stream *stream,
 		uint64_t beginning_clock_snapshot_value,
-		uint64_t end_clock_snapshot_value);
+		uint64_t end_clock_snapshot_value)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2455,7 +2462,7 @@ See the \ref api-msg-disc-ev-prop-stream "stream" property.
     \c const version of this function.
 */
 extern bt_stream *bt_message_discarded_events_borrow_stream(
-		bt_message *message);
+		bt_message *message) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2465,7 +2472,8 @@ extern bt_stream *bt_message_discarded_events_borrow_stream(
 See bt_message_discarded_events_borrow_stream().
 */
 extern const bt_stream *
-bt_message_discarded_events_borrow_stream_const(const bt_message *message);
+bt_message_discarded_events_borrow_stream_const(const bt_message *message)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2492,7 +2500,7 @@ property.
 */
 extern const bt_clock_snapshot *
 bt_message_discarded_events_borrow_beginning_default_clock_snapshot_const(
-		const bt_message *message);
+		const bt_message *message) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2519,7 +2527,7 @@ property.
 */
 extern const bt_clock_snapshot *
 bt_message_discarded_events_borrow_end_default_clock_snapshot_const(
-		const bt_message *message);
+		const bt_message *message) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2551,7 +2559,7 @@ bt_stream_class_borrow_default_clock_class_const(
 */
 extern const bt_clock_class *
 bt_message_discarded_events_borrow_stream_class_default_clock_class_const(
-		const bt_message *message);
+		const bt_message *message) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2578,7 +2586,7 @@ property.
     message.
 */
 extern void bt_message_discarded_events_set_count(bt_message *message,
-		uint64_t count);
+		uint64_t count) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2609,7 +2617,7 @@ property.
     Sets the number of discarded events of a discarded events message.
 */
 extern bt_property_availability bt_message_discarded_events_get_count(
-		const bt_message *message, uint64_t *count);
+		const bt_message *message, uint64_t *count) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -2678,7 +2686,7 @@ property values:
 */
 extern bt_message *bt_message_discarded_packets_create(
 		bt_self_message_iterator *self_message_iterator,
-		const bt_stream *stream);
+		const bt_stream *stream) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2750,7 +2758,7 @@ property values:
 extern bt_message *bt_message_discarded_packets_create_with_default_clock_snapshots(
 		bt_self_message_iterator *self_message_iterator,
 		const bt_stream *stream, uint64_t beginning_clock_snapshot_value,
-		uint64_t end_clock_snapshot_value);
+		uint64_t end_clock_snapshot_value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2775,7 +2783,7 @@ See the \ref api-msg-disc-ev-prop-stream "stream" property.
     \c const version of this function.
 */
 extern bt_stream *bt_message_discarded_packets_borrow_stream(
-		bt_message *message);
+		bt_message *message) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2785,7 +2793,8 @@ extern bt_stream *bt_message_discarded_packets_borrow_stream(
 See bt_message_discarded_packets_borrow_stream().
 */
 extern const bt_stream *
-bt_message_discarded_packets_borrow_stream_const(const bt_message *message);
+bt_message_discarded_packets_borrow_stream_const(const bt_message *message)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2812,7 +2821,7 @@ property.
 */
 extern const bt_clock_snapshot *
 bt_message_discarded_packets_borrow_beginning_default_clock_snapshot_const(
-		const bt_message *message);
+		const bt_message *message) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2839,7 +2848,7 @@ property.
 */
 extern const bt_clock_snapshot *
 bt_message_discarded_packets_borrow_end_default_clock_snapshot_const(
-		const bt_message *message);
+		const bt_message *message) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2871,7 +2880,7 @@ bt_stream_class_borrow_default_clock_class_const(
 */
 extern const bt_clock_class *
 bt_message_discarded_packets_borrow_stream_class_default_clock_class_const(
-		const bt_message *message);
+		const bt_message *message) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2898,7 +2907,7 @@ property.
     message.
 */
 extern void bt_message_discarded_packets_set_count(bt_message *message,
-		uint64_t count);
+		uint64_t count) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2929,7 +2938,7 @@ property.
     Sets the number of discarded packets of a discarded packets message.
 */
 extern bt_property_availability bt_message_discarded_packets_get_count(
-		const bt_message *message, uint64_t *count);
+		const bt_message *message, uint64_t *count) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -2981,7 +2990,7 @@ extern
 bt_message *bt_message_message_iterator_inactivity_create(
 		bt_self_message_iterator *self_message_iterator,
 		const bt_clock_class *clock_class,
-		uint64_t clock_snapshot_value);
+		uint64_t clock_snapshot_value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -3001,7 +3010,7 @@ See the \ref api-msg-inac-prop-cs "clock snapshot" property.
 */
 extern const bt_clock_snapshot *
 bt_message_message_iterator_inactivity_borrow_clock_snapshot_const(
-		const bt_message *message);
+		const bt_message *message) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -3025,7 +3034,7 @@ bt_message_message_iterator_inactivity_borrow_clock_snapshot_const(
 @sa bt_message_put_ref() &mdash;
     Decrements the reference count of a message.
 */
-extern void bt_message_get_ref(const bt_message *message);
+extern void bt_message_get_ref(const bt_message *message) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -3042,7 +3051,7 @@ extern void bt_message_get_ref(const bt_message *message);
 @sa bt_message_get_ref() &mdash;
     Increments the reference count of a message.
 */
-extern void bt_message_put_ref(const bt_message *message);
+extern void bt_message_put_ref(const bt_message *message) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -3188,7 +3197,8 @@ component descriptors of \bt_p{component_descriptors}, it returns
 extern bt_get_greatest_operative_mip_version_status
 bt_get_greatest_operative_mip_version(
 		const bt_component_descriptor_set *component_descriptors,
-		bt_logging_level logging_level, uint64_t *mip_version);
+		bt_logging_level logging_level, uint64_t *mip_version)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -3201,7 +3211,7 @@ As of \bt_name_version_min_maj, this function returns
 @returns
     Maximal available MIP version (\bt_max_mip_version).
 */
-extern uint64_t bt_get_maximal_mip_version(void);
+extern uint64_t bt_get_maximal_mip_version(void) __BT_NOEXCEPT;
 
 /*! @} */
 

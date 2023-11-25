@@ -1497,7 +1497,7 @@ typedef enum bt_field_class_type {
     given type.
 */
 extern bt_field_class_type bt_field_class_get_type(
-		const bt_field_class *field_class);
+		const bt_field_class *field_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1526,7 +1526,7 @@ returns #BT_TRUE.
 */
 static inline
 bt_bool bt_field_class_type_is(const bt_field_class_type type,
-		const bt_field_class_type other_type)
+		const bt_field_class_type other_type) __BT_NOEXCEPT
 {
 	return (type & other_type) == other_type;
 }
@@ -1567,7 +1567,8 @@ See the \ref api-tir-fc-prop-user-attrs "user attributes" property.
     Borrows the user attributes of a field class.
 */
 extern void bt_field_class_set_user_attributes(
-		bt_field_class *field_class, const bt_value *user_attributes);
+		bt_field_class *field_class,
+		const bt_value *user_attributes) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1594,7 +1595,7 @@ See the \ref api-tir-fc-prop-user-attrs "user attributes" property.
     \c const version of this function.
 */
 extern bt_value *bt_field_class_borrow_user_attributes(
-		bt_field_class *field_class);
+		bt_field_class *field_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1604,7 +1605,7 @@ extern bt_value *bt_field_class_borrow_user_attributes(
 See bt_field_class_borrow_user_attributes().
 */
 extern const bt_value *bt_field_class_borrow_user_attributes_const(
-		const bt_field_class *field_class);
+		const bt_field_class *field_class) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1638,7 +1639,7 @@ property value:
 @bt_pre_not_null{trace_class}
 */
 extern bt_field_class *bt_field_class_bool_create(
-		bt_trace_class *trace_class);
+		bt_trace_class *trace_class) __BT_NOEXCEPT;
 
 /*!
 @}
@@ -1683,7 +1684,7 @@ property values:
     0 < \bt_p{length} ≤ 64.
 */
 extern bt_field_class *bt_field_class_bit_array_create(
-		bt_trace_class *trace_class, uint64_t length);
+		bt_trace_class *trace_class, uint64_t length) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1701,7 +1702,7 @@ See the \ref api-tir-fc-ba-prop-len "length" property.
 @bt_pre_is_ba_fc{field_class}
 */
 extern uint64_t bt_field_class_bit_array_get_length(
-		const bt_field_class *field_class);
+		const bt_field_class *field_class) __BT_NOEXCEPT;
 
 /*!
 @}
@@ -1745,7 +1746,7 @@ See the \ref api-tir-fc-int-prop-size "field value range" property.
     Returns the field value range of an integer field class.
 */
 extern void bt_field_class_integer_set_field_value_range(
-		bt_field_class *field_class, uint64_t n);
+		bt_field_class *field_class, uint64_t n) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1776,7 +1777,7 @@ See the \ref api-tir-fc-int-prop-size "field value range" property.
     Sets the field value range of an integer field class.
 */
 extern uint64_t bt_field_class_integer_get_field_value_range(
-		const bt_field_class *field_class);
+		const bt_field_class *field_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1830,7 +1831,8 @@ See the \ref api-tir-fc-int-prop-base "preferred display base" property.
 */
 extern void bt_field_class_integer_set_preferred_display_base(
 		bt_field_class *field_class,
-		bt_field_class_integer_preferred_display_base preferred_display_base);
+		bt_field_class_integer_preferred_display_base preferred_display_base)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1859,7 +1861,7 @@ See the \ref api-tir-fc-int-prop-base "preferred display base" property.
 */
 extern bt_field_class_integer_preferred_display_base
 bt_field_class_integer_get_preferred_display_base(
-		const bt_field_class *field_class);
+		const bt_field_class *field_class) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1899,7 +1901,7 @@ property values:
 @bt_pre_not_null{trace_class}
 */
 extern bt_field_class *bt_field_class_integer_unsigned_create(
-		bt_trace_class *trace_class);
+		bt_trace_class *trace_class) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1939,7 +1941,7 @@ property values:
 @bt_pre_not_null{trace_class}
 */
 extern bt_field_class *bt_field_class_integer_signed_create(
-		bt_trace_class *trace_class);
+		bt_trace_class *trace_class) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1976,7 +1978,7 @@ following property value:
 @bt_pre_not_null{trace_class}
 */
 extern bt_field_class *bt_field_class_real_single_precision_create(
-		bt_trace_class *trace_class);
+		bt_trace_class *trace_class) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -2013,7 +2015,7 @@ following property value:
 @bt_pre_not_null{trace_class}
 */
 extern bt_field_class *bt_field_class_real_double_precision_create(
-		bt_trace_class *trace_class);
+		bt_trace_class *trace_class) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -2103,7 +2105,7 @@ See the \ref api-tir-fc-enum-prop-mappings "mappings" property.
 @bt_pre_is_enum_fc{field_class}
 */
 extern uint64_t bt_field_class_enumeration_get_mapping_count(
-		const bt_field_class *field_class);
+		const bt_field_class *field_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2124,7 +2126,8 @@ See the \ref api-tir-fc-enum-prop-mappings "mappings" property.
 @bt_pre_not_null{mapping}
 */
 extern const char *bt_field_class_enumeration_mapping_get_label(
-		const bt_field_class_enumeration_mapping *mapping);
+		const bt_field_class_enumeration_mapping *mapping)
+		__BT_NOEXCEPT;
 
 /*! @} */
 
@@ -2169,7 +2172,7 @@ following property values:
 @bt_pre_not_null{trace_class}
 */
 extern bt_field_class *bt_field_class_enumeration_unsigned_create(
-		bt_trace_class *trace_class);
+		bt_trace_class *trace_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2205,7 +2208,7 @@ See the \ref api-tir-fc-enum-prop-mappings "mappings" property.
 extern bt_field_class_enumeration_add_mapping_status
 bt_field_class_enumeration_unsigned_add_mapping(
 		bt_field_class *field_class, const char *label,
-		const bt_integer_range_set_unsigned *ranges);
+		const bt_integer_range_set_unsigned *ranges) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2242,7 +2245,8 @@ See the \ref api-tir-fc-enum-prop-mappings "mappings" property.
 */
 extern const bt_field_class_enumeration_unsigned_mapping *
 bt_field_class_enumeration_unsigned_borrow_mapping_by_index_const(
-		const bt_field_class *field_class, uint64_t index);
+		const bt_field_class *field_class, uint64_t index)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2276,7 +2280,8 @@ If there's no mapping having the label \bt_p{label} in
 */
 extern const bt_field_class_enumeration_unsigned_mapping *
 bt_field_class_enumeration_unsigned_borrow_mapping_by_label_const(
-		const bt_field_class *field_class, const char *label);
+		const bt_field_class *field_class, const char *label)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2329,7 +2334,7 @@ extern bt_field_class_enumeration_get_mapping_labels_for_value_status
 bt_field_class_enumeration_unsigned_get_mapping_labels_for_value(
 		const bt_field_class *field_class, uint64_t value,
 		bt_field_class_enumeration_mapping_label_array *labels,
-		uint64_t *count);
+		uint64_t *count) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -2363,7 +2368,8 @@ See the \ref api-tir-fc-enum-prop-mappings "mappings" property.
 */
 extern const bt_integer_range_set_unsigned *
 bt_field_class_enumeration_unsigned_mapping_borrow_ranges_const(
-		const bt_field_class_enumeration_unsigned_mapping *mapping);
+		const bt_field_class_enumeration_unsigned_mapping *mapping)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2387,6 +2393,7 @@ static inline
 const bt_field_class_enumeration_mapping *
 bt_field_class_enumeration_unsigned_mapping_as_mapping_const(
 		const bt_field_class_enumeration_unsigned_mapping *mapping)
+		__BT_NOEXCEPT
 {
 	return __BT_UPCAST_CONST(bt_field_class_enumeration_mapping, mapping);
 }
@@ -2434,7 +2441,7 @@ following property values:
 @bt_pre_not_null{trace_class}
 */
 extern bt_field_class *bt_field_class_enumeration_signed_create(
-		bt_trace_class *trace_class);
+		bt_trace_class *trace_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2470,7 +2477,7 @@ See the \ref api-tir-fc-enum-prop-mappings "mappings" property.
 extern bt_field_class_enumeration_add_mapping_status
 bt_field_class_enumeration_signed_add_mapping(
 		bt_field_class *field_class, const char *label,
-		const bt_integer_range_set_signed *ranges);
+		const bt_integer_range_set_signed *ranges) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2507,7 +2514,8 @@ See the \ref api-tir-fc-enum-prop-mappings "mappings" property.
 */
 extern const bt_field_class_enumeration_signed_mapping *
 bt_field_class_enumeration_signed_borrow_mapping_by_index_const(
-		const bt_field_class *field_class, uint64_t index);
+		const bt_field_class *field_class, uint64_t index)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2541,7 +2549,8 @@ If there's no mapping having the label \bt_p{label} in
 */
 extern const bt_field_class_enumeration_signed_mapping *
 bt_field_class_enumeration_signed_borrow_mapping_by_label_const(
-		const bt_field_class *field_class, const char *label);
+		const bt_field_class *field_class, const char *label)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2594,7 +2603,7 @@ extern bt_field_class_enumeration_get_mapping_labels_for_value_status
 bt_field_class_enumeration_signed_get_mapping_labels_for_value(
 		const bt_field_class *field_class, int64_t value,
 		bt_field_class_enumeration_mapping_label_array *labels,
-		uint64_t *count);
+		uint64_t *count) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -2628,7 +2637,8 @@ See the \ref api-tir-fc-enum-prop-mappings "mappings" property.
 */
 extern const bt_integer_range_set_signed *
 bt_field_class_enumeration_signed_mapping_borrow_ranges_const(
-		const bt_field_class_enumeration_signed_mapping *mapping);
+		const bt_field_class_enumeration_signed_mapping *mapping)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2652,6 +2662,7 @@ static inline
 const bt_field_class_enumeration_mapping *
 bt_field_class_enumeration_signed_mapping_as_mapping_const(
 		const bt_field_class_enumeration_signed_mapping *mapping)
+		__BT_NOEXCEPT
 {
 	return __BT_UPCAST_CONST(bt_field_class_enumeration_mapping, mapping);
 }
@@ -2688,7 +2699,7 @@ value:
 @bt_pre_not_null{trace_class}
 */
 extern bt_field_class *bt_field_class_string_create(
-		bt_trace_class *trace_class);
+		bt_trace_class *trace_class) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -2718,7 +2729,7 @@ property.
     \c const version of this function.
 */
 extern bt_field_class *bt_field_class_array_borrow_element_field_class(
-		bt_field_class *field_class);
+		bt_field_class *field_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2729,7 +2740,7 @@ See bt_field_class_array_borrow_element_field_class().
 */
 extern const bt_field_class *
 bt_field_class_array_borrow_element_field_class_const(
-		const bt_field_class *field_class);
+		const bt_field_class *field_class) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -2781,7 +2792,8 @@ bt_pre_fc_not_in_tc{element_field_class}
 */
 extern bt_field_class *bt_field_class_array_static_create(
 		bt_trace_class *trace_class,
-		bt_field_class *element_field_class, uint64_t length);
+		bt_field_class *element_field_class, uint64_t length)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2799,7 +2811,7 @@ See the \ref api-tir-fc-sarray-prop-len "length" property.
 @bt_pre_is_sarray_fc{field_class}
 */
 extern uint64_t bt_field_class_array_static_get_length(
-		const bt_field_class *field_class);
+		const bt_field_class *field_class) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -2869,7 +2881,7 @@ property values:
 extern bt_field_class *bt_field_class_array_dynamic_create(
 		bt_trace_class *trace_class,
 		bt_field_class *element_field_class,
-		bt_field_class *length_field_class);
+		bt_field_class *length_field_class) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -2907,7 +2919,7 @@ In the meantime, this function returns \c NULL.
 */
 extern const bt_field_path *
 bt_field_class_array_dynamic_with_length_field_borrow_length_field_path_const(
-		const bt_field_class *field_class);
+		const bt_field_class *field_class) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -2944,7 +2956,7 @@ property values:
 @bt_pre_not_null{trace_class}
 */
 extern bt_field_class *bt_field_class_structure_create(
-    bt_trace_class *trace_class);
+		bt_trace_class *trace_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2997,8 +3009,9 @@ See the \ref api-tir-fc-struct-prop-members "members" property.
 */
 extern bt_field_class_structure_append_member_status
 bt_field_class_structure_append_member(
-    bt_field_class *field_class,
-    const char *name, bt_field_class *member_field_class);
+		bt_field_class *field_class,
+		const char *name, bt_field_class *member_field_class)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -3018,7 +3031,7 @@ See the \ref api-tir-fc-struct-prop-members "members" property.
 @bt_pre_is_struct_fc{field_class}
 */
 extern uint64_t bt_field_class_structure_get_member_count(
-    const bt_field_class *field_class);
+		const bt_field_class *field_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -3056,7 +3069,7 @@ See the \ref api-tir-fc-struct-prop-members "members" property.
 */
 extern bt_field_class_structure_member *
 bt_field_class_structure_borrow_member_by_index(
-    bt_field_class *field_class, uint64_t index);
+		bt_field_class *field_class, uint64_t index) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -3067,7 +3080,8 @@ See bt_field_class_structure_borrow_member_by_index().
 */
 extern const bt_field_class_structure_member *
 bt_field_class_structure_borrow_member_by_index_const(
-    const bt_field_class *field_class, uint64_t index);
+		const bt_field_class *field_class, uint64_t index)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -3104,7 +3118,7 @@ If there's no member having the name \bt_p{name} in
 */
 extern bt_field_class_structure_member *
 bt_field_class_structure_borrow_member_by_name(
-    bt_field_class *field_class, const char *name);
+		bt_field_class *field_class, const char *name) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -3115,7 +3129,8 @@ See bt_field_class_structure_borrow_member_by_name().
 */
 extern const bt_field_class_structure_member *
 bt_field_class_structure_borrow_member_by_name_const(
-    const bt_field_class *field_class, const char *name);
+		const bt_field_class *field_class, const char *name)
+		__BT_NOEXCEPT;
 
 /*! @} */
 
@@ -3150,7 +3165,7 @@ See the \ref api-tir-fc-struct-prop-members "members" property.
 @bt_pre_not_null{member}
 */
 extern const char *bt_field_class_structure_member_get_name(
-    const bt_field_class_structure_member *member);
+		const bt_field_class_structure_member *member) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -3172,7 +3187,7 @@ See the \ref api-tir-fc-struct-prop-members "members" property.
 */
 extern bt_field_class *
 bt_field_class_structure_member_borrow_field_class(
-    bt_field_class_structure_member *member);
+		bt_field_class_structure_member *member) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -3183,7 +3198,7 @@ See bt_field_class_structure_member_borrow_field_class().
 */
 extern const bt_field_class *
 bt_field_class_structure_member_borrow_field_class_const(
-    const bt_field_class_structure_member *member);
+		const bt_field_class_structure_member *member) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -3215,8 +3230,8 @@ See the \ref api-tir-fc-struct-prop-members "members" property.
     Borrows the user attributes of a structure field class member.
 */
 extern void bt_field_class_structure_member_set_user_attributes(
-    bt_field_class_structure_member *member,
-    const bt_value *user_attributes);
+		bt_field_class_structure_member *member,
+		const bt_value *user_attributes) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -3246,7 +3261,7 @@ See the \ref api-tir-fc-struct-prop-members "members" property.
 */
 extern bt_value *
 bt_field_class_structure_member_borrow_user_attributes(
-    bt_field_class_structure_member *member);
+		bt_field_class_structure_member *member) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -3257,7 +3272,7 @@ See bt_field_class_structure_member_borrow_user_attributes().
 */
 extern const bt_value *
 bt_field_class_structure_member_borrow_user_attributes_const(
-    const bt_field_class_structure_member *member);
+		const bt_field_class_structure_member *member) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -3286,7 +3301,7 @@ See the \ref api-tir-fc-opt-prop-fc "optional field class" property.
     \c const version of this function.
 */
 extern bt_field_class *bt_field_class_option_borrow_field_class(
-		bt_field_class *field_class);
+		bt_field_class *field_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -3297,7 +3312,7 @@ See bt_field_class_option_borrow_field_class().
 */
 extern const bt_field_class *
 bt_field_class_option_borrow_field_class_const(
-		const bt_field_class *field_class);
+		const bt_field_class *field_class) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -3344,7 +3359,7 @@ values:
 */
 extern bt_field_class *bt_field_class_option_without_selector_create(
 		bt_trace_class *trace_class,
-		bt_field_class *optional_field_class);
+		bt_field_class *optional_field_class) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -3381,7 +3396,7 @@ In the meantime, this function returns \c NULL.
 */
 extern const bt_field_path *
 bt_field_class_option_with_selector_field_borrow_selector_field_path_const(
-		const bt_field_class *field_class);
+		const bt_field_class *field_class) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -3443,7 +3458,7 @@ values:
 extern bt_field_class *bt_field_class_option_with_selector_field_bool_create(
 		bt_trace_class *trace_class,
 		bt_field_class *optional_field_class,
-		bt_field_class *selector_field_class);
+		bt_field_class *selector_field_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -3469,7 +3484,8 @@ property.
 */
 extern void
 bt_field_class_option_with_selector_field_bool_set_selector_is_reversed(
-		bt_field_class *field_class, bt_bool selector_is_reversed);
+		bt_field_class *field_class, bt_bool selector_is_reversed)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -3495,7 +3511,7 @@ property.
 */
 extern bt_bool
 bt_field_class_option_with_selector_field_bool_selector_is_reversed(
-		const bt_field_class *field_class);
+		const bt_field_class *field_class) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -3566,7 +3582,8 @@ bt_field_class_option_with_selector_field_integer_unsigned_create(
 		bt_trace_class *trace_class,
 		bt_field_class *optional_field_class,
 		bt_field_class *selector_field_class,
-		const bt_integer_range_set_unsigned *ranges);
+		const bt_integer_range_set_unsigned *ranges)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -3588,7 +3605,7 @@ property.
 */
 extern const bt_integer_range_set_unsigned *
 bt_field_class_option_with_selector_field_integer_unsigned_borrow_selector_ranges_const(
-		const bt_field_class *field_class);
+		const bt_field_class *field_class) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -3659,7 +3676,7 @@ bt_field_class_option_with_selector_field_integer_signed_create(
 		bt_trace_class *trace_class,
 		bt_field_class *optional_field_class,
 		bt_field_class *selector_field_class,
-		const bt_integer_range_set_signed *ranges);
+		const bt_integer_range_set_signed *ranges) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -3681,7 +3698,7 @@ property.
 */
 extern const bt_integer_range_set_signed *
 bt_field_class_option_with_selector_field_integer_signed_borrow_selector_ranges_const(
-		const bt_field_class *field_class);
+		const bt_field_class *field_class) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -3743,7 +3760,7 @@ property values:
 */
 extern bt_field_class *bt_field_class_variant_create(
 		bt_trace_class *trace_class,
-		bt_field_class *selector_field_class);
+		bt_field_class *selector_field_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -3763,7 +3780,7 @@ See the \ref api-tir-fc-var-prop-opts "options" property.
 @bt_pre_is_var_fc{field_class}
 */
 extern uint64_t bt_field_class_variant_get_option_count(
-		const bt_field_class *field_class);
+		const bt_field_class *field_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -3801,7 +3818,7 @@ See the \ref api-tir-fc-var-prop-opts "options" property.
 */
 extern bt_field_class_variant_option *
 bt_field_class_variant_borrow_option_by_index(
-		bt_field_class *field_class, uint64_t index);
+		bt_field_class *field_class, uint64_t index) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -3812,7 +3829,8 @@ See bt_field_class_variant_borrow_option_by_index().
 */
 extern const bt_field_class_variant_option *
 bt_field_class_variant_borrow_option_by_index_const(
-		const bt_field_class *field_class, uint64_t index);
+		const bt_field_class *field_class, uint64_t index)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -3849,7 +3867,7 @@ If there's no option having the name \bt_p{name} in
 */
 extern bt_field_class_variant_option *
 bt_field_class_variant_borrow_option_by_name(
-		bt_field_class *field_class, const char *name);
+		bt_field_class *field_class, const char *name) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -3860,7 +3878,8 @@ See bt_field_class_variant_borrow_option_by_name().
 */
 extern const bt_field_class_variant_option *
 bt_field_class_variant_borrow_option_by_name_const(
-		const bt_field_class *field_class, const char *name);
+		const bt_field_class *field_class, const char *name)
+		__BT_NOEXCEPT;
 
 /*! @} */
 
@@ -3895,7 +3914,7 @@ See the \ref api-tir-fc-var-prop-opts "options" property.
 @bt_pre_not_null{option}
 */
 extern const char *bt_field_class_variant_option_get_name(
-		const bt_field_class_variant_option *option);
+		const bt_field_class_variant_option *option) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -3916,7 +3935,7 @@ See the \ref api-tir-fc-var-prop-opts "options" property.
     \c const version of this function.
 */
 extern bt_field_class *bt_field_class_variant_option_borrow_field_class(
-		bt_field_class_variant_option *option);
+		bt_field_class_variant_option *option) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -3927,7 +3946,7 @@ See bt_field_class_variant_option_borrow_field_class().
 */
 extern const bt_field_class *
 bt_field_class_variant_option_borrow_field_class_const(
-		const bt_field_class_variant_option *option);
+		const bt_field_class_variant_option *option) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -3963,7 +3982,7 @@ See the \ref api-tir-fc-var-prop-opts "options" property.
 */
 extern void bt_field_class_variant_option_set_user_attributes(
 		bt_field_class_variant_option *option,
-		const bt_value *user_attributes);
+		const bt_value *user_attributes) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -3994,7 +4013,7 @@ See the \ref api-tir-fc-var-prop-opts "options" property.
     \c const version of this function.
 */
 extern bt_value *bt_field_class_variant_option_borrow_user_attributes(
-		bt_field_class_variant_option *option);
+		bt_field_class_variant_option *option) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -4004,7 +4023,7 @@ extern bt_value *bt_field_class_variant_option_borrow_user_attributes(
 See bt_field_class_variant_option_borrow_user_attributes().
 */
 extern const bt_value *bt_field_class_variant_option_borrow_user_attributes_const(
-		const bt_field_class_variant_option *option);
+		const bt_field_class_variant_option *option) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -4067,7 +4086,7 @@ See the \ref api-tir-fc-var-prop-opts "options" property.
 extern bt_field_class_variant_without_selector_append_option_status
 bt_field_class_variant_without_selector_append_option(
 		bt_field_class *field_class, const char *name,
-		bt_field_class *option_field_class);
+		bt_field_class *option_field_class) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -4125,7 +4144,7 @@ In the meantime, this function returns \c NULL.
 */
 extern const bt_field_path *
 bt_field_class_variant_with_selector_field_borrow_selector_field_path_const(
-		const bt_field_class *field_class);
+		const bt_field_class *field_class) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -4182,7 +4201,7 @@ extern bt_field_class_variant_with_selector_field_integer_append_option_status
 bt_field_class_variant_with_selector_field_integer_unsigned_append_option(
 		bt_field_class *field_class, const char *name,
 		bt_field_class *option_field_class,
-		const bt_integer_range_set_unsigned *ranges);
+		const bt_integer_range_set_unsigned *ranges) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -4219,7 +4238,8 @@ See the \ref api-tir-fc-var-prop-opts "options" property.
 */
 extern const bt_field_class_variant_with_selector_field_integer_unsigned_option *
 bt_field_class_variant_with_selector_field_integer_unsigned_borrow_option_by_index_const(
-		const bt_field_class *field_class, uint64_t index);
+		const bt_field_class *field_class, uint64_t index)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -4257,7 +4277,8 @@ If there's no option having the name \bt_p{name} in
 */
 extern const bt_field_class_variant_with_selector_field_integer_unsigned_option *
 bt_field_class_variant_with_selector_field_integer_unsigned_borrow_option_by_name_const(
-		const bt_field_class *field_class, const char *name);
+		const bt_field_class *field_class, const char *name)
+		__BT_NOEXCEPT;
 
 /*! @} */
 
@@ -4291,7 +4312,8 @@ See the \ref api-tir-fc-var-prop-opts "options" property.
 */
 extern const bt_integer_range_set_unsigned *
 bt_field_class_variant_with_selector_field_integer_unsigned_option_borrow_ranges_const(
-		const bt_field_class_variant_with_selector_field_integer_unsigned_option *option);
+		const bt_field_class_variant_with_selector_field_integer_unsigned_option *option)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -4315,6 +4337,7 @@ static inline
 const bt_field_class_variant_option *
 bt_field_class_variant_with_selector_field_integer_unsigned_option_as_option_const(
 		const bt_field_class_variant_with_selector_field_integer_unsigned_option *option)
+		__BT_NOEXCEPT
 {
 	return __BT_UPCAST_CONST(bt_field_class_variant_option, option);
 }
@@ -4374,7 +4397,8 @@ extern bt_field_class_variant_with_selector_field_integer_append_option_status
 bt_field_class_variant_with_selector_field_integer_signed_append_option(
 		bt_field_class *field_class, const char *name,
 		bt_field_class *option_field_class,
-		const bt_integer_range_set_signed *ranges);
+		const bt_integer_range_set_signed *ranges)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -4411,7 +4435,8 @@ See the \ref api-tir-fc-var-prop-opts "options" property.
 */
 extern const bt_field_class_variant_with_selector_field_integer_signed_option *
 bt_field_class_variant_with_selector_field_integer_signed_borrow_option_by_index_const(
-		const bt_field_class *field_class, uint64_t index);
+		const bt_field_class *field_class, uint64_t index)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -4449,7 +4474,8 @@ If there's no option having the name \bt_p{name} in
 */
 extern const bt_field_class_variant_with_selector_field_integer_signed_option *
 bt_field_class_variant_with_selector_field_integer_signed_borrow_option_by_name_const(
-		const bt_field_class *field_class, const char *name);
+		const bt_field_class *field_class, const char *name)
+		__BT_NOEXCEPT;
 
 /*! @} */
 
@@ -4483,7 +4509,8 @@ See the \ref api-tir-fc-var-prop-opts "options" property.
 */
 extern const bt_integer_range_set_signed *
 bt_field_class_variant_with_selector_field_integer_signed_option_borrow_ranges_const(
-		const bt_field_class_variant_with_selector_field_integer_signed_option *option);
+		const bt_field_class_variant_with_selector_field_integer_signed_option *option)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -4507,6 +4534,7 @@ static inline
 const bt_field_class_variant_option *
 bt_field_class_variant_with_selector_field_integer_signed_option_as_option_const(
 		const bt_field_class_variant_with_selector_field_integer_signed_option *option)
+		__BT_NOEXCEPT
 {
 	return __BT_UPCAST_CONST(bt_field_class_variant_option, option);
 }
@@ -4533,7 +4561,8 @@ bt_field_class_variant_with_selector_field_integer_signed_option_as_option_const
 @sa bt_field_class_put_ref() &mdash;
     Decrements the reference count of a field class.
 */
-extern void bt_field_class_get_ref(const bt_field_class *field_class);
+extern void bt_field_class_get_ref(
+		const bt_field_class *field_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -4550,7 +4579,8 @@ extern void bt_field_class_get_ref(const bt_field_class *field_class);
 @sa bt_field_class_get_ref() &mdash;
     Increments the reference count of a field class.
 */
-extern void bt_field_class_put_ref(const bt_field_class *field_class);
+extern void bt_field_class_put_ref(
+		const bt_field_class *field_class) __BT_NOEXCEPT;
 
 /*!
 @brief

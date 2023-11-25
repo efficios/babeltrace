@@ -108,7 +108,7 @@ On success, the returned interrupter is \em not set
 @returns
     New interrupter reference, or \c NULL on memory error.
 */
-extern bt_interrupter *bt_interrupter_create(void);
+extern bt_interrupter *bt_interrupter_create(void) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -134,7 +134,7 @@ After you call this function, bt_interrupter_is_set() returns
 @sa bt_interrupter_is_set() &mdash;
     Returns whether or not an interrupter is set.
 */
-extern void bt_interrupter_set(bt_interrupter *interrupter);
+extern void bt_interrupter_set(bt_interrupter *interrupter) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -153,7 +153,7 @@ After you call this function, bt_interrupter_is_set() returns
 @sa bt_interrupter_is_set() &mdash;
     Returns whether or not an interrupter is set.
 */
-extern void bt_interrupter_reset(bt_interrupter *interrupter);
+extern void bt_interrupter_reset(bt_interrupter *interrupter) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -172,7 +172,8 @@ extern void bt_interrupter_reset(bt_interrupter *interrupter);
 @sa bt_interrupter_reset() &mdash;
     Resets an interrupter.
 */
-extern bt_bool bt_interrupter_is_set(const bt_interrupter *interrupter);
+extern bt_bool bt_interrupter_is_set(const bt_interrupter *interrupter)
+		__BT_NOEXCEPT;
 
 /*! @} */
 
@@ -196,7 +197,8 @@ extern bt_bool bt_interrupter_is_set(const bt_interrupter *interrupter);
 @sa bt_interrupter_put_ref() &mdash;
     Decrements the reference count of an interrupter.
 */
-extern void bt_interrupter_get_ref(const bt_interrupter *interrupter);
+extern void bt_interrupter_get_ref(const bt_interrupter *interrupter)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -213,7 +215,8 @@ extern void bt_interrupter_get_ref(const bt_interrupter *interrupter);
 @sa bt_interrupter_get_ref() &mdash;
     Increments the reference count of an interrupter.
 */
-extern void bt_interrupter_put_ref(const bt_interrupter *interrupter);
+extern void bt_interrupter_put_ref(const bt_interrupter *interrupter)
+		__BT_NOEXCEPT;
 
 /*!
 @brief

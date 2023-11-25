@@ -199,10 +199,11 @@ void bt_bt2_exit_handler(void);
 #define __BT_IN_BABELTRACE_H
 
 /*
- * Define `__BT_ATTR_FORMAT_PRINTF` to nothing, otherwise SWIG fails to parse
- * the included header files that use it.
+ * Define `__BT_ATTR_FORMAT_PRINTF` and `__BT_NOEXCEPT` to nothing,
+ * otherwise SWIG fails to parse the included header files that use it.
  */
 #define __BT_ATTR_FORMAT_PRINTF(_string_index, _first_to_check)
+#define __BT_NOEXCEPT
 
 /* Common types */
 %include <babeltrace2/types.h>

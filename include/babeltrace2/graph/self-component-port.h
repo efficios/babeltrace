@@ -86,7 +86,7 @@ functions.
 @bt_pre_not_null{self_component_port}
 */
 extern bt_self_component *bt_self_component_port_borrow_component(
-		bt_self_component_port *self_component_port);
+		bt_self_component_port *self_component_port) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -114,7 +114,8 @@ bt_self_component_sink_add_input_port().
 @bt_pre_not_null{self_component_port}
 */
 extern void *bt_self_component_port_get_data(
-		const bt_self_component_port *self_component_port);
+		const bt_self_component_port *self_component_port)
+		__BT_NOEXCEPT;
 
 /*! @} */
 
@@ -140,7 +141,7 @@ extern void *bt_self_component_port_get_data(
 */
 static inline
 const bt_port *bt_self_component_port_as_port(
-		bt_self_component_port *self_component_port)
+		bt_self_component_port *self_component_port) __BT_NOEXCEPT
 {
 	return __BT_UPCAST_CONST(bt_port, self_component_port);
 }
@@ -163,6 +164,7 @@ const bt_port *bt_self_component_port_as_port(
 static inline
 const bt_port_input *bt_self_component_port_input_as_port_input(
 		const bt_self_component_port_input *self_component_port)
+		__BT_NOEXCEPT
 {
 	return __BT_UPCAST_CONST(bt_port_input, self_component_port);
 }
@@ -185,6 +187,7 @@ const bt_port_input *bt_self_component_port_input_as_port_input(
 static inline
 const bt_port_output *bt_self_component_port_output_as_port_output(
 		bt_self_component_port_output *self_component_port)
+		__BT_NOEXCEPT
 {
 	return __BT_UPCAST_CONST(bt_port_output, self_component_port);
 }
@@ -216,6 +219,7 @@ static inline
 bt_self_component_port *
 bt_self_component_port_input_as_self_component_port(
 		bt_self_component_port_input *self_component_port)
+		__BT_NOEXCEPT
 {
 	return __BT_UPCAST(bt_self_component_port, self_component_port);
 }
@@ -240,6 +244,7 @@ static inline
 bt_self_component_port *
 bt_self_component_port_output_as_self_component_port(
 		bt_self_component_port_output *self_component_port)
+		__BT_NOEXCEPT
 {
 	return __BT_UPCAST(bt_self_component_port, self_component_port);
 }

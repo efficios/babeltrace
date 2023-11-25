@@ -1476,7 +1476,8 @@ property values:
 extern
 bt_component_class_source *bt_component_class_source_create(
 		const char *name,
-		bt_message_iterator_class *message_iterator_class);
+		bt_message_iterator_class *message_iterator_class)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1520,7 +1521,8 @@ property values:
 extern
 bt_component_class_filter *bt_component_class_filter_create(
 		const char *name,
-		bt_message_iterator_class *message_iterator_class);
+		bt_message_iterator_class *message_iterator_class)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1560,7 +1562,8 @@ property values:
 extern
 bt_component_class_sink *bt_component_class_sink_create(
 		const char *name,
-		bt_component_class_sink_consume_method consume_method);
+		bt_component_class_sink_consume_method consume_method)
+		__BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1614,7 +1617,7 @@ See the \ref api-comp-cls-prop-descr "description" property.
 */
 extern bt_component_class_set_description_status
 bt_component_class_set_description(bt_component_class *component_class,
-		const char *description);
+		const char *description) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1661,7 +1664,7 @@ See the \ref api-comp-cls-prop-help "help text" property.
 */
 extern bt_component_class_set_help_status bt_component_class_set_help(
 		bt_component_class *component_class,
-		const char *help_text);
+		const char *help_text) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1706,7 +1709,7 @@ See the \ref api-comp-cls-dev-meth-fini "finalize" method.
 extern bt_component_class_set_method_status
 bt_component_class_source_set_finalize_method(
 		bt_component_class_source *component_class,
-		bt_component_class_source_finalize_method method);
+		bt_component_class_source_finalize_method method) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1731,7 +1734,7 @@ See the \ref api-comp-cls-dev-meth-fini "finalize" method.
 extern bt_component_class_set_method_status
 bt_component_class_filter_set_finalize_method(
 		bt_component_class_filter *component_class,
-		bt_component_class_filter_finalize_method method);
+		bt_component_class_filter_finalize_method method) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1757,7 +1760,7 @@ extern
 bt_component_class_set_method_status
 bt_component_class_sink_set_finalize_method(
 		bt_component_class_sink *component_class,
-		bt_component_class_sink_finalize_method method);
+		bt_component_class_sink_finalize_method method) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1783,7 +1786,8 @@ method.
 extern bt_component_class_set_method_status
 bt_component_class_source_set_get_supported_mip_versions_method(
 		bt_component_class_source *component_class,
-		bt_component_class_source_get_supported_mip_versions_method method);
+		bt_component_class_source_get_supported_mip_versions_method method)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1809,7 +1813,8 @@ method.
 extern bt_component_class_set_method_status
 bt_component_class_filter_set_get_supported_mip_versions_method(
 		bt_component_class_filter *component_class,
-		bt_component_class_filter_get_supported_mip_versions_method method);
+		bt_component_class_filter_get_supported_mip_versions_method method)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1835,7 +1840,8 @@ method.
 extern bt_component_class_set_method_status
 bt_component_class_sink_set_get_supported_mip_versions_method(
 		bt_component_class_sink *component_class,
-		bt_component_class_sink_get_supported_mip_versions_method method);
+		bt_component_class_sink_get_supported_mip_versions_method method)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1863,7 +1869,8 @@ extern
 bt_component_class_set_method_status
 bt_component_class_sink_set_graph_is_configured_method(
 		bt_component_class_sink *component_class,
-		bt_component_class_sink_graph_is_configured_method method);
+		bt_component_class_sink_graph_is_configured_method method)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1888,7 +1895,8 @@ See the \ref api-comp-cls-dev-meth-init "initialize" method.
 extern bt_component_class_set_method_status
 bt_component_class_source_set_initialize_method(
 		bt_component_class_source *component_class,
-		bt_component_class_source_initialize_method method);
+		bt_component_class_source_initialize_method method)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1913,7 +1921,8 @@ See the \ref api-comp-cls-dev-meth-init "initialize" method.
 extern bt_component_class_set_method_status
 bt_component_class_filter_set_initialize_method(
 		bt_component_class_filter *component_class,
-		bt_component_class_filter_initialize_method method);
+		bt_component_class_filter_initialize_method method)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1939,7 +1948,7 @@ extern
 bt_component_class_set_method_status
 bt_component_class_sink_set_initialize_method(
 		bt_component_class_sink *component_class,
-		bt_component_class_sink_initialize_method method);
+		bt_component_class_sink_initialize_method method) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1966,7 +1975,8 @@ method.
 extern bt_component_class_set_method_status
 bt_component_class_source_set_output_port_connected_method(
 		bt_component_class_source *component_class,
-		bt_component_class_source_output_port_connected_method method);
+		bt_component_class_source_output_port_connected_method method)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1993,7 +2003,8 @@ method.
 extern bt_component_class_set_method_status
 bt_component_class_filter_set_input_port_connected_method(
 		bt_component_class_filter *component_class,
-		bt_component_class_filter_input_port_connected_method method);
+		bt_component_class_filter_input_port_connected_method method)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2020,7 +2031,8 @@ method.
 extern bt_component_class_set_method_status
 bt_component_class_filter_set_output_port_connected_method(
 		bt_component_class_filter *component_class,
-		bt_component_class_filter_output_port_connected_method method);
+		bt_component_class_filter_output_port_connected_method method)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2048,7 +2060,8 @@ extern
 bt_component_class_set_method_status
 bt_component_class_sink_set_input_port_connected_method(
 		bt_component_class_sink *component_class,
-		bt_component_class_sink_input_port_connected_method method);
+		bt_component_class_sink_input_port_connected_method method)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2073,7 +2086,7 @@ See the \ref api-comp-cls-dev-meth-query "query" method.
 extern bt_component_class_set_method_status
 bt_component_class_source_set_query_method(
 		bt_component_class_source *component_class,
-		bt_component_class_source_query_method method);
+		bt_component_class_source_query_method method) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2098,7 +2111,7 @@ See the \ref api-comp-cls-dev-meth-query "query" method.
 extern bt_component_class_set_method_status
 bt_component_class_filter_set_query_method(
 		bt_component_class_filter *component_class,
-		bt_component_class_filter_query_method method);
+		bt_component_class_filter_query_method method) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2124,7 +2137,7 @@ extern
 bt_component_class_set_method_status
 bt_component_class_sink_set_query_method(
 		bt_component_class_sink *component_class,
-		bt_component_class_sink_query_method method);
+		bt_component_class_sink_query_method method) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -2150,7 +2163,7 @@ bt_component_class_sink_set_query_method(
 */
 static inline
 bt_component_class *bt_component_class_source_as_component_class(
-		bt_component_class_source *component_class)
+		bt_component_class_source *component_class) __BT_NOEXCEPT
 {
 	return __BT_UPCAST(bt_component_class, component_class);
 }
@@ -2172,7 +2185,7 @@ bt_component_class *bt_component_class_source_as_component_class(
 */
 static inline
 bt_component_class *bt_component_class_filter_as_component_class(
-		bt_component_class_filter *component_class)
+		bt_component_class_filter *component_class) __BT_NOEXCEPT
 {
 	return __BT_UPCAST(bt_component_class, component_class);
 }
@@ -2194,7 +2207,7 @@ bt_component_class *bt_component_class_filter_as_component_class(
 */
 static inline
 bt_component_class *bt_component_class_sink_as_component_class(
-		bt_component_class_sink *component_class)
+		bt_component_class_sink *component_class) __BT_NOEXCEPT
 {
 	return __BT_UPCAST(bt_component_class, component_class);
 }

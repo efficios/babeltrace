@@ -166,7 +166,8 @@ On success, the returned trace class has the following property values:
 @returns
     New trace class reference, or \c NULL on memory error.
 */
-extern bt_trace_class *bt_trace_class_create(bt_self_component *self_component);
+extern bt_trace_class *bt_trace_class_create(bt_self_component *self_component)
+		__BT_NOEXCEPT;
 
 /*! @} */
 
@@ -189,7 +190,7 @@ extern bt_trace_class *bt_trace_class_create(bt_self_component *self_component);
 @bt_pre_not_null{trace_class}
 */
 extern uint64_t bt_trace_class_get_stream_class_count(
-		const bt_trace_class *trace_class);
+		const bt_trace_class *trace_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -223,7 +224,7 @@ extern uint64_t bt_trace_class_get_stream_class_count(
     \c const version of this function.
 */
 extern bt_stream_class *bt_trace_class_borrow_stream_class_by_index(
-		bt_trace_class *trace_class, uint64_t index);
+		bt_trace_class *trace_class, uint64_t index) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -234,7 +235,8 @@ See bt_trace_class_borrow_stream_class_by_index().
 */
 extern const bt_stream_class *
 bt_trace_class_borrow_stream_class_by_index_const(
-		const bt_trace_class *trace_class, uint64_t index);
+		const bt_trace_class *trace_class,
+		uint64_t index) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -266,7 +268,7 @@ If there's no stream class having the numeric ID \bt_p{id} in
     \c const version of this function.
 */
 extern bt_stream_class *bt_trace_class_borrow_stream_class_by_id(
-		bt_trace_class *trace_class, uint64_t id);
+		bt_trace_class *trace_class, uint64_t id) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -276,7 +278,7 @@ extern bt_stream_class *bt_trace_class_borrow_stream_class_by_id(
 See bt_trace_class_borrow_stream_class_by_id().
 */
 extern const bt_stream_class *bt_trace_class_borrow_stream_class_by_id_const(
-		const bt_trace_class *trace_class, uint64_t id);
+		const bt_trace_class *trace_class, uint64_t id) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -309,7 +311,7 @@ property.
 */
 extern void bt_trace_class_set_assigns_automatic_stream_class_id(
 		bt_trace_class *trace_class,
-		bt_bool assigns_automatic_stream_class_id);
+		bt_bool assigns_automatic_stream_class_id) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -335,7 +337,7 @@ property.
     stream class IDs.
 */
 extern bt_bool bt_trace_class_assigns_automatic_stream_class_id(
-		const bt_trace_class *trace_class);
+		const bt_trace_class *trace_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -367,7 +369,8 @@ property.
     Borrows the user attributes of a trace class.
 */
 extern void bt_trace_class_set_user_attributes(
-		bt_trace_class *trace_class, const bt_value *user_attributes);
+		bt_trace_class *trace_class,
+		const bt_value *user_attributes) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -395,7 +398,7 @@ property.
     \c const version of this function.
 */
 extern bt_value *bt_trace_class_borrow_user_attributes(
-		bt_trace_class *trace_class);
+		bt_trace_class *trace_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -405,7 +408,7 @@ extern bt_value *bt_trace_class_borrow_user_attributes(
 See bt_trace_class_borrow_user_attributes().
 */
 extern const bt_value *bt_trace_class_borrow_user_attributes_const(
-		const bt_trace_class *trace_class);
+		const bt_trace_class *trace_class) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -498,7 +501,7 @@ extern bt_trace_class_add_listener_status
 bt_trace_class_add_destruction_listener(
         const bt_trace_class *trace_class,
         bt_trace_class_destruction_listener_func user_func,
-        void *user_data, bt_listener_id *listener_id);
+        void *user_data, bt_listener_id *listener_id) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -550,7 +553,8 @@ You can call this function when \bt_p{trace_class} is
 */
 extern bt_trace_class_remove_listener_status
 bt_trace_class_remove_destruction_listener(
-        const bt_trace_class *trace_class, bt_listener_id listener_id);
+		const bt_trace_class *trace_class, bt_listener_id listener_id)
+		__BT_NOEXCEPT;
 
 /*! @} */
 
@@ -574,7 +578,8 @@ bt_trace_class_remove_destruction_listener(
 @sa bt_trace_class_put_ref() &mdash;
     Decrements the reference count of a trace class.
 */
-extern void bt_trace_class_get_ref(const bt_trace_class *trace_class);
+extern void bt_trace_class_get_ref(
+		const bt_trace_class *trace_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -591,7 +596,8 @@ extern void bt_trace_class_get_ref(const bt_trace_class *trace_class);
 @sa bt_trace_class_get_ref() &mdash;
     Increments the reference count of a trace class.
 */
-extern void bt_trace_class_put_ref(const bt_trace_class *trace_class);
+extern void bt_trace_class_put_ref(
+		const bt_trace_class *trace_class) __BT_NOEXCEPT;
 
 /*!
 @brief

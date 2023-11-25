@@ -444,7 +444,7 @@ bt_field_class_get_type(bt_field_borrow_class(field))
     Returns the type enumerator of a \bt_fc.
 */
 extern bt_field_class_type bt_field_get_class_type(
-		const bt_field *field);
+		const bt_field *field) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -468,7 +468,7 @@ extern bt_field_class_type bt_field_get_class_type(
 @sa bt_field_borrow_class_const() &mdash;
     \c const version of this function.
 */
-extern bt_field_class *bt_field_borrow_class(bt_field *field);
+extern bt_field_class *bt_field_borrow_class(bt_field *field) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -478,7 +478,7 @@ extern bt_field_class *bt_field_borrow_class(bt_field *field);
 See bt_field_borrow_class().
 */
 extern const bt_field_class *bt_field_borrow_class_const(
-		const bt_field *field);
+		const bt_field *field) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -504,7 +504,8 @@ extern const bt_field_class *bt_field_borrow_class_const(
 @sa bt_field_bool_get_value() &mdash;
     Returns the value of a boolean field.
 */
-extern void bt_field_bool_set_value(bt_field *field, bt_bool value);
+extern void bt_field_bool_set_value(bt_field *field, bt_bool value)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -522,7 +523,7 @@ extern void bt_field_bool_set_value(bt_field *field, bt_bool value);
 @sa bt_field_bool_set_value() &mdash;
     Sets the value of a boolean field.
 */
-extern bt_bool bt_field_bool_get_value(const bt_field *field);
+extern bt_bool bt_field_bool_get_value(const bt_field *field) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -553,7 +554,7 @@ See \bt_c_ba_field to learn more.
     Returns the bits of a bit array field as an integer.
 */
 extern void bt_field_bit_array_set_value_as_integer(bt_field *field,
-		uint64_t bits);
+		uint64_t bits) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -577,7 +578,7 @@ See \bt_c_ba_field to learn more.
     Sets the bits of a bit array field from an integer.
 */
 extern uint64_t bt_field_bit_array_get_value_as_integer(
-		const bt_field *field);
+		const bt_field *field) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -608,7 +609,7 @@ extern uint64_t bt_field_bit_array_get_value_as_integer(
     Returns the value of an unsigned integer field.
 */
 extern void bt_field_integer_unsigned_set_value(bt_field *field,
-		uint64_t value);
+		uint64_t value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -627,7 +628,7 @@ extern void bt_field_integer_unsigned_set_value(bt_field *field,
     Sets the value of an unsigned integer field.
 */
 extern uint64_t bt_field_integer_unsigned_get_value(
-		const bt_field *field);
+		const bt_field *field) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -651,7 +652,7 @@ extern uint64_t bt_field_integer_unsigned_get_value(
     Returns the value of an signed integer field.
 */
 extern void bt_field_integer_signed_set_value(bt_field *field,
-		int64_t value);
+		int64_t value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -669,7 +670,8 @@ extern void bt_field_integer_signed_set_value(bt_field *field,
 @sa bt_field_integer_signed_set_value() &mdash;
     Sets the value of an signed integer field.
 */
-extern int64_t bt_field_integer_signed_get_value(const bt_field *field);
+extern int64_t bt_field_integer_signed_get_value(
+		const bt_field *field) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -739,7 +741,7 @@ bt_field_class_enumeration_unsigned_get_mapping_labels_for_value(
 extern bt_field_enumeration_get_mapping_labels_status
 bt_field_enumeration_unsigned_get_mapping_labels(const bt_field *field,
 		bt_field_class_enumeration_mapping_label_array *labels,
-		uint64_t *count);
+		uint64_t *count) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -782,7 +784,7 @@ bt_field_class_enumeration_signed_get_mapping_labels_for_value(
 extern bt_field_enumeration_get_mapping_labels_status
 bt_field_enumeration_signed_get_mapping_labels(const bt_field *field,
 		bt_field_class_enumeration_mapping_label_array *labels,
-		uint64_t *count);
+		uint64_t *count) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -810,7 +812,7 @@ bt_field_enumeration_signed_get_mapping_labels(const bt_field *field,
     Returns the value of a single-precision real field.
 */
 extern void bt_field_real_single_precision_set_value(bt_field *field,
-		float value);
+		float value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -828,7 +830,8 @@ extern void bt_field_real_single_precision_set_value(bt_field *field,
 @sa bt_field_real_single_precision_set_value() &mdash;
     Sets the value of a single-precision real field.
 */
-extern float bt_field_real_single_precision_get_value(const bt_field *field);
+extern float bt_field_real_single_precision_get_value(
+		const bt_field *field) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -849,7 +852,7 @@ extern float bt_field_real_single_precision_get_value(const bt_field *field);
     Returns the value of a double-precision real field.
 */
 extern void bt_field_real_double_precision_set_value(bt_field *field,
-		double value);
+		double value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -867,7 +870,8 @@ extern void bt_field_real_double_precision_set_value(bt_field *field,
 @sa bt_field_real_double_precision_set_value() &mdash;
     Sets the value of a double-precision real field.
 */
-extern double bt_field_real_double_precision_get_value(const bt_field *field);
+extern double bt_field_real_double_precision_get_value(
+		const bt_field *field) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -922,7 +926,7 @@ typedef enum bt_field_string_set_value_status {
     Clears a string field.
 */
 extern bt_field_string_set_value_status bt_field_string_set_value(
-		bt_field *field, const char *value);
+		bt_field *field, const char *value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -937,7 +941,7 @@ extern bt_field_string_set_value_status bt_field_string_set_value(
 @bt_pre_not_null{field}
 @bt_pre_is_string_field{field}
 */
-extern uint64_t bt_field_string_get_length(const bt_field *field);
+extern uint64_t bt_field_string_get_length(const bt_field *field) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -959,7 +963,8 @@ extern uint64_t bt_field_string_get_length(const bt_field *field);
 @sa bt_field_string_set_value() &mdash;
     Sets the value of a string field.
 */
-extern const char *bt_field_string_get_value(const bt_field *field);
+extern const char *bt_field_string_get_value(
+		const bt_field *field) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1010,7 +1015,7 @@ typedef enum bt_field_string_append_status {
     Sets the value of a string field.
 */
 extern bt_field_string_append_status bt_field_string_append(
-		bt_field *field, const char *value);
+		bt_field *field, const char *value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1047,7 +1052,8 @@ extern bt_field_string_append_status bt_field_string_append(
     Sets the value of a string field.
 */
 extern bt_field_string_append_status bt_field_string_append_with_length(
-		bt_field *field, const char *value, uint64_t length);
+		bt_field *field, const char *value, uint64_t length)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1064,7 +1070,7 @@ extern bt_field_string_append_status bt_field_string_append_with_length(
 @sa bt_field_string_set_value() &mdash;
     Sets the value of a string field.
 */
-extern void bt_field_string_clear(bt_field *field);
+extern void bt_field_string_clear(bt_field *field) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1086,7 +1092,7 @@ extern void bt_field_string_clear(bt_field *field);
 @bt_pre_not_null{field}
 @bt_pre_is_array_field{field}
 */
-extern uint64_t bt_field_array_get_length(const bt_field *field);
+extern uint64_t bt_field_array_get_length(const bt_field *field) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1121,7 +1127,7 @@ extern uint64_t bt_field_array_get_length(const bt_field *field);
     \c const version of this function.
 */
 extern bt_field *bt_field_array_borrow_element_field_by_index(
-		bt_field *field, uint64_t index);
+		bt_field *field, uint64_t index) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1132,7 +1138,7 @@ See bt_field_array_borrow_element_field_by_index().
 */
 extern const bt_field *
 bt_field_array_borrow_element_field_by_index_const(
-		const bt_field *field, uint64_t index);
+		const bt_field *field, uint64_t index) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1171,7 +1177,8 @@ typedef enum bt_field_array_dynamic_set_length_status {
 @bt_pre_hot{field}
 */
 extern bt_field_array_dynamic_set_length_status
-bt_field_array_dynamic_set_length(bt_field *field, uint64_t length);
+bt_field_array_dynamic_set_length(bt_field *field, uint64_t length)
+		__BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1211,7 +1218,7 @@ bt_field_array_dynamic_set_length(bt_field *field, uint64_t length);
     \c const version of this function.
 */
 extern bt_field *bt_field_structure_borrow_member_field_by_index(
-		bt_field *field, uint64_t index);
+		bt_field *field, uint64_t index) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1222,7 +1229,7 @@ See bt_field_structure_borrow_member_field_by_index().
 */
 extern const bt_field *
 bt_field_structure_borrow_member_field_by_index_const(
-		const bt_field *field, uint64_t index);
+		const bt_field *field, uint64_t index) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1255,7 +1262,7 @@ returns \c NULL.
     \c const version of this function.
 */
 extern bt_field *bt_field_structure_borrow_member_field_by_name(
-		bt_field *field, const char *name);
+		bt_field *field, const char *name) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1266,7 +1273,7 @@ See bt_field_structure_borrow_member_field_by_name().
 */
 extern const bt_field *
 bt_field_structure_borrow_member_field_by_name_const(
-		const bt_field *field, const char *name);
+		const bt_field *field, const char *name) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1288,7 +1295,8 @@ bt_field_structure_borrow_member_field_by_name_const(
 @bt_pre_not_null{field}
 @bt_pre_is_opt_field{field}
 */
-extern void bt_field_option_set_has_field(bt_field *field, bt_bool has_field);
+extern void bt_field_option_set_has_field(bt_field *field, bt_bool has_field)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1319,7 +1327,7 @@ If \bt_p{field} has no field, this function returns \c NULL.
 @sa bt_field_option_borrow_field_const() &mdash;
     \c const version of this function.
 */
-extern bt_field *bt_field_option_borrow_field(bt_field *field);
+extern bt_field *bt_field_option_borrow_field(bt_field *field) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1329,7 +1337,7 @@ extern bt_field *bt_field_option_borrow_field(bt_field *field);
 See bt_field_option_borrow_field().
 */
 extern const bt_field *
-bt_field_option_borrow_field_const(const bt_field *field);
+bt_field_option_borrow_field_const(const bt_field *field) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1372,7 +1380,7 @@ typedef enum bt_field_variant_select_option_by_index_status {
 */
 extern bt_field_variant_select_option_by_index_status
 bt_field_variant_select_option_by_index(
-		bt_field *field, uint64_t index);
+		bt_field *field, uint64_t index) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1405,7 +1413,7 @@ bt_field_variant_select_option_by_index(
     \c const version of this function.
 */
 extern bt_field *bt_field_variant_borrow_selected_option_field(
-		bt_field *field);
+		bt_field *field) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1416,7 +1424,7 @@ See bt_field_variant_borrow_selected_option_field().
 */
 extern const bt_field *
 bt_field_variant_borrow_selected_option_field_const(
-		const bt_field *field);
+		const bt_field *field) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1436,7 +1444,7 @@ bt_field_variant_borrow_selected_option_field_const(
     Borrows the field of a variant field's selected option.
 */
 extern uint64_t bt_field_variant_get_selected_option_index(
-		const bt_field *field);
+		const bt_field *field) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1461,7 +1469,7 @@ bt_field_class_variant_borrow_option_by_index(
 */
 extern const bt_field_class_variant_option *
 bt_field_variant_borrow_selected_option_class_const(
-		const bt_field *field);
+		const bt_field *field) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1486,7 +1494,7 @@ bt_field_class_variant_with_selector_field_integer_unsigned_borrow_option_by_ind
 */
 extern const bt_field_class_variant_with_selector_field_integer_unsigned_option *
 bt_field_variant_with_selector_field_integer_unsigned_borrow_selected_option_class_const(
-		const bt_field *field);
+		const bt_field *field) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1511,7 +1519,7 @@ bt_field_class_variant_with_selector_field_integer_signed_borrow_option_by_index
 */
 extern const bt_field_class_variant_with_selector_field_integer_signed_option *
 bt_field_variant_with_selector_field_integer_signed_borrow_selected_option_class_const(
-		const bt_field *field);
+		const bt_field *field) __BT_NOEXCEPT;
 
 /*! @} */
 

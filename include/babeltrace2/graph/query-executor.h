@@ -145,7 +145,8 @@ A query executor has the following property:
 extern
 bt_query_executor *bt_query_executor_create(
 		const bt_component_class *component_class,
-		const char *object_name, const bt_value *params);
+		const char *object_name, const bt_value *params)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -198,7 +199,7 @@ extern
 bt_query_executor *bt_query_executor_create_with_method_data(
 		const bt_component_class *component_class,
 		const char *object_name, const bt_value *params,
-		void *method_data);
+		void *method_data) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -287,7 +288,8 @@ bt_query_executor_create_with_method_data().
 */
 extern
 bt_query_executor_query_status bt_query_executor_query(
-		bt_query_executor *query_executor, const bt_value **result);
+		bt_query_executor *query_executor, const bt_value **result)
+		__BT_NOEXCEPT;
 
 /*! @} */
 
@@ -331,7 +333,7 @@ See the \ref api-qexec-prop-log-lvl "logging level" property.
 */
 extern bt_query_executor_set_logging_level_status
 bt_query_executor_set_logging_level(bt_query_executor *query_executor,
-		bt_logging_level logging_level);
+		bt_logging_level logging_level) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -352,7 +354,7 @@ See the \ref api-qexec-prop-log-lvl "logging level" property.
     Sets the logging level of a query executor.
 */
 extern bt_logging_level bt_query_executor_get_logging_level(
-		const bt_query_executor *query_executor);
+		const bt_query_executor *query_executor) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -420,7 +422,7 @@ is set) with bt_query_executor_is_interrupted().
 */
 extern bt_query_executor_add_interrupter_status
 bt_query_executor_add_interrupter(bt_query_executor *query_executor,
-		const bt_interrupter *interrupter);
+		const bt_interrupter *interrupter) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -445,7 +447,7 @@ bt_query_executor_add_interrupter(bt_query_executor *query_executor,
     Adds an interrupter to a query executor.
 */
 extern bt_interrupter *bt_query_executor_borrow_default_interrupter(
-		bt_query_executor *query_executor);
+		bt_query_executor *query_executor) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -463,7 +465,7 @@ extern bt_interrupter *bt_query_executor_borrow_default_interrupter(
 @bt_pre_not_null{query_executor}
 */
 extern bt_bool bt_query_executor_is_interrupted(
-		const bt_query_executor *query_executor);
+		const bt_query_executor *query_executor) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -487,7 +489,8 @@ extern bt_bool bt_query_executor_is_interrupted(
 @sa bt_query_executor_put_ref() &mdash;
     Decrements the reference count of a query executor.
 */
-extern void bt_query_executor_get_ref(const bt_query_executor *query_executor);
+extern void bt_query_executor_get_ref(const bt_query_executor *query_executor)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -504,7 +507,8 @@ extern void bt_query_executor_get_ref(const bt_query_executor *query_executor);
 @sa bt_query_executor_get_ref() &mdash;
     Increments the reference count of a query executor.
 */
-extern void bt_query_executor_put_ref(const bt_query_executor *query_executor);
+extern void bt_query_executor_put_ref(const bt_query_executor *query_executor)
+		__BT_NOEXCEPT;
 
 /*!
 @brief

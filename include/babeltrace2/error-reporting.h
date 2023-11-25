@@ -433,7 +433,7 @@ Once you are done with the returned error, do one of:
     Moves an error's ownership to the library.
 */
 extern
-const bt_error *bt_current_thread_take_error(void);
+const bt_error *bt_current_thread_take_error(void) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -466,7 +466,7 @@ corresponds to catching an exception and discarding it.
     Calls this function and assigns \c NULL to the expression.
 */
 extern
-void bt_current_thread_move_error(const bt_error *error);
+void bt_current_thread_move_error(const bt_error *error) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -513,7 +513,7 @@ bt_error_release(bt_current_thread_take_error());
     library to the caller.
 */
 extern
-void bt_current_thread_clear_error(void);
+void bt_current_thread_clear_error(void) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -618,7 +618,8 @@ extern __BT_ATTR_FORMAT_PRINTF(4, 5)
 bt_current_thread_error_append_cause_status
 bt_current_thread_error_append_cause_from_component(
 		bt_self_component *self_component, const char *file_name,
-		uint64_t line_number, const char *message_format, ...);
+		uint64_t line_number,
+		const char *message_format, ...) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -718,7 +719,7 @@ bt_current_thread_error_append_cause_status
 bt_current_thread_error_append_cause_from_message_iterator(
 		bt_self_message_iterator *self_message_iterator,
 		const char *file_name, uint64_t line_number,
-		const char *message_format, ...);
+		const char *message_format, ...) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -810,7 +811,7 @@ bt_current_thread_error_append_cause_status
 bt_current_thread_error_append_cause_from_component_class(
 		bt_self_component_class *self_component_class,
 		const char *file_name, uint64_t line_number,
-		const char *message_format, ...);
+		const char *message_format, ...) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -873,7 +874,8 @@ extern __BT_ATTR_FORMAT_PRINTF(4, 5)
 bt_current_thread_error_append_cause_status
 bt_current_thread_error_append_cause_from_unknown(
 		const char *module_name, const char *file_name,
-		uint64_t line_number, const char *message_format, ...);
+		uint64_t line_number,
+		const char *message_format, ...) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -915,7 +917,7 @@ with \c __FILE__ and \c __LINE__ as its
 @bt_pre_not_null{error}
 */
 extern
-uint64_t bt_error_get_cause_count(const bt_error *error);
+uint64_t bt_error_get_cause_count(const bt_error *error) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -942,7 +944,7 @@ uint64_t bt_error_get_cause_count(const bt_error *error);
 */
 extern
 const bt_error_cause *bt_error_borrow_cause_by_index(
-		const bt_error *error, uint64_t index);
+		const bt_error *error, uint64_t index) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -973,7 +975,7 @@ corresponds to catching an exception and rethrowing it.
     Moves an error's ownership to the library.
 */
 extern
-void bt_error_release(const bt_error *error);
+void bt_error_release(const bt_error *error) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1027,7 +1029,7 @@ typedef enum bt_error_cause_actor_type {
 */
 extern
 bt_error_cause_actor_type bt_error_cause_get_actor_type(
-		const bt_error_cause *error_cause);
+		const bt_error_cause *error_cause) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1047,7 +1049,8 @@ bt_error_cause_actor_type bt_error_cause_get_actor_type(
 @bt_pre_not_null{error_cause}
 */
 extern
-const char *bt_error_cause_get_message(const bt_error_cause *error_cause);
+const char *bt_error_cause_get_message(
+		const bt_error_cause *error_cause) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1067,7 +1070,8 @@ const char *bt_error_cause_get_message(const bt_error_cause *error_cause);
 @bt_pre_not_null{error_cause}
 */
 extern
-const char *bt_error_cause_get_module_name(const bt_error_cause *error_cause);
+const char *bt_error_cause_get_module_name(
+			const bt_error_cause *error_cause) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1089,7 +1093,8 @@ const char *bt_error_cause_get_module_name(const bt_error_cause *error_cause);
 @bt_pre_not_null{error_cause}
 */
 extern
-const char *bt_error_cause_get_file_name(const bt_error_cause *error_cause);
+const char *bt_error_cause_get_file_name(
+		const bt_error_cause *error_cause) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1106,7 +1111,8 @@ const char *bt_error_cause_get_file_name(const bt_error_cause *error_cause);
 @bt_pre_not_null{error_cause}
 */
 extern
-uint64_t bt_error_cause_get_line_number(const bt_error_cause *error_cause);
+uint64_t bt_error_cause_get_line_number(
+		const bt_error_cause *error_cause) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1139,7 +1145,7 @@ uint64_t bt_error_cause_get_line_number(const bt_error_cause *error_cause);
 */
 extern
 const char *bt_error_cause_component_actor_get_component_name(
-		const bt_error_cause *error_cause);
+		const bt_error_cause *error_cause) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1160,7 +1166,7 @@ const char *bt_error_cause_component_actor_get_component_name(
 */
 extern
 bt_component_class_type bt_error_cause_component_actor_get_component_class_type(
-		const bt_error_cause *error_cause);
+		const bt_error_cause *error_cause) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1186,7 +1192,7 @@ bt_component_class_type bt_error_cause_component_actor_get_component_class_type(
 */
 extern
 const char *bt_error_cause_component_actor_get_component_class_name(
-		const bt_error_cause *error_cause);
+		const bt_error_cause *error_cause) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1217,7 +1223,7 @@ component class.
 */
 extern
 const char *bt_error_cause_component_actor_get_plugin_name(
-		const bt_error_cause *error_cause);
+		const bt_error_cause *error_cause) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1251,7 +1257,7 @@ const char *bt_error_cause_component_actor_get_plugin_name(
 */
 extern
 const char *bt_error_cause_message_iterator_actor_get_component_output_port_name(
-		const bt_error_cause *error_cause);
+		const bt_error_cause *error_cause) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1277,7 +1283,7 @@ const char *bt_error_cause_message_iterator_actor_get_component_output_port_name
 */
 extern
 const char *bt_error_cause_message_iterator_actor_get_component_name(
-		const bt_error_cause *error_cause);
+		const bt_error_cause *error_cause) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1299,7 +1305,7 @@ const char *bt_error_cause_message_iterator_actor_get_component_name(
 extern
 bt_component_class_type
 bt_error_cause_message_iterator_actor_get_component_class_type(
-		const bt_error_cause *error_cause);
+		const bt_error_cause *error_cause) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1325,7 +1331,7 @@ bt_error_cause_message_iterator_actor_get_component_class_type(
 */
 extern
 const char *bt_error_cause_message_iterator_actor_get_component_class_name(
-		const bt_error_cause *error_cause);
+		const bt_error_cause *error_cause) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1357,7 +1363,7 @@ component class.
 */
 extern
 const char *bt_error_cause_message_iterator_actor_get_plugin_name(
-		const bt_error_cause *error_cause);
+		const bt_error_cause *error_cause) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1386,7 +1392,7 @@ const char *bt_error_cause_message_iterator_actor_get_plugin_name(
 extern
 bt_component_class_type
 bt_error_cause_component_class_actor_get_component_class_type(
-		const bt_error_cause *error_cause);
+		const bt_error_cause *error_cause) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1412,7 +1418,7 @@ bt_error_cause_component_class_actor_get_component_class_type(
 */
 extern
 const char *bt_error_cause_component_class_actor_get_component_class_name(
-		const bt_error_cause *error_cause);
+		const bt_error_cause *error_cause) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1443,7 +1449,7 @@ component class.
 */
 extern
 const char *bt_error_cause_component_class_actor_get_plugin_name(
-		const bt_error_cause *error_cause);
+		const bt_error_cause *error_cause) __BT_NOEXCEPT;
 
 /*! @} */
 

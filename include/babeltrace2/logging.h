@@ -189,7 +189,8 @@ individual components and query operations.
 @sa bt_logging_get_global_level() &mdash;
     Returns the current library's global logging level.
 */
-extern void bt_logging_set_global_level(bt_logging_level logging_level);
+extern void bt_logging_set_global_level(bt_logging_level logging_level)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -201,7 +202,7 @@ extern void bt_logging_set_global_level(bt_logging_level logging_level);
 @sa bt_logging_set_global_level() &mdash;
     Sets the current library's global logging level.
 */
-extern bt_logging_level bt_logging_get_global_level(void);
+extern bt_logging_level bt_logging_get_global_level(void) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -220,7 +221,7 @@ are not built.
 @sa bt_logging_get_global_level() &mdash;
     Returns the current library's global logging level.
 */
-extern bt_logging_level bt_logging_get_minimal_level(void);
+extern bt_logging_level bt_logging_get_minimal_level(void) __BT_NOEXCEPT;
 
 /*! @} */
 

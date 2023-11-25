@@ -188,7 +188,7 @@ On success, the returned trace has the following property values:
 @returns
     New trace reference, or \c NULL on memory error.
 */
-extern bt_trace *bt_trace_create(bt_trace_class *trace_class);
+extern bt_trace *bt_trace_create(bt_trace_class *trace_class) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -213,7 +213,7 @@ extern bt_trace *bt_trace_create(bt_trace_class *trace_class);
 @sa bt_trace_borrow_class_const() &mdash;
     \c const version of this function.
 */
-extern bt_trace_class *bt_trace_borrow_class(bt_trace *trace);
+extern bt_trace_class *bt_trace_borrow_class(bt_trace *trace) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -223,7 +223,7 @@ extern bt_trace_class *bt_trace_borrow_class(bt_trace *trace);
 See bt_trace_borrow_class().
 */
 extern const bt_trace_class *bt_trace_borrow_class_const(
-		const bt_trace *trace);
+		const bt_trace *trace) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -245,7 +245,7 @@ extern const bt_trace_class *bt_trace_borrow_class_const(
 
 @bt_pre_not_null{trace}
 */
-extern uint64_t bt_trace_get_stream_count(const bt_trace *trace);
+extern uint64_t bt_trace_get_stream_count(const bt_trace *trace) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -279,7 +279,7 @@ extern uint64_t bt_trace_get_stream_count(const bt_trace *trace);
     \c const version of this function.
 */
 extern bt_stream *bt_trace_borrow_stream_by_index(bt_trace *trace,
-		uint64_t index);
+		uint64_t index) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -289,7 +289,7 @@ extern bt_stream *bt_trace_borrow_stream_by_index(bt_trace *trace,
 See bt_trace_borrow_stream_by_index().
 */
 extern const bt_stream *bt_trace_borrow_stream_by_index_const(
-		const bt_trace *trace, uint64_t index);
+		const bt_trace *trace, uint64_t index) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -321,7 +321,7 @@ If there's no stream having the numeric ID \bt_p{id} in
     \c const version of this function.
 */
 extern bt_stream *bt_trace_borrow_stream_by_id(bt_trace *trace,
-		uint64_t id);
+		uint64_t id) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -331,7 +331,7 @@ extern bt_stream *bt_trace_borrow_stream_by_id(bt_trace *trace,
 See bt_trace_borrow_stream_by_id().
 */
 extern const bt_stream *bt_trace_borrow_stream_by_id_const(
-		const bt_trace *trace, uint64_t id);
+		const bt_trace *trace, uint64_t id) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -382,7 +382,7 @@ See the \ref api-tir-trace-prop-name "name" property.
     Returns the name of a trace.
 */
 extern bt_trace_set_name_status bt_trace_set_name(bt_trace *trace,
-		const char *name);
+		const char *name) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -408,7 +408,7 @@ If \bt_p{trace} has no name, this function returns \c NULL.
 @sa bt_trace_set_name() &mdash;
     Sets the name of a trace.
 */
-extern const char *bt_trace_get_name(const bt_trace *trace);
+extern const char *bt_trace_get_name(const bt_trace *trace) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -430,7 +430,7 @@ See the \ref api-tir-trace-prop-uuid "UUID" property.
 @sa bt_trace_get_uuid() &mdash;
     Returns the UUID of a trace.
 */
-extern void bt_trace_set_uuid(bt_trace *trace, bt_uuid uuid);
+extern void bt_trace_set_uuid(bt_trace *trace, bt_uuid uuid) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -456,7 +456,7 @@ If \bt_p{trace} has no UUID, this function returns \c NULL.
 @sa bt_trace_set_uuid() &mdash;
     Sets the UUID of a trace.
 */
-extern bt_uuid bt_trace_get_uuid(const bt_trace *trace);
+extern bt_uuid bt_trace_get_uuid(const bt_trace *trace) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -509,7 +509,7 @@ On success, if \bt_p{trace} already contains an environment entry named
 */
 extern bt_trace_set_environment_entry_status
 bt_trace_set_environment_entry_integer(bt_trace *trace, const char *name,
-		int64_t value);
+		int64_t value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -545,7 +545,7 @@ On success, if \bt_p{trace} already contains an environment entry named
 */
 extern bt_trace_set_environment_entry_status
 bt_trace_set_environment_entry_string(bt_trace *trace, const char *name,
-		const char *value);
+		const char *value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -562,7 +562,8 @@ See the \ref api-tir-trace-prop-env "environment" property.
 
 @bt_pre_not_null{trace}
 */
-extern uint64_t bt_trace_get_environment_entry_count(const bt_trace *trace);
+extern uint64_t bt_trace_get_environment_entry_count(
+		const bt_trace *trace) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -612,7 +613,7 @@ See the \ref api-tir-trace-prop-env "environment" property.
 */
 extern void bt_trace_borrow_environment_entry_by_index_const(
 		const bt_trace *trace, uint64_t index,
-		const char **name, const bt_value **value);
+		const char **name, const bt_value **value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -647,7 +648,7 @@ function returns \c NULL.
 @bt_pre_not_null{name}
 */
 extern const bt_value *bt_trace_borrow_environment_entry_value_by_name_const(
-		const bt_trace *trace, const char *name);
+		const bt_trace *trace, const char *name) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -677,7 +678,7 @@ property.
     Borrows the user attributes of a trace.
 */
 extern void bt_trace_set_user_attributes(
-		bt_trace *trace, const bt_value *user_attributes);
+		bt_trace *trace, const bt_value *user_attributes) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -703,7 +704,7 @@ property.
 @sa bt_trace_borrow_user_attributes_const() &mdash;
     \c const version of this function.
 */
-extern bt_value *bt_trace_borrow_user_attributes(bt_trace *trace);
+extern bt_value *bt_trace_borrow_user_attributes(bt_trace *trace) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -713,7 +714,7 @@ extern bt_value *bt_trace_borrow_user_attributes(bt_trace *trace);
 See bt_trace_borrow_user_attributes().
 */
 extern const bt_value *bt_trace_borrow_user_attributes_const(
-		const bt_trace *trace);
+		const bt_trace *trace) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -804,7 +805,7 @@ added destruction listener with bt_trace_remove_destruction_listener().
 extern bt_trace_add_listener_status bt_trace_add_destruction_listener(
 		const bt_trace *trace,
 		bt_trace_destruction_listener_func user_func,
-		void *user_data, bt_listener_id *listener_id);
+		void *user_data, bt_listener_id *listener_id) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -855,7 +856,8 @@ You can call this function when \bt_p{trace} is
     Adds a destruction listener to a trace.
 */
 extern bt_trace_remove_listener_status bt_trace_remove_destruction_listener(
-		const bt_trace *trace, bt_listener_id listener_id);
+		const bt_trace *trace, bt_listener_id listener_id)
+		__BT_NOEXCEPT;
 
 /*! @} */
 
@@ -879,7 +881,7 @@ extern bt_trace_remove_listener_status bt_trace_remove_destruction_listener(
 @sa bt_trace_put_ref() &mdash;
     Decrements the reference count of a trace.
 */
-extern void bt_trace_get_ref(const bt_trace *trace);
+extern void bt_trace_get_ref(const bt_trace *trace) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -896,7 +898,7 @@ extern void bt_trace_get_ref(const bt_trace *trace);
 @sa bt_trace_get_ref() &mdash;
     Increments the reference count of a trace.
 */
-extern void bt_trace_put_ref(const bt_trace *trace);
+extern void bt_trace_put_ref(const bt_trace *trace) __BT_NOEXCEPT;
 
 /*!
 @brief

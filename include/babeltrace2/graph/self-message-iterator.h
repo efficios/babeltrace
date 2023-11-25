@@ -85,7 +85,7 @@ bt_self_message_iterator_configuration_set_can_seek_forward().
 */
 extern bt_self_component *
 bt_self_message_iterator_borrow_component(
-		bt_self_message_iterator *self_message_iterator);
+		bt_self_message_iterator *self_message_iterator) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -109,7 +109,8 @@ bt_self_message_iterator_borrow_component(
 */
 extern bt_self_component_port_output *
 bt_self_message_iterator_borrow_port(
-		bt_self_message_iterator *self_message_iterator);
+		bt_self_message_iterator *self_message_iterator)
+		__BT_NOEXCEPT;
 
 /*! @} */
 
@@ -135,7 +136,7 @@ bt_self_message_iterator_borrow_port(
 */
 extern void bt_self_message_iterator_set_data(
 		bt_self_message_iterator *self_message_iterator,
-		void *user_data);
+		void *user_data) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -155,7 +156,8 @@ extern void bt_self_message_iterator_set_data(
 */
 extern
 void *bt_self_message_iterator_get_data(
-		const bt_self_message_iterator *self_message_iterator);
+		const bt_self_message_iterator *self_message_iterator)
+		__BT_NOEXCEPT;
 
 /*! @} */
 
@@ -185,7 +187,8 @@ void *bt_self_message_iterator_get_data(
     Adds an interrupter to a graph.
 */
 extern bt_bool bt_self_message_iterator_is_interrupted(
-		const bt_self_message_iterator *self_message_iterator);
+		const bt_self_message_iterator *self_message_iterator)
+		__BT_NOEXCEPT;
 
 /*! @} */
 
@@ -221,7 +224,7 @@ message sequence have some \bt_cs.
 */
 extern void bt_self_message_iterator_configuration_set_can_seek_forward(
 		bt_self_message_iterator_configuration *configuration,
-		bt_bool can_seek_forward);
+		bt_bool can_seek_forward) __BT_NOEXCEPT;
 
 /*! @} */
 

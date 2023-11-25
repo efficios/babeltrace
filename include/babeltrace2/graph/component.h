@@ -240,7 +240,7 @@ A component has the following common properties:
     Returns whether or not a component is a \bt_sink_comp.
 */
 extern bt_component_class_type bt_component_get_class_type(
-		const bt_component *component);
+		const bt_component *component) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -259,7 +259,7 @@ extern bt_component_class_type bt_component_get_class_type(
     Returns the type enumerator of a component's class.
 */
 static inline
-bt_bool bt_component_is_source(const bt_component *component)
+bt_bool bt_component_is_source(const bt_component *component) __BT_NOEXCEPT
 {
 	return bt_component_get_class_type(component) ==
 		BT_COMPONENT_CLASS_TYPE_SOURCE;
@@ -282,7 +282,7 @@ bt_bool bt_component_is_source(const bt_component *component)
     Returns the type enumerator of a component's class.
 */
 static inline
-bt_bool bt_component_is_filter(const bt_component *component)
+bt_bool bt_component_is_filter(const bt_component *component) __BT_NOEXCEPT
 {
 	return bt_component_get_class_type(component) ==
 		BT_COMPONENT_CLASS_TYPE_FILTER;
@@ -305,7 +305,7 @@ bt_bool bt_component_is_filter(const bt_component *component)
     Returns the type enumerator of a component's class.
 */
 static inline
-bt_bool bt_component_is_sink(const bt_component *component)
+bt_bool bt_component_is_sink(const bt_component *component) __BT_NOEXCEPT
 {
 	return bt_component_get_class_type(component) ==
 		BT_COMPONENT_CLASS_TYPE_SINK;
@@ -332,7 +332,7 @@ bt_bool bt_component_is_sink(const bt_component *component)
 @bt_pre_not_null{component}
 */
 extern const bt_component_class *bt_component_borrow_class_const(
-		const bt_component *component);
+		const bt_component *component) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -360,7 +360,8 @@ See the \ref api-comp-prop-name "name" property.
 
 @bt_pre_not_null{component}
 */
-extern const char *bt_component_get_name(const bt_component *component);
+extern const char *bt_component_get_name(const bt_component *component)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -378,7 +379,7 @@ See the \ref api-comp-prop-log-lvl "logging level" property.
 @bt_pre_not_null{component}
 */
 extern bt_logging_level bt_component_get_logging_level(
-		const bt_component *component);
+		const bt_component *component) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -402,7 +403,7 @@ extern bt_logging_level bt_component_get_logging_level(
 @sa bt_component_put_ref() &mdash;
     Decrements the reference count of a component.
 */
-extern void bt_component_get_ref(const bt_component *component);
+extern void bt_component_get_ref(const bt_component *component) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -419,7 +420,7 @@ extern void bt_component_get_ref(const bt_component *component);
 @sa bt_component_get_ref() &mdash;
     Increments the reference count of a component.
 */
-extern void bt_component_put_ref(const bt_component *component);
+extern void bt_component_put_ref(const bt_component *component) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -495,7 +496,7 @@ This macro effectively moves a component reference from the expression
 */
 extern const bt_component_class_source *
 bt_component_source_borrow_class_const(
-		const bt_component_source *component);
+		const bt_component_source *component) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -521,7 +522,7 @@ bt_component_source_borrow_class_const(
 */
 static inline
 const bt_component *bt_component_source_as_component_const(
-		const bt_component_source *component)
+		const bt_component_source *component) __BT_NOEXCEPT
 {
 	return __BT_UPCAST_CONST(bt_component, component);
 }
@@ -547,7 +548,7 @@ const bt_component *bt_component_source_as_component_const(
 @bt_pre_not_null{component}
 */
 extern uint64_t bt_component_source_get_output_port_count(
-		const bt_component_source *component);
+		const bt_component_source *component) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -580,7 +581,8 @@ extern uint64_t bt_component_source_get_output_port_count(
 */
 extern const bt_port_output *
 bt_component_source_borrow_output_port_by_index_const(
-		const bt_component_source *component, uint64_t index);
+		const bt_component_source *component,
+		uint64_t index) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -610,7 +612,8 @@ returns \c NULL.
 */
 extern const bt_port_output *
 bt_component_source_borrow_output_port_by_name_const(
-		const bt_component_source *component, const char *name);
+		const bt_component_source *component,
+		const char *name) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -635,7 +638,7 @@ bt_component_source_borrow_output_port_by_name_const(
     Decrements the reference count of a source component.
 */
 extern void bt_component_source_get_ref(
-		const bt_component_source *component);
+		const bt_component_source *component) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -653,7 +656,7 @@ extern void bt_component_source_get_ref(
     Increments the reference count of a source component.
 */
 extern void bt_component_source_put_ref(
-		const bt_component_source *component);
+		const bt_component_source *component) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -729,7 +732,7 @@ existing \bt_p{_dst} reference.
 */
 extern const bt_component_class_filter *
 bt_component_filter_borrow_class_const(
-		const bt_component_filter *component);
+		const bt_component_filter *component) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -755,7 +758,7 @@ bt_component_filter_borrow_class_const(
 */
 static inline
 const bt_component *bt_component_filter_as_component_const(
-		const bt_component_filter *component)
+		const bt_component_filter *component) __BT_NOEXCEPT
 {
 	return __BT_UPCAST_CONST(bt_component, component);
 }
@@ -781,7 +784,7 @@ const bt_component *bt_component_filter_as_component_const(
 @bt_pre_not_null{component}
 */
 extern uint64_t bt_component_filter_get_input_port_count(
-		const bt_component_filter *component);
+		const bt_component_filter *component) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -814,7 +817,8 @@ extern uint64_t bt_component_filter_get_input_port_count(
 */
 extern const bt_port_input *
 bt_component_filter_borrow_input_port_by_index_const(
-		const bt_component_filter *component, uint64_t index);
+		const bt_component_filter *component, uint64_t index)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -844,7 +848,8 @@ returns \c NULL.
 */
 extern const bt_port_input *
 bt_component_filter_borrow_input_port_by_name_const(
-		const bt_component_filter *component, const char *name);
+		const bt_component_filter *component, const char *name)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -860,7 +865,7 @@ bt_component_filter_borrow_input_port_by_name_const(
 @bt_pre_not_null{component}
 */
 extern uint64_t bt_component_filter_get_output_port_count(
-		const bt_component_filter *component);
+		const bt_component_filter *component) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -893,7 +898,8 @@ extern uint64_t bt_component_filter_get_output_port_count(
 */
 extern const bt_port_output *
 bt_component_filter_borrow_output_port_by_index_const(
-		const bt_component_filter *component, uint64_t index);
+		const bt_component_filter *component, uint64_t index)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -923,7 +929,8 @@ returns \c NULL.
 */
 extern const bt_port_output *
 bt_component_filter_borrow_output_port_by_name_const(
-		const bt_component_filter *component, const char *name);
+		const bt_component_filter *component, const char *name)
+		__BT_NOEXCEPT;
 
 /*! @} */
 
@@ -948,7 +955,7 @@ bt_component_filter_borrow_output_port_by_name_const(
     Decrements the reference count of a filter component.
 */
 extern void bt_component_filter_get_ref(
-		const bt_component_filter *component);
+		const bt_component_filter *component) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -966,7 +973,7 @@ extern void bt_component_filter_get_ref(
     Increments the reference count of a filter component.
 */
 extern void bt_component_filter_put_ref(
-		const bt_component_filter *component);
+		const bt_component_filter *component) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1042,7 +1049,7 @@ existing \bt_p{_dst} reference.
 */
 extern const bt_component_class_sink *
 bt_component_sink_borrow_class_const(
-		const bt_component_sink *component);
+		const bt_component_sink *component) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1068,7 +1075,7 @@ bt_component_sink_borrow_class_const(
 */
 static inline
 const bt_component *bt_component_sink_as_component_const(
-		const bt_component_sink *component)
+		const bt_component_sink *component) __BT_NOEXCEPT
 {
 	return __BT_UPCAST_CONST(bt_component, component);
 }
@@ -1094,7 +1101,7 @@ const bt_component *bt_component_sink_as_component_const(
 @bt_pre_not_null{component}
 */
 extern uint64_t bt_component_sink_get_input_port_count(
-		const bt_component_sink *component);
+		const bt_component_sink *component) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1127,7 +1134,8 @@ extern uint64_t bt_component_sink_get_input_port_count(
 */
 extern const bt_port_input *
 bt_component_sink_borrow_input_port_by_index_const(
-		const bt_component_sink *component, uint64_t index);
+		const bt_component_sink *component, uint64_t index)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1157,7 +1165,8 @@ returns \c NULL.
 */
 extern const bt_port_input *
 bt_component_sink_borrow_input_port_by_name_const(
-		const bt_component_sink *component, const char *name);
+		const bt_component_sink *component, const char *name)
+		__BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1182,7 +1191,7 @@ bt_component_sink_borrow_input_port_by_name_const(
     Decrements the reference count of a sink component.
 */
 extern void bt_component_sink_get_ref(
-		const bt_component_sink *component);
+		const bt_component_sink *component) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1200,7 +1209,7 @@ extern void bt_component_sink_get_ref(
     Increments the reference count of a sink component.
 */
 extern void bt_component_sink_put_ref(
-		const bt_component_sink *component);
+		const bt_component_sink *component) __BT_NOEXCEPT;
 
 /*!
 @brief

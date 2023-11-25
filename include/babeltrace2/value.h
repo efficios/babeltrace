@@ -325,7 +325,7 @@ typedef enum bt_value_type {
 @sa bt_value_is_map() &mdash;
     Returns whether or not a value is a map value.
 */
-extern bt_value_type bt_value_get_type(const bt_value *value);
+extern bt_value_type bt_value_get_type(const bt_value *value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -370,7 +370,7 @@ returns #BT_TRUE.
 */
 static inline
 bt_bool bt_value_type_is(const bt_value_type type,
-		const bt_value_type other_type)
+		const bt_value_type other_type) __BT_NOEXCEPT
 {
 	return (type & other_type) == other_type;
 }
@@ -401,7 +401,7 @@ bt_bool bt_value_type_is(const bt_value_type type,
     The null value singleton.
 */
 static inline
-bt_bool bt_value_is_null(const bt_value *value)
+bt_bool bt_value_is_null(const bt_value *value) __BT_NOEXCEPT
 {
 	return bt_value_get_type(value) == BT_VALUE_TYPE_NULL;
 }
@@ -425,7 +425,7 @@ bt_bool bt_value_is_null(const bt_value *value)
     type.
 */
 static inline
-bt_bool bt_value_is_bool(const bt_value *value)
+bt_bool bt_value_is_bool(const bt_value *value) __BT_NOEXCEPT
 {
 	return bt_value_get_type(value) == BT_VALUE_TYPE_BOOL;
 }
@@ -450,7 +450,7 @@ bt_bool bt_value_is_bool(const bt_value *value)
     type.
 */
 static inline
-bt_bool bt_value_is_unsigned_integer(const bt_value *value)
+bt_bool bt_value_is_unsigned_integer(const bt_value *value) __BT_NOEXCEPT
 {
 	return bt_value_get_type(value) == BT_VALUE_TYPE_UNSIGNED_INTEGER;
 }
@@ -475,7 +475,7 @@ bt_bool bt_value_is_unsigned_integer(const bt_value *value)
     type.
 */
 static inline
-bt_bool bt_value_is_signed_integer(const bt_value *value)
+bt_bool bt_value_is_signed_integer(const bt_value *value) __BT_NOEXCEPT
 {
 	return bt_value_get_type(value) == BT_VALUE_TYPE_SIGNED_INTEGER;
 }
@@ -499,7 +499,7 @@ bt_bool bt_value_is_signed_integer(const bt_value *value)
     type.
 */
 static inline
-bt_bool bt_value_is_real(const bt_value *value)
+bt_bool bt_value_is_real(const bt_value *value) __BT_NOEXCEPT
 {
 	return bt_value_get_type(value) == BT_VALUE_TYPE_REAL;
 }
@@ -523,7 +523,7 @@ bt_bool bt_value_is_real(const bt_value *value)
     type.
 */
 static inline
-bt_bool bt_value_is_string(const bt_value *value)
+bt_bool bt_value_is_string(const bt_value *value) __BT_NOEXCEPT
 {
 	return bt_value_get_type(value) == BT_VALUE_TYPE_STRING;
 }
@@ -547,7 +547,7 @@ bt_bool bt_value_is_string(const bt_value *value)
     type.
 */
 static inline
-bt_bool bt_value_is_array(const bt_value *value)
+bt_bool bt_value_is_array(const bt_value *value) __BT_NOEXCEPT
 {
 	return bt_value_get_type(value) == BT_VALUE_TYPE_ARRAY;
 }
@@ -571,7 +571,7 @@ bt_bool bt_value_is_array(const bt_value *value)
     type.
 */
 static inline
-bt_bool bt_value_is_map(const bt_value *value)
+bt_bool bt_value_is_map(const bt_value *value) __BT_NOEXCEPT
 {
 	return bt_value_get_type(value) == BT_VALUE_TYPE_MAP;
 }
@@ -633,7 +633,7 @@ The returned value has the type #BT_VALUE_TYPE_BOOL.
 @sa bt_value_bool_create_init() &mdash;
     Creates a boolean value with a given initial raw value.
 */
-extern bt_value *bt_value_bool_create(void);
+extern bt_value *bt_value_bool_create(void) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -650,7 +650,7 @@ The returned value has the type #BT_VALUE_TYPE_BOOL.
 @sa bt_value_bool_create() &mdash;
     Creates a boolean value initialized to #BT_FALSE.
 */
-extern bt_value *bt_value_bool_create_init(bt_bool raw_value);
+extern bt_value *bt_value_bool_create_init(bt_bool raw_value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -669,7 +669,7 @@ extern bt_value *bt_value_bool_create_init(bt_bool raw_value);
 @sa bt_value_bool_get() &mdash;
     Returns the raw value of a boolean value.
 */
-extern void bt_value_bool_set(bt_value *value, bt_bool raw_value);
+extern void bt_value_bool_set(bt_value *value, bt_bool raw_value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -687,7 +687,7 @@ extern void bt_value_bool_set(bt_value *value, bt_bool raw_value);
 @sa bt_value_bool_set() &mdash;
     Sets the raw value of a boolean value.
 */
-extern bt_bool bt_value_bool_get(const bt_value *value);
+extern bt_bool bt_value_bool_get(const bt_value *value) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -708,7 +708,7 @@ The returned value has the type #BT_VALUE_TYPE_UNSIGNED_INTEGER.
 @sa bt_value_integer_unsigned_create_init() &mdash;
     Creates an unsigned integer value with a given initial raw value.
 */
-extern bt_value *bt_value_integer_unsigned_create(void);
+extern bt_value *bt_value_integer_unsigned_create(void) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -726,7 +726,7 @@ The returned value has the type #BT_VALUE_TYPE_UNSIGNED_INTEGER.
 @sa bt_value_bool_create() &mdash;
     Creates an unsigned integer value initialized to 0.
 */
-extern bt_value *bt_value_integer_unsigned_create_init(uint64_t raw_value);
+extern bt_value *bt_value_integer_unsigned_create_init(uint64_t raw_value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -747,7 +747,7 @@ extern bt_value *bt_value_integer_unsigned_create_init(uint64_t raw_value);
     Returns the raw value of an unsigned integer value.
 */
 extern void bt_value_integer_unsigned_set(bt_value *value,
-		uint64_t raw_value);
+		uint64_t raw_value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -765,7 +765,7 @@ extern void bt_value_integer_unsigned_set(bt_value *value,
 @sa bt_value_integer_unsigned_set() &mdash;
     Sets the raw value of an unsigned integer value.
 */
-extern uint64_t bt_value_integer_unsigned_get(const bt_value *value);
+extern uint64_t bt_value_integer_unsigned_get(const bt_value *value) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -786,7 +786,7 @@ The returned value has the type #BT_VALUE_TYPE_SIGNED_INTEGER.
 @sa bt_value_integer_signed_create_init() &mdash;
     Creates a signed integer value with a given initial raw value.
 */
-extern bt_value *bt_value_integer_signed_create(void);
+extern bt_value *bt_value_integer_signed_create(void) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -804,7 +804,7 @@ The returned value has the type #BT_VALUE_TYPE_SIGNED_INTEGER.
 @sa bt_value_bool_create() &mdash;
     Creates a signed integer value initialized to 0.
 */
-extern bt_value *bt_value_integer_signed_create_init(int64_t raw_value);
+extern bt_value *bt_value_integer_signed_create_init(int64_t raw_value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -824,7 +824,7 @@ extern bt_value *bt_value_integer_signed_create_init(int64_t raw_value);
 @sa bt_value_integer_signed_get() &mdash;
     Returns the raw value of a signed integer value.
 */
-extern void bt_value_integer_signed_set(bt_value *value, int64_t raw_value);
+extern void bt_value_integer_signed_set(bt_value *value, int64_t raw_value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -842,7 +842,7 @@ extern void bt_value_integer_signed_set(bt_value *value, int64_t raw_value);
 @sa bt_value_integer_signed_set() &mdash;
     Sets the raw value of a signed integer value.
 */
-extern int64_t bt_value_integer_signed_get(const bt_value *value);
+extern int64_t bt_value_integer_signed_get(const bt_value *value) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -863,7 +863,7 @@ The returned value has the type #BT_VALUE_TYPE_REAL.
 @sa bt_value_real_create_init() &mdash;
     Creates a real value with a given initial raw value.
 */
-extern bt_value *bt_value_real_create(void);
+extern bt_value *bt_value_real_create(void) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -880,7 +880,7 @@ The returned value has the type #BT_VALUE_TYPE_REAL.
 @sa bt_value_real_create() &mdash;
     Creates a real value initialized to 0.
 */
-extern bt_value *bt_value_real_create_init(double raw_value);
+extern bt_value *bt_value_real_create_init(double raw_value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -899,7 +899,7 @@ extern bt_value *bt_value_real_create_init(double raw_value);
 @sa bt_value_real_get() &mdash;
     Returns the raw value of a real value.
 */
-extern void bt_value_real_set(bt_value *value, double raw_value);
+extern void bt_value_real_set(bt_value *value, double raw_value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -917,7 +917,7 @@ extern void bt_value_real_set(bt_value *value, double raw_value);
 @sa bt_value_real_set() &mdash;
     Sets the raw value of a real value.
 */
-extern double bt_value_real_get(const bt_value *value);
+extern double bt_value_real_get(const bt_value *value) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -938,7 +938,7 @@ The returned value has the type #BT_VALUE_TYPE_STRING.
 @sa bt_value_string_create_init() &mdash;
     Creates a string value with a given initial raw value.
 */
-extern bt_value *bt_value_string_create(void);
+extern bt_value *bt_value_string_create(void) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -958,7 +958,7 @@ The returned value has the type #BT_VALUE_TYPE_STRING.
 @sa bt_value_string_create() &mdash;
     Creates an empty string value.
 */
-extern bt_value *bt_value_string_create_init(const char *raw_value);
+extern bt_value *bt_value_string_create_init(const char *raw_value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1003,7 +1003,7 @@ typedef enum bt_value_string_set_status {
     Returns the raw value of a string value.
 */
 extern bt_value_string_set_status bt_value_string_set(bt_value *value,
-		const char *raw_value);
+		const char *raw_value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1025,7 +1025,7 @@ extern bt_value_string_set_status bt_value_string_set(bt_value *value,
 @sa bt_value_string_set() &mdash;
     Sets the raw value of a string value.
 */
-extern const char *bt_value_string_get(const bt_value *value);
+extern const char *bt_value_string_get(const bt_value *value) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1043,7 +1043,7 @@ The returned value has the type #BT_VALUE_TYPE_ARRAY.
 @returns
     New array value reference, or \c NULL on memory error.
 */
-extern bt_value *bt_value_array_create(void);
+extern bt_value *bt_value_array_create(void) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1107,7 +1107,7 @@ To append a null value, pass #bt_value_null as \bt_p{element_value}.
     Creates and appends an empty map value to an array value.
 */
 extern bt_value_array_append_element_status bt_value_array_append_element(
-		bt_value *value, bt_value *element_value);
+		bt_value *value, bt_value *element_value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1136,7 +1136,7 @@ extern bt_value_array_append_element_status bt_value_array_append_element(
     Appends an existing value to an array value.
 */
 extern bt_value_array_append_element_status
-bt_value_array_append_bool_element(bt_value *value, bt_bool raw_value);
+bt_value_array_append_bool_element(bt_value *value, bt_bool raw_value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1167,7 +1167,7 @@ bt_value_array_append_bool_element(bt_value *value, bt_bool raw_value);
 */
 extern bt_value_array_append_element_status
 bt_value_array_append_unsigned_integer_element(bt_value *value,
-		uint64_t raw_value);
+		uint64_t raw_value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1198,7 +1198,7 @@ bt_value_array_append_unsigned_integer_element(bt_value *value,
 */
 extern bt_value_array_append_element_status
 bt_value_array_append_signed_integer_element(bt_value *value,
-		int64_t raw_value);
+		int64_t raw_value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1227,7 +1227,7 @@ bt_value_array_append_signed_integer_element(bt_value *value,
     Appends an existing value to an array value.
 */
 extern bt_value_array_append_element_status
-bt_value_array_append_real_element(bt_value *value, double raw_value);
+bt_value_array_append_real_element(bt_value *value, double raw_value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1257,7 +1257,7 @@ bt_value_array_append_real_element(bt_value *value, double raw_value);
     Appends an existing value to an array value.
 */
 extern bt_value_array_append_element_status
-bt_value_array_append_string_element(bt_value *value, const char *raw_value);
+bt_value_array_append_string_element(bt_value *value, const char *raw_value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1292,7 +1292,7 @@ array value.
 */
 extern bt_value_array_append_element_status
 bt_value_array_append_empty_array_element(bt_value *value,
-		bt_value **element_value);
+		bt_value **element_value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1327,7 +1327,7 @@ map value.
 */
 extern bt_value_array_append_element_status
 bt_value_array_append_empty_map_element(bt_value *value,
-		bt_value **element_value);
+		bt_value **element_value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1386,7 +1386,7 @@ at index \bt_p{index}.
 */
 extern bt_value_array_set_element_by_index_status
 bt_value_array_set_element_by_index(bt_value *value, uint64_t index,
-		bt_value *element_value);
+		bt_value *element_value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1416,7 +1416,7 @@ bt_value_array_set_element_by_index(bt_value *value, uint64_t index,
     \c const version of this function.
 */
 extern bt_value *bt_value_array_borrow_element_by_index(bt_value *value,
-		uint64_t index);
+		uint64_t index) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1426,7 +1426,7 @@ extern bt_value *bt_value_array_borrow_element_by_index(bt_value *value,
 See bt_value_array_borrow_element_by_index().
 */
 extern const bt_value *bt_value_array_borrow_element_by_index_const(
-		const bt_value *value, uint64_t index);
+		const bt_value *value, uint64_t index) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1444,7 +1444,7 @@ extern const bt_value *bt_value_array_borrow_element_by_index_const(
 @sa bt_value_array_is_empty() &mdash;
     Returns whether or not an array value is empty.
 */
-extern uint64_t bt_value_array_get_length(const bt_value *value);
+extern uint64_t bt_value_array_get_length(const bt_value *value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1463,7 +1463,7 @@ extern uint64_t bt_value_array_get_length(const bt_value *value);
     Returns the length of an array value.
 */
 static inline
-bt_bool bt_value_array_is_empty(const bt_value *value)
+bt_bool bt_value_array_is_empty(const bt_value *value) __BT_NOEXCEPT
 {
 	return bt_value_array_get_length(value) == 0;
 }
@@ -1484,7 +1484,7 @@ The returned value has the type #BT_VALUE_TYPE_MAP.
 @returns
     New map value reference, or \c NULL on memory error.
 */
-extern bt_value *bt_value_map_create(void);
+extern bt_value *bt_value_map_create(void) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1558,7 +1558,8 @@ On success, if \bt_p{value} already contains an entry with key
     Creates a map value and uses it to insert an entry in a map value.
 */
 extern bt_value_map_insert_entry_status bt_value_map_insert_entry(
-		bt_value *value, const char *key, bt_value *entry_value);
+		bt_value *value, const char *key,
+		bt_value *entry_value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1592,7 +1593,8 @@ created boolean value.
     Inserts an entry with an existing value in a map value.
 */
 extern bt_value_map_insert_entry_status bt_value_map_insert_bool_entry(
-		bt_value *value, const char *key, bt_bool raw_value);
+		bt_value *value, const char *key, bt_bool raw_value)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1627,7 +1629,7 @@ created unsigned integer value.
 */
 extern bt_value_map_insert_entry_status
 bt_value_map_insert_unsigned_integer_entry(bt_value *value, const char *key,
-		uint64_t raw_value);
+		uint64_t raw_value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1662,7 +1664,7 @@ created signed integer value.
 */
 extern bt_value_map_insert_entry_status
 bt_value_map_insert_signed_integer_entry(bt_value *value, const char *key,
-		int64_t raw_value);
+		int64_t raw_value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1696,7 +1698,8 @@ created real value.
     Inserts an entry with an existing value in a map value.
 */
 extern bt_value_map_insert_entry_status bt_value_map_insert_real_entry(
-		bt_value *value, const char *key, double raw_value);
+		bt_value *value, const char *key, double raw_value)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1731,7 +1734,7 @@ created string value.
 */
 extern bt_value_map_insert_entry_status
 bt_value_map_insert_string_entry(bt_value *value, const char *key,
-		const char *raw_value);
+		const char *raw_value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1770,7 +1773,7 @@ created empty array value.
 */
 extern bt_value_map_insert_entry_status
 bt_value_map_insert_empty_array_entry(bt_value *value, const char *key,
-		bt_value **entry_value);
+		bt_value **entry_value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1809,7 +1812,7 @@ created empty map value.
 */
 extern bt_value_map_insert_entry_status
 bt_value_map_insert_empty_map_entry(bt_value *value, const char *key,
-		bt_value **entry_value);
+		bt_value **entry_value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1843,7 +1846,7 @@ returns \c NULL.
     Returns whether or not a map value has an entry with a given key.
 */
 extern bt_value *bt_value_map_borrow_entry_value(
-		bt_value *value, const char *key);
+		bt_value *value, const char *key) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1853,7 +1856,7 @@ extern bt_value *bt_value_map_borrow_entry_value(
 See bt_value_map_borrow_entry_value().
 */
 extern const bt_value *bt_value_map_borrow_entry_value_const(
-		const bt_value *value, const char *key);
+		const bt_value *value, const char *key) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2008,7 +2011,7 @@ The iteration process stops when one of:
 */
 extern bt_value_map_foreach_entry_status bt_value_map_foreach_entry(
 		bt_value *value, bt_value_map_foreach_entry_func user_func,
-		void *user_data);
+		void *user_data) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2123,7 +2126,7 @@ See bt_value_map_foreach_entry().
 extern bt_value_map_foreach_entry_const_status bt_value_map_foreach_entry_const(
 		const bt_value *value,
 		bt_value_map_foreach_entry_const_func user_func,
-		void *user_data);
+		void *user_data) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2141,7 +2144,7 @@ extern bt_value_map_foreach_entry_const_status bt_value_map_foreach_entry_const(
 @sa bt_value_map_is_empty() &mdash;
     Returns whether or not a map value is empty.
 */
-extern uint64_t bt_value_map_get_size(const bt_value *value);
+extern uint64_t bt_value_map_get_size(const bt_value *value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2160,7 +2163,7 @@ extern uint64_t bt_value_map_get_size(const bt_value *value);
     Returns the size of a map value.
 */
 static inline
-bt_bool bt_value_map_is_empty(const bt_value *value)
+bt_bool bt_value_map_is_empty(const bt_value *value) __BT_NOEXCEPT
 {
 	return bt_value_map_get_size(value) == 0;
 }
@@ -2186,7 +2189,7 @@ bt_bool bt_value_map_is_empty(const bt_value *value)
     Borrows the value of a specific map value entry.
 */
 extern bt_bool bt_value_map_has_entry(const bt_value *value,
-		const char *key);
+		const char *key) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2272,7 +2275,7 @@ The map value \bt_p{value} becomes:
     Deep-copies a value.
 */
 extern bt_value_map_extend_status bt_value_map_extend(
-		bt_value *value, const bt_value *extension_value);
+		bt_value *value, const bt_value *extension_value) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -2325,7 +2328,7 @@ identical.
 @bt_pre_not_null{copy_value}
 */
 extern bt_value_copy_status bt_value_copy(const bt_value *value,
-		bt_value **copy_value);
+		bt_value **copy_value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2348,7 +2351,7 @@ extern bt_value_copy_status bt_value_copy(const bt_value *value,
 @bt_pre_not_null{b_value}
 */
 extern bt_bool bt_value_is_equal(const bt_value *a_value,
-		const bt_value *b_value);
+		const bt_value *b_value) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -2372,7 +2375,7 @@ extern bt_bool bt_value_is_equal(const bt_value *a_value,
 @sa bt_value_put_ref() &mdash;
     Decrements the reference count of a value.
 */
-extern void bt_value_get_ref(const bt_value *value);
+extern void bt_value_get_ref(const bt_value *value) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -2389,7 +2392,7 @@ extern void bt_value_get_ref(const bt_value *value);
 @sa bt_value_get_ref() &mdash;
     Increments the reference count of a value.
 */
-extern void bt_value_put_ref(const bt_value *value);
+extern void bt_value_put_ref(const bt_value *value) __BT_NOEXCEPT;
 
 /*!
 @brief

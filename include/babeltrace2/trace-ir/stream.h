@@ -243,7 +243,7 @@ On success, the returned stream has the following property values:
     trace.
 */
 extern bt_stream *bt_stream_create(bt_stream_class *stream_class,
-		bt_trace *trace);
+		bt_trace *trace) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -311,7 +311,7 @@ On success, the returned stream has the following property values:
 */
 extern bt_stream *bt_stream_create_with_id(
 		bt_stream_class *stream_class,
-		bt_trace *trace, uint64_t id);
+		bt_trace *trace, uint64_t id) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -336,7 +336,7 @@ extern bt_stream *bt_stream_create_with_id(
 @sa bt_stream_borrow_class_const() &mdash;
     \c const version of this function.
 */
-extern bt_stream_class *bt_stream_borrow_class(bt_stream *stream);
+extern bt_stream_class *bt_stream_borrow_class(bt_stream *stream) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -346,7 +346,7 @@ extern bt_stream_class *bt_stream_borrow_class(bt_stream *stream);
 See bt_stream_borrow_class().
 */
 extern const bt_stream_class *bt_stream_borrow_class_const(
-		const bt_stream *stream);
+		const bt_stream *stream) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -370,7 +370,7 @@ extern const bt_stream_class *bt_stream_borrow_class_const(
 @sa bt_stream_borrow_trace_const() &mdash;
     \c const version of this function.
 */
-extern bt_trace *bt_stream_borrow_trace(bt_stream *stream);
+extern bt_trace *bt_stream_borrow_trace(bt_stream *stream) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -380,7 +380,7 @@ extern bt_trace *bt_stream_borrow_trace(bt_stream *stream);
 See bt_stream_borrow_trace().
 */
 extern const bt_trace *bt_stream_borrow_trace_const(
-		const bt_stream *stream);
+		const bt_stream *stream) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -407,7 +407,7 @@ See the \ref api-tir-stream-prop-id "numeric ID" property.
     Creates a stream with a specific numeric ID and adds it to a
     trace.
 */
-extern uint64_t bt_stream_get_id(const bt_stream *stream);
+extern uint64_t bt_stream_get_id(const bt_stream *stream) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -452,7 +452,7 @@ See the \ref api-tir-stream-prop-name "name" property.
     Returns the name of a stream.
 */
 extern bt_stream_set_name_status bt_stream_set_name(bt_stream *stream,
-		const char *name);
+		const char *name) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -478,7 +478,7 @@ If \bt_p{stream} has no name, this function returns \c NULL.
 @sa bt_stream_class_set_name() &mdash;
     Sets the name of a stream.
 */
-extern const char *bt_stream_get_name(const bt_stream *stream);
+extern const char *bt_stream_get_name(const bt_stream *stream) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -510,7 +510,8 @@ property.
     Borrows the user attributes of a stream.
 */
 extern void bt_stream_set_user_attributes(
-		bt_stream *stream, const bt_value *user_attributes);
+		bt_stream *stream, const bt_value *user_attributes)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -537,7 +538,8 @@ property.
 @sa bt_stream_borrow_user_attributes_const() &mdash;
     \c const version of this function.
 */
-extern bt_value *bt_stream_borrow_user_attributes(bt_stream *stream);
+extern bt_value *bt_stream_borrow_user_attributes(bt_stream *stream)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -547,7 +549,7 @@ extern bt_value *bt_stream_borrow_user_attributes(bt_stream *stream);
 See bt_stream_borrow_user_attributes().
 */
 extern const bt_value *bt_stream_borrow_user_attributes_const(
-		const bt_stream *stream);
+		const bt_stream *stream) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -571,7 +573,7 @@ extern const bt_value *bt_stream_borrow_user_attributes_const(
 @sa bt_stream_put_ref() &mdash;
     Decrements the reference count of a stream.
 */
-extern void bt_stream_get_ref(const bt_stream *stream);
+extern void bt_stream_get_ref(const bt_stream *stream) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -588,7 +590,7 @@ extern void bt_stream_get_ref(const bt_stream *stream);
 @sa bt_stream_get_ref() &mdash;
     Increments the reference count of a stream.
 */
-extern void bt_stream_put_ref(const bt_stream *stream);
+extern void bt_stream_put_ref(const bt_stream *stream) __BT_NOEXCEPT;
 
 /*!
 @brief

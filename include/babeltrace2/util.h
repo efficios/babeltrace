@@ -123,7 +123,7 @@ code if any step of the computation process causes an integer overflow.
 bt_util_clock_cycles_to_ns_from_origin_status
 bt_util_clock_cycles_to_ns_from_origin(uint64_t cycles,
 		uint64_t frequency, int64_t offset_seconds,
-		uint64_t offset_cycles, int64_t *ns_from_origin);
+		uint64_t offset_cycles, int64_t *ns_from_origin) __BT_NOEXCEPT;
 
 /*! @} */
 

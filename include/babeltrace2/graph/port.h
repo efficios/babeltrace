@@ -193,7 +193,7 @@ typedef enum bt_port_type {
 @sa bt_port_is_output() &mdash;
     Returns whether or not a port is an \bt_oport.
 */
-extern bt_port_type bt_port_get_type(const bt_port *port);
+extern bt_port_type bt_port_get_type(const bt_port *port) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -211,7 +211,7 @@ extern bt_port_type bt_port_get_type(const bt_port *port);
     Returns the type enumerator of a port.
 */
 static inline
-bt_bool bt_port_is_input(const bt_port *port)
+bt_bool bt_port_is_input(const bt_port *port) __BT_NOEXCEPT
 {
 	return bt_port_get_type(port) == BT_PORT_TYPE_INPUT;
 }
@@ -232,7 +232,7 @@ bt_bool bt_port_is_input(const bt_port *port)
     Returns the type enumerator of a port.
 */
 static inline
-bt_bool bt_port_is_output(const bt_port *port)
+bt_bool bt_port_is_output(const bt_port *port) __BT_NOEXCEPT
 {
 	return bt_port_get_type(port) == BT_PORT_TYPE_OUTPUT;
 }
@@ -260,7 +260,7 @@ This function returns \c NULL if \bt_p{port} is unconnected
 @bt_pre_not_null{port}
 */
 extern const bt_connection *bt_port_borrow_connection_const(
-		const bt_port *port);
+		const bt_port *port) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -282,7 +282,7 @@ extern const bt_connection *bt_port_borrow_connection_const(
 @bt_pre_not_null{port}
 */
 extern const bt_component *bt_port_borrow_component_const(
-		const bt_port *port);
+		const bt_port *port) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -309,7 +309,7 @@ See the \ref api-port-prop-name "name" property.
 
 @bt_pre_not_null{port}
 */
-extern const char *bt_port_get_name(const bt_port *port);
+extern const char *bt_port_get_name(const bt_port *port) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -325,7 +325,7 @@ See the \ref api-port-prop-is-connected "is connected?" property.
 
 @bt_pre_not_null{port}
 */
-extern bt_bool bt_port_is_connected(const bt_port *port);
+extern bt_bool bt_port_is_connected(const bt_port *port) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -349,7 +349,7 @@ extern bt_bool bt_port_is_connected(const bt_port *port);
 @sa bt_port_put_ref() &mdash;
     Decrements the reference count of a port.
 */
-extern void bt_port_get_ref(const bt_port *port);
+extern void bt_port_get_ref(const bt_port *port) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -366,7 +366,7 @@ extern void bt_port_get_ref(const bt_port *port);
 @sa bt_port_get_ref() &mdash;
     Increments the reference count of a port.
 */
-extern void bt_port_put_ref(const bt_port *port);
+extern void bt_port_put_ref(const bt_port *port) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -443,7 +443,8 @@ existing \bt_p{_dst} reference.
     \bt_p{port} as a common port.
 */
 static inline
-const bt_port *bt_port_input_as_port_const(const bt_port_input *port)
+const bt_port *bt_port_input_as_port_const(
+		const bt_port_input *port) __BT_NOEXCEPT
 {
 	return __BT_UPCAST_CONST(bt_port, port);
 }
@@ -463,7 +464,7 @@ const bt_port *bt_port_input_as_port_const(const bt_port_input *port)
 @sa bt_port_input_put_ref() &mdash;
     Decrements the reference count of an input port.
 */
-extern void bt_port_input_get_ref(const bt_port_input *port);
+extern void bt_port_input_get_ref(const bt_port_input *port) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -480,7 +481,7 @@ extern void bt_port_input_get_ref(const bt_port_input *port);
 @sa bt_port_input_get_ref() &mdash;
     Increments the reference count of an input port.
 */
-extern void bt_port_input_put_ref(const bt_port_input *port);
+extern void bt_port_input_put_ref(const bt_port_input *port) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -557,7 +558,8 @@ existing \bt_p{_dst} reference.
     \bt_p{port} as a common port.
 */
 static inline
-const bt_port *bt_port_output_as_port_const(const bt_port_output *port)
+const bt_port *bt_port_output_as_port_const(
+		const bt_port_output *port) __BT_NOEXCEPT
 {
 	return __BT_UPCAST_CONST(bt_port, port);
 }
@@ -577,7 +579,7 @@ const bt_port *bt_port_output_as_port_const(const bt_port_output *port)
 @sa bt_port_output_put_ref() &mdash;
     Decrements the reference count of a \bt_oport.
 */
-extern void bt_port_output_get_ref(const bt_port_output *port);
+extern void bt_port_output_get_ref(const bt_port_output *port) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -594,7 +596,7 @@ extern void bt_port_output_get_ref(const bt_port_output *port);
 @sa bt_port_output_get_ref() &mdash;
     Increments the reference count of a \bt_oport.
 */
-extern void bt_port_output_put_ref(const bt_port_output *port);
+extern void bt_port_output_put_ref(const bt_port_output *port) __BT_NOEXCEPT;
 
 /*!
 @brief

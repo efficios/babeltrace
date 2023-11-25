@@ -149,7 +149,7 @@ The returned lower value is included in \bt_p{int_range}.
 @bt_pre_is_bool_val{int_range}
 */
 extern uint64_t bt_integer_range_unsigned_get_lower(
-		const bt_integer_range_unsigned *int_range);
+		const bt_integer_range_unsigned *int_range) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -168,7 +168,7 @@ The returned upper value is included in \bt_p{int_range}.
 @bt_pre_is_bool_val{int_range}
 */
 extern uint64_t bt_integer_range_unsigned_get_upper(
-		const bt_integer_range_unsigned *int_range);
+		const bt_integer_range_unsigned *int_range) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -192,7 +192,7 @@ lower and upper values.
 */
 extern bt_bool bt_integer_range_unsigned_is_equal(
 		const bt_integer_range_unsigned *a_int_range,
-		const bt_integer_range_unsigned *b_int_range);
+		const bt_integer_range_unsigned *b_int_range) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -218,7 +218,7 @@ The returned lower value is included in \bt_p{int_range}.
 @bt_pre_is_bool_val{int_range}
 */
 extern int64_t bt_integer_range_signed_get_lower(
-		const bt_integer_range_signed *int_range);
+		const bt_integer_range_signed *int_range) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -237,7 +237,7 @@ The returned upper value is included in \bt_p{int_range}.
 @bt_pre_is_bool_val{int_range}
 */
 extern int64_t bt_integer_range_signed_get_upper(
-		const bt_integer_range_signed *int_range);
+		const bt_integer_range_signed *int_range) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -261,7 +261,7 @@ lower and upper values.
 */
 extern bt_bool bt_integer_range_signed_is_equal(
 		const bt_integer_range_signed *a_int_range,
-		const bt_integer_range_signed *b_int_range);
+		const bt_integer_range_signed *b_int_range) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -311,7 +311,7 @@ typedef enum bt_integer_range_set_add_range_status {
 @bt_pre_not_null{int_range_set}
 */
 extern uint64_t bt_integer_range_set_get_range_count(
-		const bt_integer_range_set *int_range_set);
+		const bt_integer_range_set *int_range_set) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -327,7 +327,8 @@ extern uint64_t bt_integer_range_set_get_range_count(
 @returns
     New unsigned integer range set, or \c NULL on memory error.
 */
-extern bt_integer_range_set_unsigned *bt_integer_range_set_unsigned_create(void);
+extern bt_integer_range_set_unsigned *bt_integer_range_set_unsigned_create(
+		void) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -362,7 +363,7 @@ integer range to add to \bt_p{int_range_set}.
 extern bt_integer_range_set_add_range_status
 bt_integer_range_set_unsigned_add_range(
 		bt_integer_range_set_unsigned *int_range_set,
-		uint64_t lower, uint64_t upper);
+		uint64_t lower, uint64_t upper) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -394,7 +395,7 @@ bt_integer_range_set_unsigned_add_range(
 extern const bt_integer_range_unsigned *
 bt_integer_range_set_unsigned_borrow_range_by_index_const(
 		const bt_integer_range_set_unsigned *int_range_set,
-		uint64_t index);
+		uint64_t index) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -420,7 +421,8 @@ is \em not equal to an unsigned integer range containing [2,&nbsp;15].
 */
 extern bt_bool bt_integer_range_set_unsigned_is_equal(
 		const bt_integer_range_set_unsigned *int_range_set_a,
-		const bt_integer_range_set_unsigned *int_range_set_b);
+		const bt_integer_range_set_unsigned *int_range_set_b)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -440,6 +442,7 @@ extern bt_bool bt_integer_range_set_unsigned_is_equal(
 static inline
 const bt_integer_range_set *bt_integer_range_set_unsigned_as_range_set_const(
 		const bt_integer_range_set_unsigned *int_range_set)
+		__BT_NOEXCEPT
 {
 	return __BT_UPCAST_CONST(bt_integer_range_set, int_range_set);
 }
@@ -461,7 +464,8 @@ const bt_integer_range_set *bt_integer_range_set_unsigned_as_range_set_const(
     Decrements the reference count of an unsigned integer range set.
 */
 extern void bt_integer_range_set_unsigned_get_ref(
-		const bt_integer_range_set_unsigned *int_range_set);
+		const bt_integer_range_set_unsigned *int_range_set)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -480,7 +484,8 @@ extern void bt_integer_range_set_unsigned_get_ref(
     Increments the reference count of an unsigned integer range set.
 */
 extern void bt_integer_range_set_unsigned_put_ref(
-		const bt_integer_range_set_unsigned *int_range_set);
+		const bt_integer_range_set_unsigned *int_range_set)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -551,7 +556,8 @@ the existing \bt_p{_dst} reference.
 @returns
     New signed integer range set, or \c NULL on memory error.
 */
-extern bt_integer_range_set_signed *bt_integer_range_set_signed_create(void);
+extern bt_integer_range_set_signed *bt_integer_range_set_signed_create(
+		void) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -586,7 +592,7 @@ integer range to add to \bt_p{int_range_set}.
 extern bt_integer_range_set_add_range_status
 bt_integer_range_set_signed_add_range(
 		bt_integer_range_set_signed *int_range_set,
-		int64_t lower, int64_t upper);
+		int64_t lower, int64_t upper) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -617,7 +623,8 @@ bt_integer_range_set_signed_add_range(
 */
 extern const bt_integer_range_signed *
 bt_integer_range_set_signed_borrow_range_by_index_const(
-		const bt_integer_range_set_signed *int_range_set, uint64_t index);
+		const bt_integer_range_set_signed *int_range_set,
+		uint64_t index) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -643,7 +650,8 @@ is \em not equal to a signed integer range containing [−57,&nbsp;42].
 */
 extern bt_bool bt_integer_range_set_signed_is_equal(
 		const bt_integer_range_set_signed *int_range_set_a,
-		const bt_integer_range_set_signed *int_range_set_b);
+		const bt_integer_range_set_signed *int_range_set_b)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -663,6 +671,7 @@ extern bt_bool bt_integer_range_set_signed_is_equal(
 static inline
 const bt_integer_range_set *bt_integer_range_set_signed_as_range_set_const(
 		const bt_integer_range_set_signed *int_range_set)
+		__BT_NOEXCEPT
 {
 	return __BT_UPCAST_CONST(bt_integer_range_set, int_range_set);
 }
@@ -684,7 +693,7 @@ const bt_integer_range_set *bt_integer_range_set_signed_as_range_set_const(
     Decrements the reference count of a signed integer range set.
 */
 extern void bt_integer_range_set_signed_get_ref(
-		const bt_integer_range_set_signed *int_range_set);
+		const bt_integer_range_set_signed *int_range_set) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -703,7 +712,7 @@ extern void bt_integer_range_set_signed_get_ref(
     Increments the reference count of a signed integer range set.
 */
 extern void bt_integer_range_set_signed_put_ref(
-		const bt_integer_range_set_signed *int_range_set);
+		const bt_integer_range_set_signed *int_range_set) __BT_NOEXCEPT;
 
 /*!
 @brief

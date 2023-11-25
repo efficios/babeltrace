@@ -68,7 +68,7 @@ version:
 @returns
     Major version of the library.
 */
-extern unsigned int bt_version_get_major(void);
+extern unsigned int bt_version_get_major(void) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -77,7 +77,7 @@ extern unsigned int bt_version_get_major(void);
 @returns
     Minor version of the library.
 */
-extern unsigned int bt_version_get_minor(void);
+extern unsigned int bt_version_get_minor(void) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -86,7 +86,7 @@ extern unsigned int bt_version_get_minor(void);
 @returns
     Patch version of the library.
 */
-extern unsigned int bt_version_get_patch(void);
+extern unsigned int bt_version_get_patch(void) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -98,7 +98,7 @@ The development stage \em can contain a version suffix such as
 @returns
     Development stage of the library's version, or \c NULL if none.
 */
-extern const char *bt_version_get_development_stage(void);
+extern const char *bt_version_get_development_stage(void) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -112,7 +112,7 @@ of the library.
     Version control system revision's description of the library's
     version, or \c NULL if none.
 */
-extern const char *bt_version_get_vcs_revision_description(void);
+extern const char *bt_version_get_vcs_revision_description(void) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -127,7 +127,7 @@ development build, this function returns \c NULL.
 @sa bt_version_get_name_description() &mdash;
     Returns the description of libbabeltrace2's release name.
 */
-extern const char *bt_version_get_name(void);
+extern const char *bt_version_get_name(void) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -142,7 +142,7 @@ case for a development build, this function returns \c NULL.
 @sa bt_version_get_name() &mdash;
     Returns libbabeltrace2's release name.
 */
-extern const char *bt_version_get_name_description(void);
+extern const char *bt_version_get_name_description(void) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -154,7 +154,7 @@ custom build.
 @returns
     Library's version extra name, or \c NULL if not available.
 */
-extern const char *bt_version_get_extra_name(void);
+extern const char *bt_version_get_extra_name(void) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -170,7 +170,7 @@ for a custom build.
     Can contain newlines.
     @endparblock
 */
-extern const char *bt_version_get_extra_description(void);
+extern const char *bt_version_get_extra_description(void) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -187,7 +187,7 @@ for a custom build.
     applied to Babeltrace's source tree for a custom build.
     @endparblock
 */
-extern const char *bt_version_get_extra_patch_names(void);
+extern const char *bt_version_get_extra_patch_names(void) __BT_NOEXCEPT;
 
 /*! @} */
 

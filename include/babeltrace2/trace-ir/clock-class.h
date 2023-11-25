@@ -326,7 +326,8 @@ On success, the returned clock class has the following property values:
 
 @bt_pre_not_null{self_component}
 */
-extern bt_clock_class *bt_clock_class_create(bt_self_component *self_component);
+extern bt_clock_class *bt_clock_class_create(bt_self_component *self_component)
+		__BT_NOEXCEPT;
 
 /*! @} */
 
@@ -361,7 +362,7 @@ See the \ref api-tir-clock-cls-prop-freq "frequency" property.
     Returns the frequency of a clock class.
 */
 extern void bt_clock_class_set_frequency(bt_clock_class *clock_class,
-		uint64_t frequency);
+		uint64_t frequency) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -381,7 +382,7 @@ See the \ref api-tir-clock-cls-prop-freq "frequency" property.
     Sets the frequency of a clock class.
 */
 extern uint64_t bt_clock_class_get_frequency(
-		const bt_clock_class *clock_class);
+		const bt_clock_class *clock_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -409,7 +410,7 @@ See the \ref api-tir-clock-cls-prop-offset "offset" property.
     Returns the offset of a clock class.
 */
 extern void bt_clock_class_set_offset(bt_clock_class *clock_class,
-		int64_t offset_seconds, uint64_t offset_cycles);
+		int64_t offset_seconds, uint64_t offset_cycles) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -436,7 +437,7 @@ See the \ref api-tir-clock-cls-prop-offset "offset" property.
     Sets the offset of a clock class.
 */
 extern void bt_clock_class_get_offset(const bt_clock_class *clock_class,
-		int64_t *offset_seconds, uint64_t *offset_cycles);
+		int64_t *offset_seconds, uint64_t *offset_cycles) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -457,7 +458,7 @@ See the \ref api-tir-clock-cls-prop-precision "precision" property.
     Returns the precision of a clock class.
 */
 extern void bt_clock_class_set_precision(bt_clock_class *clock_class,
-		uint64_t precision);
+		uint64_t precision) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -478,7 +479,7 @@ See the \ref api-tir-clock-cls-prop-precision "precision" property.
     Sets the precision of a clock class.
 */
 extern uint64_t bt_clock_class_get_precision(
-		const bt_clock_class *clock_class);
+		const bt_clock_class *clock_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -503,7 +504,7 @@ property.
     Unix epoch.
 */
 extern void bt_clock_class_set_origin_is_unix_epoch(bt_clock_class *clock_class,
-		bt_bool origin_is_unix_epoch);
+		bt_bool origin_is_unix_epoch) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -527,7 +528,7 @@ property.
     Sets whether or not the origin of a clock class is the Unix epoch.
 */
 extern bt_bool bt_clock_class_origin_is_unix_epoch(
-		const bt_clock_class *clock_class);
+		const bt_clock_class *clock_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -572,7 +573,7 @@ See the \ref api-tir-clock-cls-prop-name "name" property.
     Returns the name of a clock class.
 */
 extern bt_clock_class_set_name_status bt_clock_class_set_name(
-		bt_clock_class *clock_class, const char *name);
+		bt_clock_class *clock_class, const char *name) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -599,7 +600,7 @@ If \bt_p{clock_class} has no name, this function returns \c NULL.
     Sets the name of a clock class.
 */
 extern const char *bt_clock_class_get_name(
-		const bt_clock_class *clock_class);
+		const bt_clock_class *clock_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -644,7 +645,8 @@ See the \ref api-tir-clock-cls-prop-descr "description" property.
     Returns the description of a clock class.
 */
 extern bt_clock_class_set_description_status bt_clock_class_set_description(
-		bt_clock_class *clock_class, const char *description);
+		bt_clock_class *clock_class, const char *description)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -671,7 +673,7 @@ If \bt_p{clock_class} has no description, this function returns \c NULL.
     Sets the description of a clock class.
 */
 extern const char *bt_clock_class_get_description(
-		const bt_clock_class *clock_class);
+		const bt_clock_class *clock_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -694,7 +696,7 @@ See the \ref api-tir-clock-cls-prop-uuid "UUID" property.
     Returns the UUID of a clock class.
 */
 extern void bt_clock_class_set_uuid(bt_clock_class *clock_class,
-		bt_uuid uuid);
+		bt_uuid uuid) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -721,7 +723,7 @@ If \bt_p{clock_class} has no UUID, this function returns \c NULL.
     Sets the UUID of a clock class.
 */
 extern bt_uuid bt_clock_class_get_uuid(
-		const bt_clock_class *clock_class);
+		const bt_clock_class *clock_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -753,7 +755,8 @@ property.
     Borrows the user attributes of a clock class.
 */
 extern void bt_clock_class_set_user_attributes(
-		bt_clock_class *clock_class, const bt_value *user_attributes);
+		bt_clock_class *clock_class, const bt_value *user_attributes)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -780,7 +783,7 @@ property.
     \c const version of this function.
 */
 extern bt_value *bt_clock_class_borrow_user_attributes(
-		bt_clock_class *clock_class);
+		bt_clock_class *clock_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -790,7 +793,7 @@ extern bt_value *bt_clock_class_borrow_user_attributes(
 See bt_clock_class_borrow_user_attributes().
 */
 extern const bt_value *bt_clock_class_borrow_user_attributes_const(
-		const bt_clock_class *clock_class);
+		const bt_clock_class *clock_class) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -870,7 +873,7 @@ code if any step of the computation process causes an integer overflow.
 extern bt_clock_class_cycles_to_ns_from_origin_status
 bt_clock_class_cycles_to_ns_from_origin(
 		const bt_clock_class *clock_class,
-		uint64_t value, int64_t *ns_from_origin);
+		uint64_t value, int64_t *ns_from_origin) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -894,7 +897,8 @@ bt_clock_class_cycles_to_ns_from_origin(
 @sa bt_clock_class_put_ref() &mdash;
     Decrements the reference count of a clock class.
 */
-extern void bt_clock_class_get_ref(const bt_clock_class *clock_class);
+extern void bt_clock_class_get_ref(
+		const bt_clock_class *clock_class) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -911,7 +915,8 @@ extern void bt_clock_class_get_ref(const bt_clock_class *clock_class);
 @sa bt_clock_class_get_ref() &mdash;
     Increments the reference count of a clock class.
 */
-extern void bt_clock_class_put_ref(const bt_clock_class *clock_class);
+extern void bt_clock_class_put_ref(
+		const bt_clock_class *clock_class) __BT_NOEXCEPT;
 
 /*!
 @brief

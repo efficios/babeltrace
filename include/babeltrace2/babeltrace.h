@@ -45,6 +45,13 @@
 #define __BT_ATTR_FORMAT_PRINTF(_string_index, _first_to_check) \
 		__attribute__((format(__BT_PRINTF_FORMAT, _string_index, _first_to_check)))
 
+/* Internal: `noexcept` specifier if C++ ≥ 11 */
+#if defined(__cplusplus) && (__cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900))
+# define __BT_NOEXCEPT noexcept
+#else
+# define __BT_NOEXCEPT
+#endif
+
 #include <babeltrace2/error-reporting.h>
 #include <babeltrace2/graph/component-class-dev.h>
 #include <babeltrace2/graph/component-class.h>
@@ -104,5 +111,6 @@
 #undef __BT_LOGGING_LEVEL_ERROR
 #undef __BT_LOGGING_LEVEL_FATAL
 #undef __BT_LOGGING_LEVEL_NONE
+#undef __BT_NOEXCEPT
 
 #endif /* BABELTRACE2_BABELTRACE_H */

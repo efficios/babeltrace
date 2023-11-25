@@ -79,7 +79,7 @@ bt_private_query_executor_as_query_executor_const() function to
 static inline
 const bt_query_executor *
 bt_private_query_executor_as_query_executor_const(
-		bt_private_query_executor *query_executor)
+		bt_private_query_executor *query_executor) __BT_NOEXCEPT
 {
 	return __BT_UPCAST_CONST(bt_query_executor, query_executor);
 }

@@ -74,7 +74,7 @@ bt_connection_borrow_downstream_port_const().
 @bt_pre_not_null{connection}
 */
 extern const bt_port_input *bt_connection_borrow_downstream_port_const(
-		const bt_connection *connection);
+		const bt_connection *connection) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -90,7 +90,7 @@ extern const bt_port_input *bt_connection_borrow_downstream_port_const(
 @bt_pre_not_null{connection}
 */
 extern const bt_port_output *bt_connection_borrow_upstream_port_const(
-		const bt_connection *connection);
+		const bt_connection *connection) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -114,7 +114,8 @@ extern const bt_port_output *bt_connection_borrow_upstream_port_const(
 @sa bt_connection_put_ref() &mdash;
     Decrements the reference count of a connection.
 */
-extern void bt_connection_get_ref(const bt_connection *connection);
+extern void bt_connection_get_ref(const bt_connection *connection)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -131,7 +132,8 @@ extern void bt_connection_get_ref(const bt_connection *connection);
 @sa bt_connection_get_ref() &mdash;
     Increments the reference count of a connection.
 */
-extern void bt_connection_put_ref(const bt_connection *connection);
+extern void bt_connection_put_ref(const bt_connection *connection)
+		__BT_NOEXCEPT;
 
 /*!
 @brief

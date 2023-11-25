@@ -977,7 +977,8 @@ typedef bt_message_iterator_class_seek_ns_from_origin_method_status
 */
 extern bt_message_iterator_class *
 bt_message_iterator_class_create(
-		bt_message_iterator_class_next_method next_method);
+		bt_message_iterator_class_next_method next_method)
+		__BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1022,7 +1023,7 @@ See the \ref api-msg-iter-cls-meth-fini "finalize" method.
 extern bt_message_iterator_class_set_method_status
 bt_message_iterator_class_set_finalize_method(
 		bt_message_iterator_class *message_iterator_class,
-		bt_message_iterator_class_finalize_method method);
+		bt_message_iterator_class_finalize_method method) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1047,7 +1048,8 @@ See the \ref api-msg-iter-cls-meth-init "initialize" method.
 extern bt_message_iterator_class_set_method_status
 bt_message_iterator_class_set_initialize_method(
 		bt_message_iterator_class *message_iterator_class,
-		bt_message_iterator_class_initialize_method method);
+		bt_message_iterator_class_initialize_method method)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1084,7 +1086,8 @@ extern bt_message_iterator_class_set_method_status
 bt_message_iterator_class_set_seek_beginning_methods(
 		bt_message_iterator_class *message_iterator_class,
 		bt_message_iterator_class_seek_beginning_method seek_method,
-		bt_message_iterator_class_can_seek_beginning_method can_seek_method);
+		bt_message_iterator_class_can_seek_beginning_method can_seek_method)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1123,7 +1126,8 @@ extern bt_message_iterator_class_set_method_status
 bt_message_iterator_class_set_seek_ns_from_origin_methods(
 		bt_message_iterator_class *message_iterator_class,
 		bt_message_iterator_class_seek_ns_from_origin_method seek_method,
-		bt_message_iterator_class_can_seek_ns_from_origin_method can_seek_method);
+		bt_message_iterator_class_can_seek_ns_from_origin_method can_seek_method)
+		__BT_NOEXCEPT;
 
 /*! @} */
 
@@ -1148,7 +1152,8 @@ bt_message_iterator_class_set_seek_ns_from_origin_methods(
     Decrements the reference count of a message iterator class.
 */
 extern void bt_message_iterator_class_get_ref(
-		const bt_message_iterator_class *message_iterator_class);
+		const bt_message_iterator_class *message_iterator_class)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1166,7 +1171,8 @@ extern void bt_message_iterator_class_get_ref(
     Increments the reference count of a message iterator class.
 */
 extern void bt_message_iterator_class_put_ref(
-		const bt_message_iterator_class *message_iterator_class);
+		const bt_message_iterator_class *message_iterator_class)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
