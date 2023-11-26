@@ -973,9 +973,8 @@ public:
     bt2s::optional<LogLevel> logLevel() const noexcept
     {
         bt_event_class_log_level libLogLevel;
-        const auto avail = bt_event_class_get_log_level(this->libObjPtr(), &libLogLevel);
 
-        if (avail == BT_PROPERTY_AVAILABILITY_AVAILABLE) {
+        if (bt_event_class_get_log_level(this->libObjPtr(), &libLogLevel)) {
             return static_cast<LogLevel>(libLogLevel);
         }
 

@@ -847,9 +847,8 @@ public:
     bt2s::optional<std::uint64_t> count() const noexcept
     {
         std::uint64_t count;
-        const auto avail = bt_message_discarded_events_get_count(this->libObjPtr(), &count);
 
-        if (avail) {
+        if (bt_message_discarded_events_get_count(this->libObjPtr(), &count)) {
             return count;
         }
 
@@ -978,9 +977,8 @@ public:
     bt2s::optional<std::uint64_t> count() const noexcept
     {
         std::uint64_t count;
-        const auto avail = bt_message_discarded_packets_get_count(this->libObjPtr(), &count);
 
-        if (avail) {
+        if (bt_message_discarded_packets_get_count(this->libObjPtr(), &count)) {
             return count;
         }
 
