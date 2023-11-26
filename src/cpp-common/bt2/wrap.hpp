@@ -18,6 +18,7 @@
 #include "integer-range.hpp"
 #include "message-iterator.hpp"
 #include "message.hpp"
+#include "optional-borrowed-object.hpp"
 #include "private-query-executor.hpp"
 #include "self-component-class.hpp"
 #include "self-component-port.hpp"
@@ -293,6 +294,306 @@ inline Value wrap(bt_value * const libObjPtr) noexcept
 inline ConstValue wrap(const bt_value * const libObjPtr) noexcept
 {
     return ConstValue {libObjPtr};
+}
+
+inline OptionalBorrowedObject<ClockClass> wrapOptional(bt_clock_class * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<ConstClockClass>
+wrapOptional(const bt_clock_class * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<ConstClockSnapshot>
+wrapOptional(const bt_clock_snapshot * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<ConstComponent>
+wrapOptional(const bt_component * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<ConstSourceComponent>
+wrapOptional(const bt_component_source * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<ConstFilterComponent>
+wrapOptional(const bt_component_filter * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<ConstSinkComponent>
+wrapOptional(const bt_component_sink * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<ConstInputPort>
+wrapOptional(const bt_port_input * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<ConstOutputPort>
+wrapOptional(const bt_port_output * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<FieldClass> wrapOptional(bt_field_class * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<ConstFieldClass>
+wrapOptional(const bt_field_class * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<ConstFieldPathItem>
+wrapOptional(const bt_field_path_item * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<ConstFieldPath>
+wrapOptional(const bt_field_path * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<Field> wrapOptional(bt_field * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<ConstField> wrapOptional(const bt_field * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<UnsignedIntegerRangeSet>
+wrapOptional(bt_integer_range_set_unsigned * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<ConstUnsignedIntegerRangeSet>
+wrapOptional(const bt_integer_range_set_unsigned * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<SignedIntegerRangeSet>
+wrapOptional(bt_integer_range_set_signed * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<ConstSignedIntegerRangeSet>
+wrapOptional(const bt_integer_range_set_signed * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<ConstUnsignedIntegerRange>
+wrapOptional(const bt_integer_range_unsigned * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<ConstSignedIntegerRange>
+wrapOptional(const bt_integer_range_signed * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<MessageIterator>
+wrapOptional(bt_message_iterator * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<Message> wrapOptional(bt_message * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<ConstMessage>
+wrapOptional(const bt_message * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<PrivateQueryExecutor>
+wrapOptional(bt_private_query_executor * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<SelfComponentClass>
+wrapOptional(bt_self_component_class * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<SelfComponentClass>
+wrapOptional(bt_self_component_class_source * const libObjPtr) noexcept
+{
+    return bt_self_component_class_source_as_self_component_class(libObjPtr);
+}
+
+inline OptionalBorrowedObject<SelfComponentClass>
+wrapOptional(bt_self_component_class_filter * const libObjPtr) noexcept
+{
+    return bt_self_component_class_filter_as_self_component_class(libObjPtr);
+}
+
+inline OptionalBorrowedObject<SelfComponentClass>
+wrapOptional(bt_self_component_class_sink * const libObjPtr) noexcept
+{
+    return bt_self_component_class_sink_as_self_component_class(libObjPtr);
+}
+
+inline OptionalBorrowedObject<SelfComponent>
+wrapOptional(bt_self_component * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<SelfSourceComponent>
+wrapOptional(bt_self_component_source * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<SelfFilterComponent>
+wrapOptional(bt_self_component_filter * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<SelfSinkComponent>
+wrapOptional(bt_self_component_sink * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<SelfComponentInputPort>
+wrapOptional(bt_self_component_port_input * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<SelfComponentOutputPort>
+wrapOptional(bt_self_component_port_output * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<SelfMessageIterator>
+wrapOptional(bt_self_message_iterator * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<SelfMessageIteratorConfiguration>
+wrapOptional(bt_self_message_iterator_configuration * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<Event> wrapOptional(bt_event * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<ConstEvent> wrapOptional(const bt_event * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<Packet> wrapOptional(bt_packet * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<ConstPacket> wrapOptional(const bt_packet * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<Stream> wrapOptional(bt_stream * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<ConstStream> wrapOptional(const bt_stream * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<Trace> wrapOptional(bt_trace * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<ConstTrace> wrapOptional(const bt_trace * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<EventClass> wrapOptional(bt_event_class * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<ConstEventClass>
+wrapOptional(const bt_event_class * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<StreamClass> wrapOptional(bt_stream_class * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<ConstStreamClass>
+wrapOptional(const bt_stream_class * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<TraceClass> wrapOptional(bt_trace_class * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<ConstTraceClass>
+wrapOptional(const bt_trace_class * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<Value> wrapOptional(bt_value * const libObjPtr) noexcept
+{
+    return libObjPtr;
+}
+
+inline OptionalBorrowedObject<ConstValue> wrapOptional(const bt_value * const libObjPtr) noexcept
+{
+    return libObjPtr;
 }
 
 } /* namespace bt2 */
