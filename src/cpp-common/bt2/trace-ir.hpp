@@ -19,6 +19,7 @@
 #include "field-class.hpp"
 #include "field.hpp"
 #include "internal/utils.hpp"
+#include "optional-borrowed-object.hpp"
 #include "shared-object.hpp"
 #include "value.hpp"
 
@@ -164,39 +165,21 @@ public:
 
     Class cls() const noexcept;
     _Stream stream() const noexcept;
-    bt2s::optional<_Packet> packet() const noexcept;
+    OptionalBorrowedObject<_Packet> packet() const noexcept;
 
-    bt2s::optional<_StructureField> payloadField() const noexcept
+    OptionalBorrowedObject<_StructureField> payloadField() const noexcept
     {
-        const auto libObjPtr = _Spec::payloadField(this->libObjPtr());
-
-        if (libObjPtr) {
-            return _StructureField {libObjPtr};
-        }
-
-        return bt2s::nullopt;
+        return _Spec::payloadField(this->libObjPtr());
     }
 
-    bt2s::optional<_StructureField> specificContextField() const noexcept
+    OptionalBorrowedObject<_StructureField> specificContextField() const noexcept
     {
-        const auto libObjPtr = _Spec::specificContextField(this->libObjPtr());
-
-        if (libObjPtr) {
-            return _StructureField {libObjPtr};
-        }
-
-        return bt2s::nullopt;
+        return _Spec::specificContextField(this->libObjPtr());
     }
 
-    bt2s::optional<_StructureField> commonContextField() const noexcept
+    OptionalBorrowedObject<_StructureField> commonContextField() const noexcept
     {
-        const auto libObjPtr = _Spec::commonContextField(this->libObjPtr());
-
-        if (libObjPtr) {
-            return _StructureField {libObjPtr};
-        }
-
-        return bt2s::nullopt;
+        return _Spec::commonContextField(this->libObjPtr());
     }
 };
 
@@ -305,15 +288,9 @@ public:
 
     _Stream stream() const noexcept;
 
-    bt2s::optional<_StructureField> contextField() const noexcept
+    OptionalBorrowedObject<_StructureField> contextField() const noexcept
     {
-        const auto libObjPtr = _Spec::contextField(this->libObjPtr());
-
-        if (libObjPtr) {
-            return _StructureField {libObjPtr};
-        }
-
-        return bt2s::nullopt;
+        return _Spec::contextField(this->libObjPtr());
     }
 
     Shared shared() const noexcept
@@ -346,15 +323,10 @@ struct TypeDescr<ConstPacket> : public PacketTypeDescr
 } /* namespace internal */
 
 template <typename LibObjT>
-bt2s::optional<typename CommonEvent<LibObjT>::_Packet> CommonEvent<LibObjT>::packet() const noexcept
+OptionalBorrowedObject<typename CommonEvent<LibObjT>::_Packet>
+CommonEvent<LibObjT>::packet() const noexcept
 {
-    const auto libObjPtr = _Spec::packet(this->libObjPtr());
-
-    if (libObjPtr) {
-        return _Packet {libObjPtr};
-    }
-
-    return bt2s::nullopt;
+    return _Spec::packet(this->libObjPtr());
 }
 
 namespace internal {
@@ -711,15 +683,9 @@ public:
         return _Stream {_Spec::streamByIndex(this->libObjPtr(), index)};
     }
 
-    bt2s::optional<_Stream> streamById(const std::uint64_t id) const noexcept
+    OptionalBorrowedObject<_Stream> streamById(const std::uint64_t id) const noexcept
     {
-        const auto libObjPtr = _Spec::streamById(this->libObjPtr(), id);
-
-        if (libObjPtr) {
-            return _Stream {libObjPtr};
-        }
-
-        return bt2s::nullopt;
+        return _Spec::streamById(this->libObjPtr(), id);
     }
 
     void environmentEntry(const char * const name, const std::int64_t val) const
@@ -779,19 +745,12 @@ public:
         return ConstEnvironmentEntry {name, ConstValue {libObjPtr}};
     }
 
-    bt2s::optional<ConstValue> environmentEntry(const char * const name) const noexcept
+    OptionalBorrowedObject<ConstValue> environmentEntry(const char * const name) const noexcept
     {
-        const auto libObjPtr =
-            bt_trace_borrow_environment_entry_value_by_name_const(this->libObjPtr(), name);
-
-        if (libObjPtr) {
-            return ConstValue {libObjPtr};
-        }
-
-        return bt2s::nullopt;
+        return bt_trace_borrow_environment_entry_value_by_name_const(this->libObjPtr(), name);
     }
 
-    bt2s::optional<ConstValue> environmentEntry(const std::string& name) const noexcept
+    OptionalBorrowedObject<ConstValue> environmentEntry(const std::string& name) const noexcept
     {
         return this->environmentEntry(name.data());
     }
@@ -1056,15 +1015,9 @@ public:
         }
     }
 
-    bt2s::optional<_StructureFieldClass> payloadFieldClass() const noexcept
+    OptionalBorrowedObject<_StructureFieldClass> payloadFieldClass() const noexcept
     {
-        const auto libObjPtr = _Spec::payloadFieldClass(this->libObjPtr());
-
-        if (libObjPtr) {
-            return _StructureFieldClass {libObjPtr};
-        }
-
-        return bt2s::nullopt;
+        return _Spec::payloadFieldClass(this->libObjPtr());
     }
 
     void specificContextFieldClass(const StructureFieldClass fc) const
@@ -1079,15 +1032,9 @@ public:
         }
     }
 
-    bt2s::optional<_StructureFieldClass> specificContextFieldClass() const noexcept
+    OptionalBorrowedObject<_StructureFieldClass> specificContextFieldClass() const noexcept
     {
-        const auto libObjPtr = _Spec::specificContextFieldClass(this->libObjPtr());
-
-        if (libObjPtr) {
-            return _StructureFieldClass {libObjPtr};
-        }
-
-        return bt2s::nullopt;
+        return _Spec::specificContextFieldClass(this->libObjPtr());
     }
 
     template <typename LibValT>
@@ -1473,15 +1420,9 @@ public:
         BT_ASSERT(status == BT_STREAM_CLASS_SET_DEFAULT_CLOCK_CLASS_STATUS_OK);
     }
 
-    bt2s::optional<_ClockClass> defaultClockClass() const noexcept
+    OptionalBorrowedObject<_ClockClass> defaultClockClass() const noexcept
     {
-        const auto libObjPtr = _Spec::defaultClockClass(this->libObjPtr());
-
-        if (libObjPtr) {
-            return _ClockClass {libObjPtr};
-        }
-
-        return bt2s::nullopt;
+        return _Spec::defaultClockClass(this->libObjPtr());
     }
 
     std::uint64_t length() const noexcept
@@ -1494,15 +1435,9 @@ public:
         return _EventClass {_Spec::eventClassByIndex(this->libObjPtr(), index)};
     }
 
-    bt2s::optional<_EventClass> eventClassById(const std::uint64_t id) const noexcept
+    OptionalBorrowedObject<_EventClass> eventClassById(const std::uint64_t id) const noexcept
     {
-        const auto libObjPtr = _Spec::eventClassById(this->libObjPtr(), id);
-
-        if (libObjPtr) {
-            return _EventClass {libObjPtr};
-        }
-
-        return bt2s::nullopt;
+        return _Spec::eventClassById(this->libObjPtr(), id);
     }
 
     void packetContextFieldClass(const StructureFieldClass fc) const
@@ -1518,15 +1453,9 @@ public:
         }
     }
 
-    bt2s::optional<_StructureFieldClass> packetContextFieldClass() const noexcept
+    OptionalBorrowedObject<_StructureFieldClass> packetContextFieldClass() const noexcept
     {
-        const auto libObjPtr = _Spec::packetContextFieldClass(this->libObjPtr());
-
-        if (libObjPtr) {
-            return _StructureFieldClass {libObjPtr};
-        }
-
-        return bt2s::nullopt;
+        return _Spec::packetContextFieldClass(this->libObjPtr());
     }
 
     void eventCommonContextFieldClass(const StructureFieldClass fc) const
@@ -1542,15 +1471,9 @@ public:
         }
     }
 
-    bt2s::optional<_StructureFieldClass> eventCommonContextFieldClass() const noexcept
+    OptionalBorrowedObject<_StructureFieldClass> eventCommonContextFieldClass() const noexcept
     {
-        const auto libObjPtr = _Spec::eventCommonContextFieldClass(this->libObjPtr());
-
-        if (libObjPtr) {
-            return _StructureFieldClass {libObjPtr};
-        }
-
-        return bt2s::nullopt;
+        return _Spec::eventCommonContextFieldClass(this->libObjPtr());
     }
 
     template <typename LibValT>
@@ -1981,15 +1904,9 @@ public:
         return _StreamClass {_Spec::streamClassByIndex(this->libObjPtr(), index)};
     }
 
-    bt2s::optional<_StreamClass> streamClassById(const std::uint64_t id) const noexcept
+    OptionalBorrowedObject<_StreamClass> streamClassById(const std::uint64_t id) const noexcept
     {
-        const auto libObjPtr = _Spec::streamClassById(this->libObjPtr(), id);
-
-        if (libObjPtr) {
-            return _StreamClass {libObjPtr};
-        }
-
-        return bt2s::nullopt;
+        return _Spec::streamClassById(this->libObjPtr(), id);
     }
 
     template <typename LibValT>

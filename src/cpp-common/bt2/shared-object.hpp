@@ -7,8 +7,11 @@
 #ifndef BABELTRACE_CPP_COMMON_BT2_SHARED_OBJECT_HPP
 #define BABELTRACE_CPP_COMMON_BT2_SHARED_OBJECT_HPP
 
+#include <utility>
+
 #include "common/assert.h"
-#include "cpp-common/bt2s/optional.hpp"
+
+#include "optional-borrowed-object.hpp"
 
 namespace bt2 {
 
@@ -230,33 +233,21 @@ public:
         this->_putRef();
     }
 
-    ObjT& operator*() noexcept
+    ObjT operator*() const noexcept
     {
         BT_ASSERT_DBG(_mObj);
         return *_mObj;
     }
 
-    const ObjT& operator*() const noexcept
+    BorrowedObjectProxy<ObjT> operator->() const noexcept
     {
         BT_ASSERT_DBG(_mObj);
-        return *_mObj;
-    }
-
-    ObjT *operator->() noexcept
-    {
-        BT_ASSERT_DBG(_mObj);
-        return &*_mObj;
-    }
-
-    const ObjT *operator->() const noexcept
-    {
-        BT_ASSERT_DBG(_mObj);
-        return &*_mObj;
+        return _mObj.operator->();
     }
 
     operator bool() const noexcept
     {
-        return _mObj.has_value();
+        return _mObj.hasObject();
     }
 
     /*
@@ -304,9 +295,7 @@ private:
      */
     void _getRef() const noexcept
     {
-        if (_mObj) {
-            RefFuncsT::get(_mObj->libObjPtr());
-        }
+        RefFuncsT::get(_mObj.libObjPtr());
     }
 
     /*
@@ -315,12 +304,10 @@ private:
      */
     void _putRef() const noexcept
     {
-        if (_mObj) {
-            RefFuncsT::put(_mObj->libObjPtr());
-        }
+        RefFuncsT::put(_mObj.libObjPtr());
     }
 
-    bt2s::optional<ObjT> _mObj;
+    OptionalBorrowedObject<ObjT> _mObj;
 };
 
 } /* namespace bt2 */

@@ -21,6 +21,7 @@
 #include "field-path.hpp"
 #include "integer-range-set.hpp"
 #include "internal/utils.hpp"
+#include "optional-borrowed-object.hpp"
 #include "shared-object.hpp"
 #include "value.hpp"
 
@@ -851,19 +852,13 @@ public:
             this->libObjPtr(), index)};
     }
 
-    bt2s::optional<Mapping> operator[](const char * const label) const noexcept
+    OptionalBorrowedObject<Mapping> operator[](const char * const label) const noexcept
     {
-        const auto libObjPtr = internal::CommonEnumerationFieldClassSpec<MappingT>::mappingByLabel(
+        return internal::CommonEnumerationFieldClassSpec<MappingT>::mappingByLabel(
             this->libObjPtr(), label);
-
-        if (libObjPtr) {
-            return Mapping {libObjPtr};
-        }
-
-        return bt2s::nullopt;
     }
 
-    bt2s::optional<Mapping> operator[](const std::string& label) const noexcept
+    OptionalBorrowedObject<Mapping> operator[](const std::string& label) const noexcept
     {
         return (*this)[label.data()];
     }
@@ -1189,19 +1184,13 @@ public:
             this->libObjPtr(), index)};
     }
 
-    bt2s::optional<Member> operator[](const char * const name) const noexcept
+    OptionalBorrowedObject<Member> operator[](const char * const name) const noexcept
     {
-        const auto libObjPtr =
-            internal::CommonStructureFieldClassSpec<LibObjT>::memberByName(this->libObjPtr(), name);
-
-        if (libObjPtr) {
-            return Member {libObjPtr};
-        }
-
-        return bt2s::nullopt;
+        return internal::CommonStructureFieldClassSpec<LibObjT>::memberByName(this->libObjPtr(),
+                                                                              name);
     }
 
-    bt2s::optional<Member> operator[](const std::string& name) const noexcept
+    OptionalBorrowedObject<Member> operator[](const std::string& name) const noexcept
     {
         return (*this)[name.data()];
     }
@@ -2186,19 +2175,13 @@ public:
             this->libObjPtr(), index)};
     }
 
-    bt2s::optional<Option> operator[](const char * const name) const noexcept
+    OptionalBorrowedObject<Option> operator[](const char * const name) const noexcept
     {
-        const auto libObjPtr =
-            internal::CommonVariantFieldClassSpec<LibObjT>::optionByName(this->libObjPtr(), name);
-
-        if (libObjPtr) {
-            return Option {libObjPtr};
-        }
-
-        return bt2s::nullopt;
+        return internal::CommonVariantFieldClassSpec<LibObjT>::optionByName(this->libObjPtr(),
+                                                                            name);
     }
 
-    bt2s::optional<Option> operator[](const std::string& name) const noexcept
+    OptionalBorrowedObject<Option> operator[](const std::string& name) const noexcept
     {
         return (*this)[name.data()];
     }
@@ -2482,18 +2465,12 @@ public:
         return Option {_Spec::optionByIndex(this->libObjPtr(), index)};
     }
 
-    bt2s::optional<Option> operator[](const char * const name) const noexcept
+    OptionalBorrowedObject<Option> operator[](const char * const name) const noexcept
     {
-        const auto libObjPtr = _Spec::optionByName(this->libObjPtr(), name);
-
-        if (libObjPtr) {
-            return Option {libObjPtr};
-        }
-
-        return bt2s::nullopt;
+        return _Spec::optionByName(this->libObjPtr(), name);
     }
 
-    bt2s::optional<Option> operator[](const std::string& name) const noexcept
+    OptionalBorrowedObject<Option> operator[](const std::string& name) const noexcept
     {
         return (*this)[name.data()];
     }

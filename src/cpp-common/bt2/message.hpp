@@ -19,6 +19,7 @@
 
 #include "borrowed-object.hpp"
 #include "internal/utils.hpp"
+#include "optional-borrowed-object.hpp"
 #include "shared-object.hpp"
 
 namespace bt2 {
@@ -274,17 +275,17 @@ public:
         bt_message_stream_beginning_set_default_clock_snapshot(this->libObjPtr(), val);
     }
 
-    bt2s::optional<ConstClockSnapshot> defaultClockSnapshot() const noexcept
+    OptionalBorrowedObject<ConstClockSnapshot> defaultClockSnapshot() const noexcept
     {
         const bt_clock_snapshot *libObjPtr;
         const auto state = bt_message_stream_beginning_borrow_default_clock_snapshot_const(
             this->libObjPtr(), &libObjPtr);
 
         if (state == BT_MESSAGE_STREAM_CLOCK_SNAPSHOT_STATE_KNOWN) {
-            return ConstClockSnapshot {libObjPtr};
+            return libObjPtr;
         }
 
-        return bt2s::nullopt;
+        return {};
     }
 
     Shared shared() const noexcept
@@ -388,17 +389,17 @@ public:
         bt_message_stream_end_set_default_clock_snapshot(this->libObjPtr(), val);
     }
 
-    bt2s::optional<ConstClockSnapshot> defaultClockSnapshot() const noexcept
+    OptionalBorrowedObject<ConstClockSnapshot> defaultClockSnapshot() const noexcept
     {
         const bt_clock_snapshot *libObjPtr;
         const auto state = bt_message_stream_end_borrow_default_clock_snapshot_const(
             this->libObjPtr(), &libObjPtr);
 
         if (state == BT_MESSAGE_STREAM_CLOCK_SNAPSHOT_STATE_KNOWN) {
-            return ConstClockSnapshot {libObjPtr};
+            return libObjPtr;
         }
 
-        return bt2s::nullopt;
+        return {};
     }
 
     Shared shared() const noexcept
@@ -711,14 +712,9 @@ public:
         return _Event {internal::CommonEventMessageSpec<LibObjT>::event(this->libObjPtr())};
     }
 
-    bt2s::optional<ConstClockClass> streamClassDefaultClockClass() const noexcept
+    OptionalBorrowedObject<ConstClockClass> streamClassDefaultClockClass() const noexcept
     {
-        if (const auto libClkClsPtr =
-                bt_message_event_borrow_stream_class_default_clock_class_const(this->libObjPtr())) {
-            return ConstClockClass {libClkClsPtr};
-        }
-
-        return bt2s::nullopt;
+        return bt_message_event_borrow_stream_class_default_clock_class_const(this->libObjPtr());
     }
 
     ConstClockSnapshot defaultClockSnapshot() const noexcept

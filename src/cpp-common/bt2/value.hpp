@@ -15,12 +15,12 @@
 
 #include "common/assert.h"
 #include "common/common.h"
-#include "cpp-common/bt2s/optional.hpp"
 
 #include "borrowed-object-iterator.hpp"
 #include "borrowed-object.hpp"
 #include "exc.hpp"
 #include "internal/utils.hpp"
+#include "optional-borrowed-object.hpp"
 #include "raw-value-proxy.hpp"
 #include "shared-object.hpp"
 
@@ -241,7 +241,7 @@ public:
     }
 
     template <typename KeyT>
-    bt2s::optional<CommonValue<LibObjT>> operator[](KeyT&& key) const noexcept
+    OptionalBorrowedObject<CommonValue<LibObjT>> operator[](KeyT&& key) const noexcept
     {
         return this->asMap()[std::forward<KeyT>(key)];
     }
@@ -1285,19 +1285,12 @@ public:
         return this->length() == 0;
     }
 
-    bt2s::optional<CommonValue<LibObjT>> operator[](const char * const key) const noexcept
+    OptionalBorrowedObject<CommonValue<LibObjT>> operator[](const char * const key) const noexcept
     {
-        const auto libObjPtr =
-            internal::CommonMapValueSpec<LibObjT>::entryByKey(this->libObjPtr(), key);
-
-        if (!libObjPtr) {
-            return bt2s::nullopt;
-        }
-
-        return CommonValue<LibObjT> {libObjPtr};
+        return internal::CommonMapValueSpec<LibObjT>::entryByKey(this->libObjPtr(), key);
     }
 
-    bt2s::optional<CommonValue<LibObjT>> operator[](const std::string& key) const noexcept
+    OptionalBorrowedObject<CommonValue<LibObjT>> operator[](const std::string& key) const noexcept
     {
         return (*this)[key.data()];
     }
