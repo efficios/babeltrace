@@ -172,9 +172,13 @@ class TraceClassTestCase(unittest.TestCase):
 
     def test_destruction_listener(self):
         def on_trace_class_destruction(trace_class):
+            nonlocal type_of_passed_trace_class
+            type_of_passed_trace_class = type(trace_class)
+
             nonlocal num_destruct_calls
             num_destruct_calls += 1
 
+        type_of_passed_trace_class = None
         num_destruct_calls = 0
 
         trace_class = get_default_trace_class()
@@ -191,6 +195,7 @@ class TraceClassTestCase(unittest.TestCase):
         del trace_class
 
         self.assertEqual(num_destruct_calls, 1)
+        self.assertIs(type_of_passed_trace_class, bt2_trace_class._TraceClassConst)
 
     def test_remove_destruction_listener_wrong_type(self):
         trace_class = get_default_trace_class()
