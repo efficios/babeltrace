@@ -118,6 +118,12 @@ void bt_message_iterator_destroy(struct bt_object *obj)
 		"%!+i", iterator);
 	bt_message_iterator_try_finalize(iterator);
 
+	if (iterator->clock_expectation.type ==
+			CLOCK_EXPECTATION_ORIGIN_OTHER_NO_UUID) {
+		BT_CLOCK_CLASS_PUT_REF_AND_RESET(
+			iterator->clock_expectation.clock_class);
+	}
+
 	if (iterator->connection) {
 		/*
 		 * Remove ourself from the originating connection so
@@ -700,6 +706,8 @@ bool clock_classes_are_compatible_one(struct bt_message_iterator *iterator,
 				bt_uuid_copy(iterator->clock_expectation.uuid, clock_class_uuid);
 			} else {
 				iterator->clock_expectation.type = CLOCK_EXPECTATION_ORIGIN_OTHER_NO_UUID;
+				iterator->clock_expectation.clock_class = clock_class;
+				bt_clock_class_get_ref(iterator->clock_expectation.clock_class);
 			}
 			break;
 
@@ -768,26 +776,21 @@ bool clock_classes_are_compatible_one(struct bt_message_iterator *iterator,
 		case CLOCK_EXPECTATION_ORIGIN_OTHER_NO_UUID:
 			if (!clock_class) {
 				BT_ASSERT_COND_DEV_MSG(
-					"Expecting a clock class, got none.");
+					"Expecting clock class %![cc-]+K, got none.",
+					iterator->clock_expectation.clock_class);
 				result = false;
 				goto end;
 			}
 
-			if (bt_clock_class_origin_is_unix_epoch(clock_class)) {
+			if (clock_class != iterator->clock_expectation.clock_class) {
 				BT_ASSERT_COND_DEV_MSG(
-					"Expecting a clock class without Unix epoch origin: %![cc-]+K",
+					"Expecting clock class %![cc-]+K, got %![cc-]+K.",
+					iterator->clock_expectation.clock_class,
 					clock_class);
 				result = false;
 				goto end;
 			}
 
-			if (clock_class_uuid) {
-				BT_ASSERT_COND_DEV_MSG(
-					"Expecting a clock class without UUID: %![cc-]+K",
-					clock_class);
-				result = false;
-				goto end;
-			}
 			break;
 		}
 	}
