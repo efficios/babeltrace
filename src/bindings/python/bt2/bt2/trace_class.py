@@ -36,7 +36,7 @@ import bt2
 def _trace_class_destruction_listener_from_native(
     user_listener, handle, trace_class_ptr
 ):
-    trace_class = _TraceClass._create_from_ptr_and_get_ref(trace_class_ptr)
+    trace_class = _TraceClassConst._create_from_ptr_and_get_ref(trace_class_ptr)
     user_listener(trace_class)
     handle._invalidate()
 

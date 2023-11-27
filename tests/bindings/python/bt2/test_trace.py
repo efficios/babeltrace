@@ -149,11 +149,15 @@ class TraceTestCase(unittest.TestCase):
             num_trace_class_destroyed_calls += 1
 
         def on_trace_destruction(trace):
+            nonlocal type_of_passed_trace
+            type_of_passed_trace = type(trace)
+
             nonlocal num_trace_destroyed_calls
             num_trace_destroyed_calls += 1
 
         num_trace_class_destroyed_calls = 0
         num_trace_destroyed_calls = 0
+        type_of_passed_trace = None
 
         trace_class = get_default_trace_class()
         stream_class = trace_class.create_stream_class()
@@ -180,6 +184,7 @@ class TraceTestCase(unittest.TestCase):
 
         self.assertEqual(num_trace_class_destroyed_calls, 0)
         self.assertEqual(num_trace_destroyed_calls, 1)
+        self.assertIs(type_of_passed_trace, bt2_trace._TraceConst)
 
         del trace_class
 
