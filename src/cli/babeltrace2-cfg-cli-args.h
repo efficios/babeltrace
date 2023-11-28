@@ -10,10 +10,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <babeltrace2/value.h>
 #include "lib/object.h"
 #include "compat/compiler.h"
-#include <babeltrace2/graph/component.h>
 #include <glib.h>
 
 #include "babeltrace2-cfg.h"

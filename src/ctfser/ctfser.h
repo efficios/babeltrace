@@ -24,7 +24,6 @@
 #include "compat/endian.h"
 #include "common/common.h"
 #include "common/mmap-align.h"
-#include <babeltrace2/types.h>
 #include "common/assert.h"
 #include "common/macros.h"
 #include "compat/bitfield.h"

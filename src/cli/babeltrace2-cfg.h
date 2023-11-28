@@ -12,10 +12,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <babeltrace2/value.h>
 #include "lib/object.h"
 #include "compat/compiler.h"
-#include <babeltrace2/graph/component-class.h>
 #include <glib.h>
 
 enum bt_config_command {

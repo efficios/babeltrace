@@ -13,7 +13,6 @@
 #include <inttypes.h>
 
 #include <babeltrace2-ctf-writer/object.h>
-#include <babeltrace2/types.h>
 
 #include "common/assert.h"
 #include "common/common.h"

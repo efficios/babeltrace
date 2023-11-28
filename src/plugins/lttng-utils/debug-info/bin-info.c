@@ -11,7 +11,6 @@
 #define BT_LOG_TAG "PLUGIN/FLT.LTTNG-UTILS.DEBUG-INFO/BIN-INFO"
 #include "logging/comp-logging.h"
 
-#include <babeltrace2/logging.h>
 #include <dwarf.h>
 #include <errno.h>
 #include <fcntl.h>
