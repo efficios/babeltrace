@@ -246,7 +246,7 @@ const char *bt_get_home_dir(int log_level __attribute__((unused)))
 }
 #else /* __MINGW32__ */
 static
-char *bt_secure_getenv(const char *name, int log_level)
+char *bt_secure_getenv(const char *name, int log_level __attribute__((unused)))
 {
 	if (bt_common_is_setuid_setgid()) {
 		BT_LOGD("Disregarding environment variable for setuid/setgid binary: "
