@@ -11,8 +11,9 @@
 
 #include <babeltrace2/babeltrace.h>
 #include <common/assert.h>
-#include <tap/tap.h>
 #include <stdbool.h>
+
+#include "tap/tap.h"
 
 #define NR_TESTS 16
 

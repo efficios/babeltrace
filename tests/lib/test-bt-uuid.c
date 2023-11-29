@@ -7,9 +7,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <tap/tap.h>
-
 #include "common/uuid.h"
+
+#include "tap/tap.h"
 
 #define NR_TESTS 23
 
