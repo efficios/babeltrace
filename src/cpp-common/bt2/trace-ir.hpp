@@ -7,19 +7,21 @@
 #ifndef BABELTRACE_CPP_COMMON_BT2_TRACE_IR_HPP
 #define BABELTRACE_CPP_COMMON_BT2_TRACE_IR_HPP
 
-#include <type_traits>
 #include <cstdint>
+#include <type_traits>
+
 #include <babeltrace2/babeltrace.h>
 
-#include "internal/borrowed-obj.hpp"
 #include "cpp-common/optional.hpp"
 #include "cpp-common/string_view.hpp"
+
 #include "clock-class.hpp"
 #include "clock-snapshot.hpp"
 #include "field-class.hpp"
 #include "field.hpp"
-#include "value.hpp"
+#include "internal/borrowed-obj.hpp"
 #include "internal/utils.hpp"
+#include "value.hpp"
 
 namespace bt2 {
 

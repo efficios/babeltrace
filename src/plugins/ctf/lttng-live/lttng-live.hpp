@@ -11,14 +11,14 @@
 #ifndef BABELTRACE_PLUGIN_CTF_LTTNG_LIVE_H
 #define BABELTRACE_PLUGIN_CTF_LTTNG_LIVE_H
 
+#include <glib.h>
 #include <stdbool.h>
 #include <stdint.h>
-
-#include <glib.h>
 
 #include <babeltrace2/babeltrace.h>
 
 #include "common/macros.h"
+
 #include "../common/metadata/decoder.hpp"
 #include "../common/msg-iter/msg-iter.hpp"
 #include "viewer-connection.hpp"

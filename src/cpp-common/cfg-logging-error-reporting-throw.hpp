@@ -10,6 +10,7 @@
 #define BABELTRACE_CPP_COMMON_CFG_LOGGING_ERROR_REPORTING_THROW_HPP
 
 #include <babeltrace2/babeltrace.h>
+
 #include "cfg-logging-error-reporting.hpp"
 
 /*

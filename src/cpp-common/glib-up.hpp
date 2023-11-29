@@ -7,8 +7,9 @@
 #ifndef BABELTRACE_CPP_COMMON_GLIB_UP_HPP
 #define BABELTRACE_CPP_COMMON_GLIB_UP_HPP
 
-#include <glib.h>
 #include <memory>
+
+#include <glib.h>
 
 namespace bt2_common {
 namespace internal {

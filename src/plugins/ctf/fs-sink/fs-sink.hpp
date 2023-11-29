@@ -7,10 +7,12 @@
 #ifndef BABELTRACE_PLUGIN_CTF_FS_SINK_FS_SINK_H
 #define BABELTRACE_PLUGIN_CTF_FS_SINK_FS_SINK_H
 
-#include "common/macros.h"
-#include <babeltrace2/babeltrace.h>
-#include <stdbool.h>
 #include <glib.h>
+#include <stdbool.h>
+
+#include <babeltrace2/babeltrace.h>
+
+#include "common/macros.h"
 
 struct fs_sink_comp
 {

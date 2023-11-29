@@ -7,10 +7,9 @@
 #ifndef LTTNG_LIVE_DATA_STREAM_H
 #define LTTNG_LIVE_DATA_STREAM_H
 
-#include <stdio.h>
-#include <stdint.h>
-
 #include <glib.h>
+#include <stdint.h>
+#include <stdio.h>
 
 #include "../common/msg-iter/msg-iter.hpp"
 #include "lttng-live.hpp"

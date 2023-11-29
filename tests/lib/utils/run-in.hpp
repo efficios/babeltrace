@@ -7,8 +7,9 @@
 #ifndef TESTS_LIB_UTILS_H
 #define TESTS_LIB_UTILS_H
 
-#include <babeltrace2/babeltrace.h>
 #include <functional>
+
+#include <babeltrace2/babeltrace.h>
 
 using RunInCompClsQueryFunc = std::function<void(bt_self_component_class *)>;
 using RunInCompClsInitFunc = std::function<void(bt_self_component *)>;

@@ -7,22 +7,22 @@
  * Copyright 2010-2011 EfficiOS Inc. and Linux Foundation
  */
 
+#include <glib.h>
+#include <inttypes.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <babeltrace2/babeltrace.h>
+
 #define BT_COMP_LOG_SELF_COMP self_comp
 #define BT_LOG_OUTPUT_LEVEL   log_level
 #define BT_LOG_TAG            "PLUGIN/SRC.CTF.LTTNG-LIVE/DS"
 #include "logging/comp-logging.h"
 
-#include <inttypes.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-#include <glib.h>
-
-#include <babeltrace2/babeltrace.h>
-
-#include "../common/msg-iter/msg-iter.hpp"
 #include "common/assert.h"
 #include "compat/mman.h"
+
+#include "../common/msg-iter/msg-iter.hpp"
 #include "data-stream.hpp"
 
 #define STREAM_NAME_PREFIX "stream-"

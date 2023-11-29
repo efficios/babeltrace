@@ -5,27 +5,28 @@
  * Copyright 2015 Jérémie Galarneau <jeremie.galarneau@efficios.com>
  */
 
+#include <glib.h>
+#include <inttypes.h>
+#include <limits.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include <babeltrace2/babeltrace.h>
+
 #define BT_COMP_LOG_SELF_COMP       (ctx->self_comp)
 #define BT_COMP_LOG_SELF_COMP_CLASS (ctx->self_comp_class)
 #define BT_LOG_OUTPUT_LEVEL         (ctx->log_level)
 #define BT_LOG_TAG                  "PLUGIN/CTF/META/RESOLVE"
+#include "logging.hpp"
 #include "logging/comp-logging.h"
 
-#include <babeltrace2/babeltrace.h>
-#include "common/macros.h"
 #include "common/assert.h"
 #include "common/common.h"
-#include <glib.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <string.h>
-#include <inttypes.h>
-#include <limits.h>
-#include <stdlib.h>
-#include <glib.h>
+#include "common/macros.h"
 
 #include "ctf-meta-visitors.hpp"
-#include "logging.hpp"
 
 using field_class_stack_t = GPtrArray;
 

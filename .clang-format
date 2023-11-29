@@ -79,7 +79,33 @@ ForEachMacros: [
   'bt_list_for_each_prev',
   'bt_list_for_each_prev_safe',
 ]
-IncludeBlocks: Preserve
+IncludeBlocks: Regroup
+IncludeCategories:
+  # Babeltrace 2 public headers
+  - Regex: '^<babeltrace2/.+>$'
+    Priority: 3
+  # System C headers
+  - Regex: '^<.+\.h>$'
+    Priority: 2
+  # System C++ headers
+  - Regex: '^<.+>$'
+    Priority: 1
+  # Logging headers
+  - Regex: '^"(logging\.hpp|logging/comp-logging\.h|logging/log\.h)"$'
+    Priority: 4
+  # Common headers
+  - Regex: '^"(argpar|autodisc|common|compat|cpp-common|ctfser|fd-cache|param-parse|py-common|logging|string-format)/.+"$'
+    Priority: 5
+  # Plugins common headers
+  - Regex: '^"plugins/common/.+"$'
+    Priority: 6
+  # tap header file
+  - Regex: '^"(tap/)?tap\.h"$'
+    Priority: 8
+  # The rest (local headers)
+  - Regex: '.+'
+    Priority: 7
+IncludeIsMainRegex: "please_dont_do_that"
 IndentAccessModifiers: false
 IndentCaseBlocks: false
 IndentCaseLabels: false
@@ -98,7 +124,7 @@ PPIndentWidth: 4
 PointerAlignment: Right
 ReferenceAlignment: Left
 ReflowComments: false
-SortIncludes: false
+SortIncludes: CaseInsensitive
 SortUsingDeclarations: false
 SpaceAfterCStyleCast: true
 SpaceAfterLogicalNot: false

@@ -7,16 +7,18 @@
 #ifndef _CTF_AST_H
 #define _CTF_AST_H
 
+#include <glib.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <glib.h>
-#include "common/list.h"
-#include <babeltrace2/babeltrace.h>
-#include "common/macros.h"
-#include "common/assert.h"
 
-#include "decoder.hpp"
+#include <babeltrace2/babeltrace.h>
+
+#include "common/assert.h"
+#include "common/list.h"
+#include "common/macros.h"
+
 #include "ctf-meta.hpp"
+#include "decoder.hpp"
 
 // the parameter name (of the reentrant 'yyparse' function)
 // data is a pointer to a 'SParserParam' structure

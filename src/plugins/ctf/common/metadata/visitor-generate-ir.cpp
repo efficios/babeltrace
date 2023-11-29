@@ -7,34 +7,37 @@
  * Common Trace Format metadata visitor (generates CTF IR objects).
  */
 
+#include <string>
+
+#include <ctype.h>
+#include <errno.h>
+#include <glib.h>
+#include <inttypes.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+#include <babeltrace2/babeltrace.h>
+
 #define BT_COMP_LOG_SELF_COMP       (ctx->log_cfg.self_comp)
 #define BT_COMP_LOG_SELF_COMP_CLASS (ctx->log_cfg.self_comp_class)
 #define BT_LOG_OUTPUT_LEVEL         (ctx->log_cfg.log_level)
 #define BT_LOG_TAG                  "PLUGIN/CTF/META/IR-VISITOR"
+#include "logging.hpp"
 #include "logging/comp-logging.h"
 
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <ctype.h>
 #include "common/assert.h"
-#include <glib.h>
-#include <inttypes.h>
-#include <errno.h>
-#include <string>
 #include "common/common.h"
 #include "common/uuid.h"
 #include "compat/endian.h"
-#include <babeltrace2/babeltrace.h>
 
-#include "logging.hpp"
-#include "scanner.hpp"
 #include "ast.hpp"
-#include "decoder.hpp"
-#include "ctf-meta.hpp"
 #include "ctf-meta-visitors.hpp"
+#include "ctf-meta.hpp"
+#include "decoder.hpp"
+#include "scanner.hpp"
 
 /* Bit value (left shift) */
 #define _BV(_val) (1 << (_val))

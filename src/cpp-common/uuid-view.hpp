@@ -7,10 +7,10 @@
 #ifndef BABELTRACE_CPP_COMMON_UUID_VIEW_HPP
 #define BABELTRACE_CPP_COMMON_UUID_VIEW_HPP
 
+#include <algorithm>
 #include <array>
 #include <cstdint>
 #include <string>
-#include <algorithm>
 
 #include "common/assert.h"
 #include "common/uuid.h"

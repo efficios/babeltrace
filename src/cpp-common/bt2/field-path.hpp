@@ -8,9 +8,11 @@
 #define BABELTRACE_CPP_COMMON_BT2_FIELD_PATH_HPP
 
 #include <cstdint>
+
 #include <babeltrace2/babeltrace.h>
 
 #include "common/assert.h"
+
 #include "common-iter.hpp"
 #include "internal/borrowed-obj.hpp"
 #include "internal/shared-obj.hpp"

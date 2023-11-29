@@ -10,6 +10,7 @@
 #include <glib.h>
 
 #include "common/macros.h"
+
 #include "fs-sink-ctf-meta.hpp"
 
 void translate_trace_ctf_ir_to_tsdl(struct fs_sink_ctf_trace *trace, GString *tsdl);

@@ -4,18 +4,19 @@
  * Copyright 2019 Philippe Proulx <pproulx@efficios.com>
  */
 
-#include "translate-ctf-ir-to-tsdl.hpp"
+#include <glib.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
 
 #include <babeltrace2/babeltrace.h>
-#include "common/macros.h"
-#include <stdio.h>
-#include <stdbool.h>
-#include <string.h>
-#include <glib.h>
+
 #include "common/assert.h"
+#include "common/macros.h"
 #include "compat/endian.h"
 
 #include "fs-sink-ctf-meta.hpp"
+#include "translate-ctf-ir-to-tsdl.hpp"
 
 struct ctx
 {

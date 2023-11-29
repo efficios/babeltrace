@@ -7,14 +7,16 @@
 #ifndef _CTF_META_H
 #define _CTF_META_H
 
-#include <babeltrace2/babeltrace.h>
-#include "common/common.h"
-#include "common/uuid.h"
-#include "common/assert.h"
 #include <glib.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
+
+#include <babeltrace2/babeltrace.h>
+
+#include "common/assert.h"
+#include "common/common.h"
+#include "common/uuid.h"
 
 enum ctf_field_class_type
 {

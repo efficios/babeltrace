@@ -9,8 +9,9 @@
 #define BABELTRACE_CPP_COMMON_CFG_LOGGING_ERROR_REPORTING_HPP
 
 #include <babeltrace2/babeltrace.h>
-#include "cfg-logging.hpp"
+
 #include "cfg-error-reporting.hpp"
+#include "cfg-logging.hpp"
 
 /*
  * Logs with the error level using the configuration `_log_cfg` and

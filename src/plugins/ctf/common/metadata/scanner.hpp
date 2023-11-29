@@ -8,7 +8,9 @@
 #define _CTF_SCANNER_H
 
 #include <stdio.h>
+
 #include "common/macros.h"
+
 #include "ast.hpp"
 
 #ifndef YY_TYPEDEF_YY_SCANNER_T

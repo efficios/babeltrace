@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include "uuid.hpp"
 #include "uuid-view.hpp"
+#include "uuid.hpp"
 
 namespace bt2_common {
 

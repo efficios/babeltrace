@@ -7,12 +7,14 @@
 #ifndef BABELTRACE_PLUGIN_CTF_FS_SINK_FS_SINK_STREAM_H
 #define BABELTRACE_PLUGIN_CTF_FS_SINK_FS_SINK_STREAM_H
 
-#include "common/macros.h"
-#include <babeltrace2/babeltrace.h>
-#include "ctfser/ctfser.h"
 #include <glib.h>
 #include <stdbool.h>
 #include <stdint.h>
+
+#include <babeltrace2/babeltrace.h>
+
+#include "common/macros.h"
+#include "ctfser/ctfser.h"
 
 #include "fs-sink-ctf-meta.hpp"
 

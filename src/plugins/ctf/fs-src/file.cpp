@@ -4,16 +4,17 @@
  * Copyright 2016 Philippe Proulx <pproulx@efficios.com>
  */
 
+#include <glib.h>
+#include <stdio.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 #define BT_COMP_LOG_SELF_COMP (file->self_comp)
 #define BT_LOG_OUTPUT_LEVEL   (file->log_level)
 #define BT_LOG_TAG            "PLUGIN/SRC.CTF.FS/FILE"
 #include "logging/comp-logging.h"
 
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <glib.h>
 #include "file.hpp"
 
 void ctf_fs_file_destroy(struct ctf_fs_file *file)

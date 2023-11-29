@@ -8,8 +8,8 @@
 #define BABELTRACE_CPP_COMMON_MAKE_UNIQUE_HPP
 
 #include <memory>
-#include <utility>
 #include <type_traits>
+#include <utility>
 
 namespace bt2_common {
 

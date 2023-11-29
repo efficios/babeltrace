@@ -7,11 +7,10 @@
 #ifndef LTTNG_LIVE_VIEWER_CONNECTION_H
 #define LTTNG_LIVE_VIEWER_CONNECTION_H
 
+#include <glib.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-
-#include <glib.h>
 
 #include <babeltrace2/babeltrace.h>
 

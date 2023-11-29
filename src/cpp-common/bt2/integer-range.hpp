@@ -7,8 +7,9 @@
 #ifndef BABELTRACE_CPP_COMMON_BT2_INTEGER_RANGE_HPP
 #define BABELTRACE_CPP_COMMON_BT2_INTEGER_RANGE_HPP
 
-#include <type_traits>
 #include <cstdint>
+#include <type_traits>
+
 #include <babeltrace2/babeltrace.h>
 
 #include "internal/borrowed-obj.hpp"

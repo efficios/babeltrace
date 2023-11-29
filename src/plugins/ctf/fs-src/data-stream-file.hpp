@@ -7,11 +7,13 @@
 #ifndef CTF_FS_DS_FILE_H
 #define CTF_FS_DS_FILE_H
 
-#include <stdio.h>
-#include <stdbool.h>
 #include <glib.h>
-#include "common/macros.h"
+#include <stdbool.h>
+#include <stdio.h>
+
 #include <babeltrace2/babeltrace.h>
+
+#include "common/macros.h"
 
 #include "../common/msg-iter/msg-iter.hpp"
 #include "lttng-index.hpp"

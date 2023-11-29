@@ -4,23 +4,25 @@
  * Copyright 2019 Philippe Proulx <pproulx@efficios.com>
  */
 
+#include <glib.h>
+#include <stdbool.h>
+#include <stdio.h>
+
+#include <babeltrace2/babeltrace.h>
+
 #define BT_COMP_LOG_SELF_COMP (trace->fs_sink->self_comp)
 #define BT_LOG_OUTPUT_LEVEL   (trace->log_level)
 #define BT_LOG_TAG            "PLUGIN/SINK.CTF.FS/TRACE"
 #include "logging/comp-logging.h"
 
-#include <babeltrace2/babeltrace.h>
-#include <stdio.h>
-#include <stdbool.h>
-#include <glib.h>
 #include "common/assert.h"
 #include "ctfser/ctfser.h"
 
-#include "translate-trace-ir-to-ctf-ir.hpp"
-#include "translate-ctf-ir-to-tsdl.hpp"
-#include "fs-sink.hpp"
-#include "fs-sink-trace.hpp"
 #include "fs-sink-stream.hpp"
+#include "fs-sink-trace.hpp"
+#include "fs-sink.hpp"
+#include "translate-ctf-ir-to-tsdl.hpp"
+#include "translate-trace-ir-to-ctf-ir.hpp"
 
 /*
  * Sanitizes `path` so as to:

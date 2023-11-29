@@ -8,9 +8,9 @@
 #define BABELTRACE_CPP_COMMON_EXC_HPP
 
 #include <exception>
-#include <string>
 #include <new>
 #include <stdexcept>
+#include <string>
 
 namespace bt2_common {
 

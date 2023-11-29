@@ -7,15 +7,17 @@
 #ifndef BABELTRACE_PLUGIN_CTF_FS_SINK_FS_SINK_CTF_META_H
 #define BABELTRACE_PLUGIN_CTF_FS_SINK_FS_SINK_CTF_META_H
 
-#include <babeltrace2/babeltrace.h>
-#include "common/common.h"
-#include "common/assert.h"
-#include "common/uuid.h"
+#include <ctype.h>
 #include <glib.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include <stdbool.h>
-#include <ctype.h>
+
+#include <babeltrace2/babeltrace.h>
+
+#include "common/assert.h"
+#include "common/common.h"
+#include "common/uuid.h"
 
 enum fs_sink_ctf_field_class_type
 {

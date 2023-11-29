@@ -11,10 +11,12 @@
 #define CTF_MSG_ITER_H
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stddef.h>
+
 #include <babeltrace2/babeltrace.h>
+
 #include "common/macros.h"
 
 #include "../metadata/ctf-meta.hpp"

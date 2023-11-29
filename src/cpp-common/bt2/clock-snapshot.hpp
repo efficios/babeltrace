@@ -8,10 +8,11 @@
 #define BABELTRACE_CPP_COMMON_BT2_CLOCK_SNAPSHOT_HPP
 
 #include <cstdint>
+
 #include <babeltrace2/babeltrace.h>
 
-#include "internal/borrowed-obj.hpp"
 #include "exc.hpp"
+#include "internal/borrowed-obj.hpp"
 
 namespace bt2 {
 

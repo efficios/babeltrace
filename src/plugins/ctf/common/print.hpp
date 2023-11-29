@@ -10,6 +10,7 @@
 #define CTF_BTR_PRINT_H
 
 #include <stdio.h>
+
 #include "common/macros.h"
 
 #define PERR(fmt, ...)                                                                             \

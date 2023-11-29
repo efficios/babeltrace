@@ -4,25 +4,27 @@
  * Copyright 2019 Philippe Proulx <pproulx@efficios.com>
  */
 
+#include <string>
+
+#include <glib.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
+
+#include <babeltrace2/babeltrace.h>
+
 #define BT_COMP_LOG_SELF_COMP (ctx->self_comp)
 #define BT_LOG_OUTPUT_LEVEL   (ctx->log_level)
 #define BT_LOG_TAG            "PLUGIN/SINK.CTF.FS/TRANSLATE-TRACE-IR-TO-CTF-IR"
 #include "logging/comp-logging.h"
 
-#include "translate-trace-ir-to-ctf-ir.hpp"
-
-#include <babeltrace2/babeltrace.h>
-#include "common/macros.h"
-#include "common/common.h"
 #include "common/assert.h"
-#include <stdio.h>
-#include <stdbool.h>
-#include <string.h>
-#include <string>
-#include <glib.h>
+#include "common/common.h"
+#include "common/macros.h"
 
-#include "fs-sink.hpp"
 #include "fs-sink-ctf-meta.hpp"
+#include "fs-sink.hpp"
+#include "translate-trace-ir-to-ctf-ir.hpp"
 
 struct field_path_elem
 {

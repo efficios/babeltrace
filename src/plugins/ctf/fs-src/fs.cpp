@@ -7,27 +7,31 @@
  * Babeltrace CTF file system Reader Component
  */
 
+#include <glib.h>
+#include <inttypes.h>
+#include <stdbool.h>
+
+#include <babeltrace2/babeltrace.h>
+
 #define BT_COMP_LOG_SELF_COMP self_comp
 #define BT_LOG_OUTPUT_LEVEL   log_level
 #define BT_LOG_TAG            "PLUGIN/SRC.CTF.FS"
 #include "logging/comp-logging.h"
 
-#include "common/common.h"
-#include <babeltrace2/babeltrace.h>
-#include "common/uuid.h"
-#include <glib.h>
 #include "common/assert.h"
-#include <inttypes.h>
-#include <stdbool.h>
-#include "fs.hpp"
-#include "metadata.hpp"
+#include "common/common.h"
+#include "common/uuid.h"
+
+#include "plugins/common/param-validation/param-validation.h"
+
+#include "../common/metadata/ctf-meta-configure-ir-trace.hpp"
+#include "../common/metadata/decoder.hpp"
+#include "../common/msg-iter/msg-iter.hpp"
 #include "data-stream-file.hpp"
 #include "file.hpp"
-#include "../common/metadata/decoder.hpp"
-#include "../common/metadata/ctf-meta-configure-ir-trace.hpp"
-#include "../common/msg-iter/msg-iter.hpp"
+#include "fs.hpp"
+#include "metadata.hpp"
 #include "query.hpp"
-#include "plugins/common/param-validation/param-validation.h"
 
 struct tracer_info
 {

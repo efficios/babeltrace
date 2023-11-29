@@ -6,25 +6,28 @@
  * Babeltrace CTF file system Reader Component queries
  */
 
-#define BT_LOG_OUTPUT_LEVEL log_level
-#define BT_LOG_TAG          "PLUGIN/SRC.CTF.FS/QUERY"
-#include "logging/log.h"
-
-#include "query.hpp"
-#include <stdbool.h>
+#include <fcntl.h>
 #include <glib.h>
 #include <glib/gstdio.h>
-#include <fcntl.h>
-#include <sys/types.h>
+#include <stdbool.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+
+#include <babeltrace2/babeltrace.h>
+
+#define BT_LOG_OUTPUT_LEVEL log_level
+#define BT_LOG_TAG          "PLUGIN/SRC.CTF.FS/QUERY"
+#include "logging/comp-logging.h"
+#include "logging/log.h"
+
 #include "common/assert.h"
-#include "metadata.hpp"
-#include "../common/metadata/decoder.hpp"
 #include "common/common.h"
 #include "common/macros.h"
-#include <babeltrace2/babeltrace.h>
+
+#include "../common/metadata/decoder.hpp"
 #include "fs.hpp"
-#include "logging/comp-logging.h"
+#include "metadata.hpp"
+#include "query.hpp"
 
 #define METADATA_TEXT_SIG "/* CTF 1.8"
 

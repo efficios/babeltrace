@@ -5,12 +5,8 @@
  * Copyright 2016 Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  */
 
-#define BT_COMP_LOG_SELF_COMP (viewer_connection->self_comp)
-#define BT_LOG_OUTPUT_LEVEL   (viewer_connection->log_level)
-#define BT_LOG_TAG            "PLUGIN/SRC.CTF.LTTNG-LIVE/VIEWER"
-#include "logging/comp-logging.h"
-
 #include <fcntl.h>
+#include <glib.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -18,19 +14,23 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <glib.h>
-
-#include "compat/socket.h"
-#include "compat/endian.h"
-#include "compat/compiler.h"
-#include "common/common.h"
 #include <babeltrace2/babeltrace.h>
 
-#include "lttng-live.hpp"
-#include "viewer-connection.hpp"
-#include "lttng-viewer-abi.hpp"
+#define BT_COMP_LOG_SELF_COMP (viewer_connection->self_comp)
+#define BT_LOG_OUTPUT_LEVEL   (viewer_connection->log_level)
+#define BT_LOG_TAG            "PLUGIN/SRC.CTF.LTTNG-LIVE/VIEWER"
+#include "logging/comp-logging.h"
+
+#include "common/common.h"
+#include "compat/compiler.h"
+#include "compat/endian.h"
+#include "compat/socket.h"
+
 #include "data-stream.hpp"
+#include "lttng-live.hpp"
+#include "lttng-viewer-abi.hpp"
 #include "metadata.hpp"
+#include "viewer-connection.hpp"
 
 #define viewer_handle_send_recv_status(_self_comp, _self_comp_class, _status, _action, _msg_str)   \
     do {                                                                                           \

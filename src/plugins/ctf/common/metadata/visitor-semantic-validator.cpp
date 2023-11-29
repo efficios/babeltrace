@@ -6,23 +6,25 @@
  * Common Trace Format Metadata Semantic Validator.
  */
 
+#include <errno.h>
+#include <glib.h>
+#include <inttypes.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
 #define BT_COMP_LOG_SELF_COMP (log_cfg->self_comp)
 #define BT_LOG_OUTPUT_LEVEL   (log_cfg->log_level)
 #define BT_LOG_TAG            "PLUGIN/CTF/META/SEMANTIC-VALIDATOR-VISITOR"
+#include "logging.hpp"
 #include "logging/comp-logging.h"
 
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdlib.h>
 #include "common/assert.h"
-#include <glib.h>
-#include <inttypes.h>
-#include <errno.h>
 #include "common/list.h"
-#include "scanner.hpp"
+
 #include "ast.hpp"
-#include "logging.hpp"
+#include "scanner.hpp"
 
 #define _bt_list_first_entry(ptr, type, member) bt_list_entry((ptr)->next, type, member)
 

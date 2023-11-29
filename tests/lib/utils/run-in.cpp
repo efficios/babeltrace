@@ -6,8 +6,9 @@
 
 #include <utility>
 
-#include "run-in.hpp"
 #include "common/assert.h"
+
+#include "run-in.hpp"
 
 namespace {
 

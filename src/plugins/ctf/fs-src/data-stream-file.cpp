@@ -6,27 +6,29 @@
  * Copyright 2010-2011 EfficiOS Inc. and Linux Foundation
  */
 
+#include <glib.h>
+#include <inttypes.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include <babeltrace2/babeltrace.h>
+
 #define BT_COMP_LOG_SELF_COMP (self_comp)
 #define BT_LOG_OUTPUT_LEVEL   (log_level)
 #define BT_LOG_TAG            "PLUGIN/SRC.CTF.FS/DS"
 #include "logging/comp-logging.h"
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <glib.h>
-#include <inttypes.h>
-#include "compat/mman.h"
-#include "compat/endian.h"
-#include <babeltrace2/babeltrace.h>
+#include "common/assert.h"
 #include "common/common.h"
+#include "compat/endian.h"
+#include "compat/mman.h"
+
+#include "../common/msg-iter/msg-iter.hpp"
+#include "data-stream-file.hpp"
 #include "file.hpp"
 #include "metadata.hpp"
-#include "../common/msg-iter/msg-iter.hpp"
-#include "common/assert.h"
-#include "data-stream-file.hpp"
-#include <string.h>
 
 static inline size_t remaining_mmap_bytes(struct ctf_fs_ds_file *ds_file)
 {

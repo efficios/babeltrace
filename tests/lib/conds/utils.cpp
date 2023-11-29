@@ -4,18 +4,21 @@
  * Copyright (C) 2020 Philippe Proulx <pproulx@efficios.com>
  */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
-#include <babeltrace2/babeltrace.h>
-#include <glib.h>
 #include <iostream>
+
+#include <assert.h>
+#include <glib.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include <babeltrace2/babeltrace.h>
 
 #include "common/assert.h"
 #include "cpp-common/nlohmann/json.hpp"
-#include "utils.hpp"
+
 #include "../utils/run-in.hpp"
+#include "utils.hpp"
 
 static void run_trigger(const struct cond_trigger *trigger)
 {

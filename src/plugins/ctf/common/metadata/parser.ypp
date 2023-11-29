@@ -7,25 +7,25 @@
  * Common Trace Format Metadata Grammar.
  */
 
+#include <assert.h>
+#include <ctype.h>
+#include <errno.h>
+#include <glib.h>
+#include <inttypes.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
 #define BT_LOG_OUTPUT_LEVEL ctf_plugin_metadata_log_level
 #define BT_LOG_TAG "PLUGIN/CTF/META/PARSER"
 #include "plugins/ctf/common/metadata/logging.hpp"
 
-#include <stdio.h>
-#include <ctype.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <glib.h>
-#include <errno.h>
-#include <inttypes.h>
 #include "common/list.h"
 #include "common/assert.h"
-#include "plugins/ctf/common/metadata/scanner.hpp"
+
 #include "plugins/ctf/common/metadata/ast.hpp"
 #include "plugins/ctf/common/metadata/objstack.hpp"
-
 #include "plugins/ctf/common/metadata/parser-wrap.hpp"
 
 /*
@@ -1048,6 +1048,8 @@ void ctf_scanner_free(struct ctf_scanner *scanner)
 #ifndef ALLOW_INCLUDE_PARSER_H
 # error "Don't include parser.h directly, include parser-wrap.h instead."
 #endif
+
+#include "plugins/ctf/common/metadata/scanner.hpp"
 }
 
 %code provides {

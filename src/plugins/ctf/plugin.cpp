@@ -8,8 +8,8 @@
 
 #include <babeltrace2/babeltrace.h>
 
-#include "fs-src/fs.hpp"
 #include "fs-sink/fs-sink.hpp"
+#include "fs-src/fs.hpp"
 #include "lttng-live/lttng-live.hpp"
 
 #ifndef BT_BUILT_IN_PLUGINS

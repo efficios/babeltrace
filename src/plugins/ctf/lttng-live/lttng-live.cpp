@@ -8,27 +8,27 @@
  * Babeltrace CTF LTTng-live Client Component
  */
 
+#include <glib.h>
+#include <inttypes.h>
+#include <stdbool.h>
+#include <unistd.h>
+
+#include <babeltrace2/babeltrace.h>
+
 #define BT_COMP_LOG_SELF_COMP self_comp
 #define BT_LOG_OUTPUT_LEVEL   log_level
 #define BT_LOG_TAG            "PLUGIN/SRC.CTF.LTTNG-LIVE"
 #include "logging/comp-logging.h"
 
-#include <inttypes.h>
-#include <stdbool.h>
-#include <unistd.h>
-
-#include <glib.h>
-
 #include "common/assert.h"
-#include <babeltrace2/babeltrace.h>
 #include "compat/compiler.h"
 
 #include "plugins/common/muxing/muxing.h"
 #include "plugins/common/param-validation/param-validation.h"
 
 #include "data-stream.hpp"
-#include "metadata.hpp"
 #include "lttng-live.hpp"
+#include "metadata.hpp"
 
 #define MAX_QUERY_SIZE                     (256 * 1024)
 #define URL_PARAM                          "url"

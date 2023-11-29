@@ -7,25 +7,27 @@
  * Babeltrace - CTF message iterator
  */
 
+#include <glib.h>
+#include <inttypes.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include <babeltrace2/babeltrace.h>
+
 #define BT_COMP_LOG_SELF_COMP (msg_it->self_comp)
 #define BT_LOG_OUTPUT_LEVEL   (msg_it->log_level)
 #define BT_LOG_TAG            "PLUGIN/CTF/MSG-ITER"
 #include "logging/comp-logging.h"
 
-#include <stdint.h>
-#include <inttypes.h>
-#include <stdio.h>
-#include <stddef.h>
-#include <stdbool.h>
 #include "common/assert.h"
-#include <string.h>
-#include <babeltrace2/babeltrace.h>
 #include "common/common.h"
-#include <glib.h>
-#include <stdlib.h>
 
-#include "msg-iter.hpp"
 #include "../bfcr/bfcr.hpp"
+#include "msg-iter.hpp"
 
 struct ctf_msg_iter;
 

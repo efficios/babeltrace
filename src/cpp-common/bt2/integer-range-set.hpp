@@ -9,13 +9,14 @@
 
 #include <cstdint>
 #include <type_traits>
+
 #include <babeltrace2/babeltrace.h>
 
 #include "common-iter.hpp"
+#include "exc.hpp"
+#include "integer-range.hpp"
 #include "internal/borrowed-obj.hpp"
 #include "internal/utils.hpp"
-#include "integer-range.hpp"
-#include "exc.hpp"
 
 namespace bt2 {
 

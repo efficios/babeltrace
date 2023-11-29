@@ -15,6 +15,7 @@
 #endif
 
 #include <babeltrace2/babeltrace.h>
+
 #include "logging/log.h"
 
 #define _BT_CLOG_OBJ_FMT_PREFIX "[%s] "

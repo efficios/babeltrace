@@ -7,27 +7,29 @@
  * Babeltrace - CTF binary field class reader (BFCR)
  */
 
+#include <glib.h>
+#include <inttypes.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include <babeltrace2/babeltrace.h>
+
 #define BT_COMP_LOG_SELF_COMP (bfcr->self_comp)
 #define BT_LOG_OUTPUT_LEVEL   (bfcr->log_level)
 #define BT_LOG_TAG            "PLUGIN/CTF/BFCR"
 #include "logging/comp-logging.h"
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <inttypes.h>
-#include <stdio.h>
-#include <stddef.h>
-#include <stdbool.h>
-#include "common/assert.h"
-#include <string.h>
-#include "compat/bitfield.h"
-#include "common/common.h"
-#include <babeltrace2/babeltrace.h>
 #include "common/align.h"
-#include <glib.h>
+#include "common/assert.h"
+#include "common/common.h"
+#include "compat/bitfield.h"
 
-#include "bfcr.hpp"
 #include "../metadata/ctf-meta.hpp"
+#include "bfcr.hpp"
 
 #define DIV8(_x)                ((_x) >> 3)
 #define BYTES_TO_BITS(_x)       ((_x) *8)

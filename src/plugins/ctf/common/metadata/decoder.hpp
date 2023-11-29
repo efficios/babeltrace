@@ -7,8 +7,8 @@
 #ifndef _METADATA_DECODER_H
 #define _METADATA_DECODER_H
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 
 #include <babeltrace2/babeltrace.h>

@@ -14,6 +14,7 @@
 
 #include "common/assert.h"
 #include "common/uuid.h"
+
 #include "uuid-view.hpp"
 
 namespace bt2_common {

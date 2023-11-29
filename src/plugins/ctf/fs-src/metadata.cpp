@@ -5,24 +5,26 @@
  * Copyright 2010-2011 EfficiOS Inc. and Linux Foundation
  */
 
+#include <glib.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <babeltrace2/babeltrace.h>
+
 #define BT_COMP_LOG_SELF_COMP self_comp
 #define BT_LOG_OUTPUT_LEVEL   log_level
 #define BT_LOG_TAG            "PLUGIN/SRC.CTF.FS/META"
 #include "logging/comp-logging.h"
 
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
 #include "common/assert.h"
-#include <glib.h>
 #include "common/uuid.h"
 #include "compat/memstream.h"
-#include <babeltrace2/babeltrace.h>
 
-#include "fs.hpp"
-#include "file.hpp"
-#include "metadata.hpp"
 #include "../common/metadata/decoder.hpp"
+#include "file.hpp"
+#include "fs.hpp"
+#include "metadata.hpp"
 
 FILE *ctf_fs_metadata_open_file(const char *trace_path, bt_logging_level log_level,
                                 bt_self_component_class *comp_class)

@@ -6,22 +6,24 @@
  * Copyright 2010-2011 EfficiOS Inc. and Linux Foundation
  */
 
+#include <glib.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <babeltrace2/babeltrace.h>
+
 #define BT_COMP_LOG_SELF_COMP self_comp
 #define BT_LOG_OUTPUT_LEVEL   log_level
 #define BT_LOG_TAG            "PLUGIN/SRC.CTF.LTTNG-LIVE/META"
 #include "logging/comp-logging.h"
 
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <glib.h>
 #include "compat/memstream.h"
-#include <babeltrace2/babeltrace.h>
 
-#include "metadata.hpp"
-#include "../common/metadata/decoder.hpp"
 #include "../common/metadata/ctf-meta-configure-ir-trace.hpp"
+#include "../common/metadata/decoder.hpp"
+#include "metadata.hpp"
 
 #define TSDL_MAGIC 0x75d11d57
 

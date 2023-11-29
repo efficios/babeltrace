@@ -7,11 +7,13 @@
 #ifndef CTF_FS_METADATA_H
 #define CTF_FS_METADATA_H
 
+#include <glib.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <glib.h>
-#include "common/macros.h"
+
 #include <babeltrace2/babeltrace.h>
+
+#include "common/macros.h"
 
 #define CTF_FS_METADATA_FILENAME "metadata"
 

@@ -4,10 +4,13 @@
  * Copyright (C) 2023 EfficiOS Inc.
  */
 
-#include "utils/run-in.hpp"
-#include "tap/tap.h"
-#include "common/assert.h"
 #include <cstring>
+
+#include "common/assert.h"
+
+#include "utils/run-in.hpp"
+
+#include "tap/tap.h"
 
 static const int NR_TESTS = 2;
 

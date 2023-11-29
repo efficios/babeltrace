@@ -4,30 +4,32 @@
  * Copyright 2016-2017 Philippe Proulx <pproulx@efficios.com>
  */
 
+#include <glib.h>
+#include <inttypes.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include <babeltrace2/babeltrace.h>
+
 #define BT_COMP_LOG_SELF_COMP       (mdec->config.self_comp)
 #define BT_COMP_LOG_SELF_COMP_CLASS (mdec->config.self_comp_class)
 #define BT_LOG_OUTPUT_LEVEL         (mdec->config.log_level)
 #define BT_LOG_TAG                  "PLUGIN/CTF/META/DECODER"
+#include "logging.hpp"
 #include "logging/comp-logging.h"
 
-#include <stdio.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <inttypes.h>
 #include "common/assert.h"
 #include "common/uuid.h"
 #include "compat/memstream.h"
-#include <babeltrace2/babeltrace.h>
-#include <glib.h>
-#include <string.h>
 
 #include "ast.hpp"
-#include "decoder.hpp"
-#include "scanner.hpp"
-#include "logging.hpp"
-#include "parser-wrap.hpp"
 #include "decoder-packetized-file-stream-to-buf.hpp"
+#include "decoder.hpp"
+#include "parser-wrap.hpp"
+#include "scanner.hpp"
 
 #define TSDL_MAGIC 0x75d11d57
 

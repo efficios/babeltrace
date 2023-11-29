@@ -8,6 +8,7 @@
 #define SRC_CPP_COMMON_VECTOR_HPP
 
 #include <vector>
+
 #include "common/assert.h"
 
 namespace bt2_common {

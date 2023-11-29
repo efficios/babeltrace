@@ -6,16 +6,17 @@
  * Common Trace Format Object Stack.
  */
 
+#include <stdlib.h>
+
 #define BT_LOG_OUTPUT_LEVEL ctf_plugin_metadata_log_level
 #define BT_LOG_TAG          "PLUGIN/CTF/META/OBJSTACK"
 #include "logging.hpp"
 
-#include "objstack.hpp"
-
-#include <stdlib.h>
+#include "common/align.h"
 #include "common/list.h"
 #include "common/macros.h"
-#include "common/align.h"
+
+#include "objstack.hpp"
 
 #define OBJSTACK_ALIGN    8 /* Object stack alignment */
 #define OBJSTACK_INIT_LEN 128

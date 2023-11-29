@@ -8,6 +8,7 @@
 #define CTF_METADATA_LOGGING_H
 
 #include <babeltrace2/babeltrace.h>
+
 #include "logging/log.h"
 
 /*

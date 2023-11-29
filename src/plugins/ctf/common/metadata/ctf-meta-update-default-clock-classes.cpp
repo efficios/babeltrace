@@ -4,22 +4,24 @@
  * Copyright 2018 Philippe Proulx <pproulx@efficios.com>
  */
 
+#include <glib.h>
+#include <inttypes.h>
+#include <stdint.h>
+#include <string.h>
+
+#include <babeltrace2/babeltrace.h>
+
 #define BT_COMP_LOG_SELF_COMP       (log_cfg->self_comp)
 #define BT_COMP_LOG_SELF_COMP_CLASS (log_cfg->self_comp_class)
 #define BT_LOG_OUTPUT_LEVEL         (log_cfg->log_level)
 #define BT_LOG_TAG                  "PLUGIN/CTF/META/UPDATE-DEF-CC"
+#include "logging.hpp"
 #include "logging/comp-logging.h"
 
-#include <babeltrace2/babeltrace.h>
-#include "common/macros.h"
 #include "common/assert.h"
-#include <glib.h>
-#include <stdint.h>
-#include <string.h>
-#include <inttypes.h>
+#include "common/macros.h"
 
 #include "ctf-meta-visitors.hpp"
-#include "logging.hpp"
 
 static inline int find_mapped_clock_class(struct ctf_field_class *fc,
                                           struct ctf_clock_class **clock_class,

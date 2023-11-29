@@ -8,6 +8,7 @@
 #define _CTF_META_VISITORS_H
 
 #include <babeltrace2/babeltrace.h>
+
 #include "common/macros.h"
 
 #include "ctf-meta.hpp"

@@ -9,6 +9,7 @@
 #define BABELTRACE_CPP_COMMON_LOG_CFG_HPP
 
 #include <babeltrace2/babeltrace.h>
+
 #include "common/assert.h"
 
 namespace bt2_common {

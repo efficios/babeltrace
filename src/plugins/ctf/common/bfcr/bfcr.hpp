@@ -10,10 +10,12 @@
 #ifndef CTF_BFCR_H
 #define CTF_BFCR_H
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
+
 #include <babeltrace2/babeltrace.h>
+
 #include "common/macros.h"
 
 #include "../metadata/ctf-meta.hpp"

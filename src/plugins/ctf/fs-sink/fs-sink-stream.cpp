@@ -4,22 +4,24 @@
  * Copyright 2019 Philippe Proulx <pproulx@efficios.com>
  */
 
+#include <glib.h>
+#include <stdbool.h>
+#include <stdio.h>
+
+#include <babeltrace2/babeltrace.h>
+
 #define BT_COMP_LOG_SELF_COMP (stream->trace->fs_sink->self_comp)
 #define BT_LOG_OUTPUT_LEVEL   (stream->log_level)
 #define BT_LOG_TAG            "PLUGIN/SINK.CTF.FS/STREAM"
 #include "logging/comp-logging.h"
 
-#include <babeltrace2/babeltrace.h>
-#include <stdio.h>
-#include <stdbool.h>
-#include <glib.h>
 #include "common/assert.h"
-#include "ctfser/ctfser.h"
 #include "compat/endian.h"
+#include "ctfser/ctfser.h"
 
-#include "fs-sink.hpp"
-#include "fs-sink-trace.hpp"
 #include "fs-sink-stream.hpp"
+#include "fs-sink-trace.hpp"
+#include "fs-sink.hpp"
 #include "translate-trace-ir-to-ctf-ir.hpp"
 
 void fs_sink_stream_destroy(struct fs_sink_stream *stream)
