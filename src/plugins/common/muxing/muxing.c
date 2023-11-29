@@ -173,7 +173,7 @@ int compare_streams(const bt_stream *left_stream, const bt_stream *right_stream)
 	 * No need to compare stream id as it was checked earlier and if we are
 	 * here it means they are identical or both absent.
 	 */
-	BT_ASSERT(bt_stream_get_id(left_stream) ==
+	BT_ASSERT_DBG(bt_stream_get_id(left_stream) ==
 		bt_stream_get_id(right_stream));
 
 	/* Compare stream name. */
@@ -200,7 +200,7 @@ int compare_streams(const bt_stream *left_stream, const bt_stream *right_stream)
 	 * No need to compare stream class id as it was checked earlier and if
 	 * we are here it means they are identical.
 	 */
-	BT_ASSERT(bt_stream_class_get_id(left_stream_class) ==
+	BT_ASSERT_DBG(bt_stream_class_get_id(left_stream_class) ==
 		bt_stream_class_get_id(right_stream_class));
 
 	/* Compare stream class name. */
@@ -636,7 +636,7 @@ int compare_messages_same_type(struct messages_to_compare *msgs)
 	 * Both messages are of the same type, we must compare characterics of
 	 * the messages such as the attributes of the event in a event message.
 	 */
-	BT_ASSERT(bt_message_get_type(msgs->left.msg) ==
+	BT_ASSERT_DBG(bt_message_get_type(msgs->left.msg) ==
 		bt_message_get_type(msgs->right.msg));
 
 	switch (bt_message_get_type(msgs->left.msg)) {
@@ -830,7 +830,7 @@ int common_muxing_compare_messages(const bt_message *left_msg,
 	int ret = 0;
 	struct messages_to_compare msgs;
 
-	BT_ASSERT(left_msg != right_msg);
+	BT_ASSERT_DBG(left_msg != right_msg);
 
 	msgs.left.msg = left_msg;
 	msgs.left.trace = borrow_trace(left_msg);
