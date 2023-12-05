@@ -44,6 +44,7 @@ noinst_HEADERS = \
 	cpp-common/bt2/value.hpp \
 	cpp-common/bt2/wrap.hpp \
 	cpp-common/bt2c/align.hpp \
+	cpp-common/bt2c/c-string-view.hpp \
 	cpp-common/bt2c/call.hpp \
 	cpp-common/bt2c/endian.hpp \
 	cpp-common/bt2c/exc.hpp \
