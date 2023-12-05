@@ -12,6 +12,7 @@ SUBDIRS += bindings/python/bt2
 endif
 
 noinst_HEADERS = \
+	cpp-common/bt2/borrowed-object-proxy.hpp \
 	cpp-common/bt2/borrowed-object.hpp \
 	cpp-common/bt2/clock-class.hpp \
 	cpp-common/bt2/clock-snapshot.hpp \
