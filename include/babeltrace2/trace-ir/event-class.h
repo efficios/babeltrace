@@ -7,6 +7,8 @@
 #ifndef BABELTRACE2_TRACE_IR_EVENT_CLASS_H
 #define BABELTRACE2_TRACE_IR_EVENT_CLASS_H
 
+/* IWYU pragma: private, include <babeltrace2/babeltrace.h> */
+
 #ifndef __BT_IN_BABELTRACE_H
 # error "Please include <babeltrace2/babeltrace.h> instead."
 #endif
