@@ -8,7 +8,6 @@
 #define BABELTRACE_PLUGIN_CTF_FS_SINK_FS_SINK_H
 
 #include <glib.h>
-#include <stdbool.h>
 
 #include <babeltrace2/babeltrace.h>
 

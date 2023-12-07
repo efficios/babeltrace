@@ -9,7 +9,6 @@
 
 #include <glib.h>
 #include <inttypes.h>
-#include <stdbool.h>
 
 #include <babeltrace2/babeltrace.h>
 

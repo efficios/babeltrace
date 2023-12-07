@@ -7,7 +7,6 @@
 #ifndef _METADATA_DECODER_H
 #define _METADATA_DECODER_H
 
-#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 

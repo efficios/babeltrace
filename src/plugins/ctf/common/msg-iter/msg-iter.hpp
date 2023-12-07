@@ -10,7 +10,6 @@
 #ifndef CTF_MSG_ITER_H
 #define CTF_MSG_ITER_H
 
-#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>

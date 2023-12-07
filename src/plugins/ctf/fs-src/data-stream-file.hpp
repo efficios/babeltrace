@@ -8,7 +8,6 @@
 #define CTF_FS_DS_FILE_H
 
 #include <glib.h>
-#include <stdbool.h>
 #include <stdio.h>
 
 #include <babeltrace2/babeltrace.h>

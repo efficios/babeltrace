@@ -9,7 +9,6 @@
 #include <fcntl.h>
 #include <glib.h>
 #include <glib/gstdio.h>
-#include <stdbool.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 

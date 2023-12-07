@@ -10,8 +10,6 @@
 #ifndef BABELTRACE_PLUGIN_CTF_FS_H
 #define BABELTRACE_PLUGIN_CTF_FS_H
 
-#include <stdbool.h>
-
 #include <babeltrace2/babeltrace.h>
 
 #include "common/macros.h"

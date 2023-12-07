@@ -8,7 +8,6 @@
 #define _CTF_META_H
 
 #include <glib.h>
-#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 

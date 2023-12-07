@@ -7,7 +7,6 @@
 #ifndef SRC_PLUGINS_CTF_COMMON_METADATA_DECODER_PACKETIZED_FILE_STREAM_TO_BUF
 #define SRC_PLUGINS_CTF_COMMON_METADATA_DECODER_PACKETIZED_FILE_STREAM_TO_BUF
 
-#include <stdbool.h>
 #include <stdint.h>
 
 #include <babeltrace2/babeltrace.h>

@@ -8,7 +8,6 @@
 #include <glib.h>
 #include <inttypes.h>
 #include <limits.h>
-#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>

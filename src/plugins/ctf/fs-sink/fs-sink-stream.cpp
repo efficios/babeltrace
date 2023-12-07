@@ -5,7 +5,6 @@
  */
 
 #include <glib.h>
-#include <stdbool.h>
 #include <stdio.h>
 
 #include <babeltrace2/babeltrace.h>
