@@ -7,8 +7,6 @@
 
 #include <glib.h>
 #include <inttypes.h>
-#include <limits.h>
-#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -23,7 +21,6 @@
 
 #include "common/assert.h"
 #include "common/common.h"
-#include "common/macros.h"
 
 #include "ctf-meta-visitors.hpp"
 

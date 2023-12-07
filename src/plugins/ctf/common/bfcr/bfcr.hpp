@@ -12,13 +12,8 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 
 #include <babeltrace2/babeltrace.h>
-
-#include "common/macros.h"
-
-#include "../metadata/ctf-meta.hpp"
 
 /**
  * @file bfcr.h
@@ -63,9 +58,6 @@ enum bt_bfcr_status
     /** Everything okay. */
     BT_BFCR_STATUS_OK = 0,
 };
-
-/** Field class reader. */
-struct bt_bfcr;
 
 typedef enum bt_bfcr_status (*bt_bfcr_unsigned_int_cb_func)(uint64_t, struct ctf_field_class *,
                                                             void *);

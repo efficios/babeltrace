@@ -33,9 +33,8 @@
 #define BT_APPEND_CAUSE_AND_RETHROW_EX(_log_cfg, _fmt, ...)                                        \
     do {                                                                                           \
         BT_APPEND_CAUSE_EX((_log_cfg), _fmt, ##__VA_ARGS__);                                       \
-        throw;
-}
-while (false)
+        throw;                                                                                     \
+    } while (false)
 
 #define BT_APPEND_CAUSE_AND_RETHROW(_fmt, ...)                                                     \
     BT_APPEND_CAUSE_AND_RETHROW_EX((BT_CLOG_CFG), _fmt, ##__VA_ARGS__)

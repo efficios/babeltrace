@@ -7,12 +7,7 @@
 #ifndef CTF_FS_FILE_H
 #define CTF_FS_FILE_H
 
-#include <glib.h>
-#include <stdio.h>
-
-#include "common/macros.h"
-
-#include "fs.hpp"
+#include <babeltrace2/babeltrace.h>
 
 void ctf_fs_file_destroy(struct ctf_fs_file *file);
 

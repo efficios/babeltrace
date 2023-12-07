@@ -8,7 +8,6 @@
 #define BABELTRACE_CPP_COMMON_BT2_COMMON_ITER_HPP
 
 #include <iterator>
-#include <type_traits>
 
 #include "cpp-common/optional.hpp"
 

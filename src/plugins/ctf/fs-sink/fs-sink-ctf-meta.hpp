@@ -7,7 +7,6 @@
 #ifndef BABELTRACE_PLUGIN_CTF_FS_SINK_FS_SINK_CTF_META_H
 #define BABELTRACE_PLUGIN_CTF_FS_SINK_FS_SINK_CTF_META_H
 
-#include <ctype.h>
 #include <glib.h>
 #include <stdint.h>
 #include <string.h>

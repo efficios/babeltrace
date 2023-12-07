@@ -4,22 +4,14 @@
  * Copyright 2018 Philippe Proulx <pproulx@efficios.com>
  */
 
-#include <glib.h>
 #include <inttypes.h>
-#include <stdint.h>
 #include <string.h>
-
-#include <babeltrace2/babeltrace.h>
 
 #define BT_COMP_LOG_SELF_COMP       (log_cfg->self_comp)
 #define BT_COMP_LOG_SELF_COMP_CLASS (log_cfg->self_comp_class)
 #define BT_LOG_OUTPUT_LEVEL         (log_cfg->log_level)
 #define BT_LOG_TAG                  "PLUGIN/CTF/META/UPDATE-DEF-CC"
 #include "logging.hpp"
-#include "logging/comp-logging.h"
-
-#include "common/assert.h"
-#include "common/macros.h"
 
 #include "ctf-meta-visitors.hpp"
 

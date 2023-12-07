@@ -19,7 +19,6 @@
 
 #include "common/assert.h"
 #include "common/common.h"
-#include "common/macros.h"
 
 #include "fs-sink-ctf-meta.hpp"
 #include "fs-sink.hpp"

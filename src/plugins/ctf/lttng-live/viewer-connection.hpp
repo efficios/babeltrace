@@ -9,11 +9,9 @@
 
 #include <glib.h>
 #include <stdint.h>
-#include <stdio.h>
 
 #include <babeltrace2/babeltrace.h>
 
-#include "common/macros.h"
 #include "compat/socket.h"
 
 #define LTTNG_DEFAULT_NETWORK_VIEWER_PORT 5344
@@ -45,8 +43,6 @@ enum lttng_live_get_one_metadata_status
     /* The metadata stream was not found on the relay. */
     LTTNG_LIVE_GET_ONE_METADATA_STATUS_CLOSED = -3,
 };
-
-struct lttng_live_component;
 
 struct live_viewer_connection
 {

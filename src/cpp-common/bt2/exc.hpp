@@ -7,9 +7,6 @@
 #ifndef BABELTRACE_CPP_COMMON_BT2_EXC_HPP
 #define BABELTRACE_CPP_COMMON_BT2_EXC_HPP
 
-#include <stdexcept>
-#include <string>
-
 #include "cpp-common/exc.hpp"
 
 namespace bt2 {

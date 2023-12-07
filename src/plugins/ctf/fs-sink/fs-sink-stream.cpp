@@ -18,6 +18,7 @@
 #include "compat/endian.h"
 #include "ctfser/ctfser.h"
 
+#include "fs-sink-ctf-meta.hpp"
 #include "fs-sink-stream.hpp"
 #include "fs-sink-trace.hpp"
 #include "fs-sink.hpp"

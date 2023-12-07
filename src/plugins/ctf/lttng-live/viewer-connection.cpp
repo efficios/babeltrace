@@ -5,13 +5,9 @@
  * Copyright 2016 Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
  */
 
-#include <fcntl.h>
 #include <glib.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <unistd.h>
 
 #include <babeltrace2/babeltrace.h>
 
@@ -21,7 +17,6 @@
 #include "logging/comp-logging.h"
 
 #include "common/common.h"
-#include "compat/compiler.h"
 #include "compat/endian.h"
 #include "compat/socket.h"
 

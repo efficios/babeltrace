@@ -8,18 +8,14 @@
 #define BABELTRACE_CPP_COMMON_BT2_MESSAGE_HPP
 
 #include <cstdint>
-#include <functional>
 #include <type_traits>
 
 #include <babeltrace2/babeltrace.h>
 
 #include "common/assert.h"
-#include "common/common.h"
 #include "cpp-common/bt2/trace-ir.hpp"
 #include "cpp-common/optional.hpp"
-#include "cpp-common/string_view.hpp"
 
-#include "exc.hpp"
 #include "internal/borrowed-obj.hpp"
 #include "internal/shared-obj.hpp"
 #include "internal/utils.hpp"

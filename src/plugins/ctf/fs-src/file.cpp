@@ -7,8 +7,6 @@
 #include <glib.h>
 #include <stdio.h>
 #include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
 
 #define BT_COMP_LOG_SELF_COMP (file->self_comp)
 #define BT_LOG_OUTPUT_LEVEL   (file->log_level)
@@ -16,6 +14,7 @@
 #include "logging/comp-logging.h"
 
 #include "file.hpp"
+#include "fs.hpp"
 
 void ctf_fs_file_destroy(struct ctf_fs_file *file)
 {

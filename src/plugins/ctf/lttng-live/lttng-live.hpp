@@ -16,15 +16,8 @@
 
 #include <babeltrace2/babeltrace.h>
 
-#include "common/macros.h"
-
-#include "../common/metadata/decoder.hpp"
 #include "../common/msg-iter/msg-iter.hpp"
 #include "viewer-connection.hpp"
-
-struct lttng_live_component;
-struct lttng_live_session;
-struct lttng_live_msg_iter;
 
 enum lttng_live_stream_state
 {

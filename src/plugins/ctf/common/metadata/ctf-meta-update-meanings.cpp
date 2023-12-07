@@ -4,15 +4,8 @@
  * Copyright 2018 Philippe Proulx <pproulx@efficios.com>
  */
 
-#include <glib.h>
-#include <inttypes.h>
 #include <stdint.h>
 #include <string.h>
-
-#include <babeltrace2/babeltrace.h>
-
-#include "common/assert.h"
-#include "common/macros.h"
 
 #include "ctf-meta-visitors.hpp"
 

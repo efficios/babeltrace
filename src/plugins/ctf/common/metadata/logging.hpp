@@ -9,6 +9,7 @@
 
 #include <babeltrace2/babeltrace.h>
 
+#include "logging/comp-logging.h"
 #include "logging/log.h"
 
 /*

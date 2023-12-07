@@ -6,12 +6,10 @@
 
 #include <glib.h>
 #include <stdio.h>
-#include <string.h>
 
 #include <babeltrace2/babeltrace.h>
 
 #include "common/assert.h"
-#include "common/macros.h"
 #include "compat/endian.h"
 
 #include "fs-sink-ctf-meta.hpp"

@@ -8,7 +8,6 @@
 #define BABELTRACE_CPP_COMMON_READ_FIXED_LEN_INT_HPP
 
 #include <cstdint>
-#include <cstdlib>
 #include <cstring>
 #include <type_traits>
 

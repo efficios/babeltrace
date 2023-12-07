@@ -16,7 +16,6 @@
 #include "cpp-common/string_view.hpp"
 
 #include "clock-class.hpp"
-#include "clock-snapshot.hpp"
 #include "field-class.hpp"
 #include "field.hpp"
 #include "internal/borrowed-obj.hpp"

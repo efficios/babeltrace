@@ -7,17 +7,11 @@
 #ifndef CTF_FS_METADATA_H
 #define CTF_FS_METADATA_H
 
-#include <glib.h>
 #include <stdio.h>
 
 #include <babeltrace2/babeltrace.h>
 
-#include "common/macros.h"
-
 #define CTF_FS_METADATA_FILENAME "metadata"
-
-struct ctf_fs_trace;
-struct ctf_fs_metadata;
 
 struct ctf_fs_metadata_config
 {

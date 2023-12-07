@@ -7,6 +7,7 @@
 #ifndef _BABELTRACE_COMMON_UUID_H
 #define _BABELTRACE_COMMON_UUID_H
 
+#include <inttypes.h>
 #include <stdint.h>
 #include "common/macros.h"
 

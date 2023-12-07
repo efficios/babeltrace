@@ -12,13 +12,7 @@
 
 #include <babeltrace2/babeltrace.h>
 
-#include "common/macros.h"
 #include "common/uuid.h"
-
-struct ctf_trace_class;
-
-/* A CTF metadata decoder object */
-struct ctf_metadata_decoder;
 
 /* CTF metadata decoder status */
 enum ctf_metadata_decoder_status

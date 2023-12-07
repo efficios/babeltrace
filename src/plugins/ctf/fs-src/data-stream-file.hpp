@@ -12,17 +12,7 @@
 
 #include <babeltrace2/babeltrace.h>
 
-#include "common/macros.h"
-
 #include "../common/msg-iter/msg-iter.hpp"
-#include "lttng-index.hpp"
-
-struct ctf_fs_component;
-struct ctf_fs_file;
-struct ctf_fs_trace;
-struct ctf_fs_ds_file;
-struct ctf_fs_ds_file_group;
-struct ctf_fs_ds_group_medops_data;
 
 struct ctf_fs_ds_file_info
 {
@@ -32,8 +22,6 @@ struct ctf_fs_ds_file_info
     /* Guaranteed to be set, as opposed to the index. */
     int64_t begin_ns;
 };
-
-struct ctf_fs_metadata;
 
 struct ctf_fs_ds_file
 {

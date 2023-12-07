@@ -15,7 +15,6 @@
 
 #include "common/assert.h"
 #include "common/list.h"
-#include "common/macros.h"
 
 #include "ctf-meta.hpp"
 #include "decoder.hpp"

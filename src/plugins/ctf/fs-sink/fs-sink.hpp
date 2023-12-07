@@ -11,8 +11,6 @@
 
 #include <babeltrace2/babeltrace.h>
 
-#include "common/macros.h"
-
 struct fs_sink_comp
 {
     bt_logging_level log_level;

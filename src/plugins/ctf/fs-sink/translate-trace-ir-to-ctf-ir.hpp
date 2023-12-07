@@ -9,11 +9,6 @@
 
 #include <babeltrace2/babeltrace.h>
 
-#include "common/macros.h"
-
-#include "fs-sink-ctf-meta.hpp"
-#include "fs-sink.hpp"
-
 int try_translate_event_class_trace_ir_to_ctf_ir(struct fs_sink_comp *fs_sink,
                                                  struct fs_sink_ctf_stream_class *sc,
                                                  const bt_event_class *ir_ec,

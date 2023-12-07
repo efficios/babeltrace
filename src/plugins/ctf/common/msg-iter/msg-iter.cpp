@@ -12,8 +12,6 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #include <babeltrace2/babeltrace.h>
 
@@ -27,8 +25,7 @@
 
 #include "../bfcr/bfcr.hpp"
 #include "msg-iter.hpp"
-
-struct ctf_msg_iter;
+#include "plugins/ctf/common/metadata/ctf-meta.hpp"
 
 /* A visit stack entry */
 struct stack_entry
@@ -49,8 +46,6 @@ struct stack_entry
     /* Index of next field to set */
     size_t index;
 };
-
-struct ctf_msg_iter;
 
 /* Visit stack */
 struct stack

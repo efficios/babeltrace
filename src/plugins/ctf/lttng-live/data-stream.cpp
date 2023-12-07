@@ -10,9 +10,10 @@
 #include <glib.h>
 #include <inttypes.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 #include <babeltrace2/babeltrace.h>
+
+#include "plugins/ctf/common/metadata/decoder.hpp"
 
 #define BT_COMP_LOG_SELF_COMP self_comp
 #define BT_LOG_OUTPUT_LEVEL   log_level

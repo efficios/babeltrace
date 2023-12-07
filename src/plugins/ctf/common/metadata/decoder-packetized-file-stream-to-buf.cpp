@@ -5,9 +5,7 @@
  */
 
 #include <glib.h>
-#include <inttypes.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -20,14 +18,11 @@
 #include "logging.hpp"
 #include "logging/comp-logging.h"
 
-#include "common/assert.h"
 #include "common/uuid.h"
 #include "compat/memstream.h"
 
-#include "ast.hpp"
 #include "decoder-packetized-file-stream-to-buf.hpp"
 #include "decoder.hpp"
-#include "scanner.hpp"
 
 #define TSDL_MAGIC 0x75d11d57
 

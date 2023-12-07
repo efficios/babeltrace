@@ -9,14 +9,11 @@
 
 #include <string>
 
-#include <ctype.h>
 #include <errno.h>
 #include <glib.h>
 #include <inttypes.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include <babeltrace2/babeltrace.h>
 
@@ -36,7 +33,6 @@
 #include "ctf-meta-visitors.hpp"
 #include "ctf-meta.hpp"
 #include "decoder.hpp"
-#include "scanner.hpp"
 
 /* Bit value (left shift) */
 #define _BV(_val) (1 << (_val))

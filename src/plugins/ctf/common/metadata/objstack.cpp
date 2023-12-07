@@ -14,7 +14,6 @@
 
 #include "common/align.h"
 #include "common/list.h"
-#include "common/macros.h"
 
 #include "objstack.hpp"
 

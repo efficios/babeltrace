@@ -11,8 +11,6 @@
 
 #include <stdio.h>
 
-#include "common/macros.h"
-
 #define PERR(fmt, ...)                                                                             \
     do {                                                                                           \
         if (PRINT_ERR_STREAM) {                                                                    \

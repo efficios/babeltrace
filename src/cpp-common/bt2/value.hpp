@@ -9,7 +9,6 @@
 
 #include <cstdint>
 #include <functional>
-#include <iterator>
 #include <type_traits>
 
 #include <babeltrace2/babeltrace.h>

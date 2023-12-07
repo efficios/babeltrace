@@ -23,7 +23,6 @@
 #include "fs-sink-stream.hpp"
 #include "fs-sink-trace.hpp"
 #include "fs-sink.hpp"
-#include "translate-ctf-ir-to-tsdl.hpp"
 #include "translate-trace-ir-to-ctf-ir.hpp"
 
 static const char * const in_port_name = "in";

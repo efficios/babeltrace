@@ -6,7 +6,6 @@
  */
 
 #include <glib.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -18,8 +17,6 @@
 #include "logging/comp-logging.h"
 
 #include "common/assert.h"
-#include "common/uuid.h"
-#include "compat/memstream.h"
 
 #include "../common/metadata/decoder.hpp"
 #include "file.hpp"

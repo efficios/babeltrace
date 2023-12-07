@@ -10,7 +10,6 @@
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include <babeltrace2/babeltrace.h>
@@ -21,14 +20,15 @@
 #include "logging/comp-logging.h"
 
 #include "common/assert.h"
-#include "common/common.h"
 #include "compat/endian.h"
 #include "compat/mman.h"
 
 #include "../common/msg-iter/msg-iter.hpp"
 #include "data-stream-file.hpp"
 #include "file.hpp"
-#include "metadata.hpp"
+#include "fs.hpp"
+#include "lttng-index.hpp"
+#include "plugins/ctf/common/metadata/ctf-meta.hpp"
 
 static inline size_t remaining_mmap_bytes(struct ctf_fs_ds_file *ds_file)
 {

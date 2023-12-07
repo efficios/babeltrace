@@ -7,11 +7,8 @@
 #ifndef LTTNG_LIVE_DATA_STREAM_H
 #define LTTNG_LIVE_DATA_STREAM_H
 
-#include <glib.h>
 #include <stdint.h>
-#include <stdio.h>
 
-#include "../common/msg-iter/msg-iter.hpp"
 #include "lttng-live.hpp"
 
 enum lttng_live_iterator_status lttng_live_lazy_msg_init(struct lttng_live_session *session,

@@ -16,9 +16,7 @@
 
 #include <babeltrace2/babeltrace.h>
 
-#include "common/macros.h"
-
-#include "../metadata/ctf-meta.hpp"
+#include "common/common.h"
 
 /**
  * @file ctf-msg-iter.h
@@ -207,9 +205,6 @@ struct ctf_msg_iter_medium_ops
      */
     bt_stream *(*borrow_stream)(bt_stream_class *stream_class, int64_t stream_id, void *data);
 };
-
-/** CTF message iterator. */
-struct ctf_msg_iter;
 
 /**
  * Creates a CTF message iterator.

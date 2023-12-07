@@ -10,8 +10,6 @@
 
 #include <babeltrace2/babeltrace.h>
 
-#include "cfg-logging.hpp"
-
 /*
  * Appends a cause to the error of the current thread using the logging
  * configuration `_log_cfg`.

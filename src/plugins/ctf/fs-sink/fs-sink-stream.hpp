@@ -12,12 +12,7 @@
 
 #include <babeltrace2/babeltrace.h>
 
-#include "common/macros.h"
 #include "ctfser/ctfser.h"
-
-#include "fs-sink-ctf-meta.hpp"
-
-struct fs_sink_trace;
 
 struct fs_sink_stream
 {

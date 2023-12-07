@@ -9,10 +9,6 @@
 #ifndef _OBJSTACK_H
 #define _OBJSTACK_H
 
-#include "common/macros.h"
-
-struct objstack;
-
 struct objstack *objstack_create(void);
 void objstack_destroy(struct objstack *objstack);
 

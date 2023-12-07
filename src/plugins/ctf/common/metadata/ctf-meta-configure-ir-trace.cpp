@@ -6,7 +6,10 @@
 
 #include <babeltrace2/babeltrace.h>
 
+#include "common/assert.h"
+
 #include "ctf-meta-configure-ir-trace.hpp"
+#include "plugins/ctf/common/metadata/ctf-meta.hpp"
 
 int ctf_trace_class_configure_ir_trace(struct ctf_trace_class *tc, bt_trace *ir_trace)
 {

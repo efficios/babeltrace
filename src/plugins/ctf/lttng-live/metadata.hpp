@@ -8,7 +8,6 @@
 #define LTTNG_LIVE_METADATA_H
 
 #include <stdint.h>
-#include <stdio.h>
 
 #include "lttng-live.hpp"
 

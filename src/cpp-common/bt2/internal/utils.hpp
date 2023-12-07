@@ -7,8 +7,6 @@
 #ifndef BABELTRACE_CPP_COMMON_BT2_INTERNAL_UTILS_HPP
 #define BABELTRACE_CPP_COMMON_BT2_INTERNAL_UTILS_HPP
 
-#include <type_traits>
-
 #include "../exc.hpp"
 
 namespace bt2 {

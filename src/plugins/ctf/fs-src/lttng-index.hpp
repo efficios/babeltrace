@@ -9,8 +9,6 @@
 #ifndef LTTNG_INDEX_H
 #define LTTNG_INDEX_H
 
-#include <stddef.h>
-
 #include "compat/limits.h"
 
 #define CTF_INDEX_MAGIC    0xC1F1DCC1

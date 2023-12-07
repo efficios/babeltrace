@@ -9,8 +9,6 @@
 
 #include <babeltrace2/babeltrace.h>
 
-#include "common/macros.h"
-
 #include "ctf-meta.hpp"
 
 struct meta_log_config;

@@ -10,12 +10,10 @@
 #ifndef BABELTRACE_PLUGIN_CTF_FS_H
 #define BABELTRACE_PLUGIN_CTF_FS_H
 
+#include <glib.h>
+
 #include <babeltrace2/babeltrace.h>
 
-#include "common/macros.h"
-
-#include "../common/metadata/decoder.hpp"
-#include "data-stream-file.hpp"
 #include "metadata.hpp"
 
 extern bool ctf_fs_debug;

@@ -11,8 +11,6 @@
 #include <inttypes.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include <babeltrace2/babeltrace.h>
@@ -55,8 +53,6 @@ struct stack_entry
     /* Index of next field to read */
     int64_t index;
 };
-
-struct bt_bfcr;
 
 /* Visit stack */
 struct stack

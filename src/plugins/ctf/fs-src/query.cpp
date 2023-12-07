@@ -6,10 +6,8 @@
  * Babeltrace CTF file system Reader Component queries
  */
 
-#include <fcntl.h>
 #include <glib.h>
 #include <glib/gstdio.h>
-#include <sys/stat.h>
 #include <sys/types.h>
 
 #include <babeltrace2/babeltrace.h>
@@ -20,8 +18,6 @@
 #include "logging/log.h"
 
 #include "common/assert.h"
-#include "common/common.h"
-#include "common/macros.h"
 
 #include "../common/metadata/decoder.hpp"
 #include "fs.hpp"

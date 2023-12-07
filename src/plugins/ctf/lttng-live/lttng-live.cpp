@@ -20,7 +20,6 @@
 #include "logging/comp-logging.h"
 
 #include "common/assert.h"
-#include "compat/compiler.h"
 
 #include "plugins/common/muxing/muxing.h"
 #include "plugins/common/param-validation/param-validation.h"
