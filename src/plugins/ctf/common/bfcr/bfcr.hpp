@@ -15,6 +15,8 @@
 
 #include <babeltrace2/babeltrace.h>
 
+#include "common/common.h"
+
 /**
  * @file bfcr.h
  *

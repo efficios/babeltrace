@@ -9,6 +9,8 @@
 #ifndef _OBJSTACK_H
 #define _OBJSTACK_H
 
+#include <cstddef>
+
 struct objstack *objstack_create(void);
 void objstack_destroy(struct objstack *objstack);
 

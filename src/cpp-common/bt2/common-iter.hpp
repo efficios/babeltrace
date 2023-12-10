@@ -7,6 +7,7 @@
 #ifndef BABELTRACE_CPP_COMMON_BT2_COMMON_ITER_HPP
 #define BABELTRACE_CPP_COMMON_BT2_COMMON_ITER_HPP
 
+#include <cstdint>
 #include <iterator>
 
 #include "cpp-common/optional.hpp"

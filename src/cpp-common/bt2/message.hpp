@@ -13,6 +13,7 @@
 #include <babeltrace2/babeltrace.h>
 
 #include "common/assert.h"
+#include "cpp-common/bt2/clock-snapshot.hpp"
 #include "cpp-common/bt2/trace-ir.hpp"
 #include "cpp-common/optional.hpp"
 
