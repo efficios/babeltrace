@@ -21,6 +21,7 @@
 #include "internal/utils.hpp"
 #include "optional-borrowed-object.hpp"
 #include "shared-object.hpp"
+#include "trace-ir.hpp"
 
 namespace bt2 {
 namespace internal {

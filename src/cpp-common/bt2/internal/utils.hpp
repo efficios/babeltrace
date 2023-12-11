@@ -11,7 +11,7 @@
 
 #include <babeltrace2/babeltrace.h>
 
-#include "../exc.hpp"
+#include "cpp-common/bt2/exc.hpp"
 
 namespace bt2 {
 
