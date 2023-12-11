@@ -14,6 +14,7 @@
 
 #include <babeltrace2/babeltrace.h>
 
+#include "cpp-common/bt2c/c-string-view.hpp"
 #include "cpp-common/bt2c/logging.hpp"
 #include "cpp-common/vendor/fmt/core.h"
 
@@ -471,7 +472,7 @@ protected:
     }
 
 protected:
-    const char *_name() const noexcept
+    bt2c::CStringView _name() const noexcept
     {
         return _mSelfComp.name();
     }

@@ -14,6 +14,8 @@
 
 #include "logging.hpp"
 
+#include "cpp-common/bt2c/c-string-view.hpp"
+
 #include "borrowed-object-iterator.hpp"
 #include "borrowed-object.hpp"
 #include "shared-object.hpp"
@@ -93,7 +95,7 @@ public:
         return static_cast<bool>(bt_component_is_sink(this->libObjPtr()));
     }
 
-    const char *name() const noexcept
+    bt2c::CStringView name() const noexcept
     {
         return bt_component_get_name(this->libObjPtr());
     }
@@ -122,7 +124,7 @@ protected:
     }
 
 public:
-    const char *name() const noexcept
+    bt2c::CStringView name() const noexcept
     {
         return this->_constComponent().name();
     }
@@ -467,7 +469,7 @@ public:
     {
     }
 
-    const char *name() const noexcept
+    bt2c::CStringView name() const noexcept
     {
         return bt_port_get_name(this->_libConstPortPtr());
     }

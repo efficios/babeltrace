@@ -9,6 +9,8 @@
 
 #include <string>
 
+#include "cpp-common/bt2c/c-string-view.hpp"
+
 namespace bt2 {
 
 template <typename ObjT>
@@ -45,9 +47,15 @@ public:
     {
     }
 
+    RawStringValueProxy& operator=(const char * const rawVal)
+    {
+        RawValueProxy<ObjT>::operator=(bt2c::CStringView {rawVal});
+        return *this;
+    }
+
     RawStringValueProxy& operator=(const std::string& rawVal)
     {
-        RawValueProxy<ObjT>::operator=(rawVal.data());
+        RawValueProxy<ObjT>::operator=(bt2c::CStringView {rawVal.data()});
         return *this;
     }
 };

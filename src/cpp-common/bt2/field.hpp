@@ -13,6 +13,7 @@
 #include <babeltrace2/babeltrace.h>
 
 #include "common/assert.h"
+#include "cpp-common/bt2c/c-string-view.hpp"
 
 #include "borrowed-object.hpp"
 #include "field-class.hpp"
@@ -597,7 +598,7 @@ public:
         return _mLen;
     }
 
-    const char *operator[](const std::uint64_t index) const noexcept
+    bt2c::CStringView operator[](const std::uint64_t index) const noexcept
     {
         return _mLabels[index];
     }
@@ -932,7 +933,7 @@ private:
 
 public:
     using typename CommonField<LibObjT>::LibObjPtr;
-    using Value = const char *;
+    using Value = bt2c::CStringView;
 
     explicit CommonStringField(const LibObjPtr libObjPtr) noexcept : _ThisCommonField {libObjPtr}
     {
@@ -961,21 +962,26 @@ public:
         return RawStringValueProxy<CommonStringField> {*this};
     }
 
-    void value(const char * const val) const
+    void value(const Value& val) const
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstStringField`.");
 
-        const auto status = bt_field_string_set_value(this->libObjPtr(), val);
+        const auto status = bt_field_string_set_value(this->libObjPtr(), *val);
 
         if (status == BT_FIELD_STRING_SET_VALUE_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
     }
 
+    void value(const char * const val) const
+    {
+        this->value(bt2c::CStringView {val});
+    }
+
     void value(const std::string& val) const
     {
-        this->value(val.data());
+        this->value(bt2c::CStringView {val.data()});
     }
 
     void append(const char * const begin, const std::uint64_t len) const
@@ -988,6 +994,11 @@ public:
         if (status == BT_FIELD_STRING_APPEND_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
+    }
+
+    void append(const char * const val) const
+    {
+        this->append(val, std::strlen(val));
     }
 
     void append(const std::string& val) const
@@ -1003,7 +1014,7 @@ public:
         bt_field_string_clear(this->libObjPtr());
     }
 
-    const char *value() const noexcept
+    Value value() const noexcept
     {
         return bt_field_string_get_value(this->libObjPtr());
     }

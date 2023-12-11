@@ -12,6 +12,7 @@
 
 #include <babeltrace2/babeltrace.h>
 
+#include "cpp-common/bt2c/c-string-view.hpp"
 #include "cpp-common/bt2s/optional.hpp"
 
 #include "borrowed-object.hpp"
@@ -460,7 +461,7 @@ public:
         this->name(name.data());
     }
 
-    const char *name() const noexcept
+    bt2c::CStringView name() const noexcept
     {
         return bt_stream_get_name(this->libObjPtr());
     }
@@ -609,7 +610,7 @@ public:
 
     struct ConstEnvironmentEntry
     {
-        const char *name;
+        bt2c::CStringView name;
         ConstValue value;
     };
 
@@ -652,7 +653,7 @@ public:
         this->name(name.data());
     }
 
-    const char *name() const noexcept
+    bt2c::CStringView name() const noexcept
     {
         return bt_trace_get_name(this->libObjPtr());
     }
@@ -957,7 +958,7 @@ public:
         this->name(name.data());
     }
 
-    const char *name() const noexcept
+    bt2c::CStringView name() const noexcept
     {
         return bt_event_class_get_name(this->libObjPtr());
     }
@@ -997,7 +998,7 @@ public:
         this->emfUri(emfUri.data());
     }
 
-    const char *emfUri() const noexcept
+    bt2c::CStringView emfUri() const noexcept
     {
         return bt_event_class_get_emf_uri(this->libObjPtr());
     }
@@ -1301,7 +1302,7 @@ public:
         this->name(name.data());
     }
 
-    const char *name() const noexcept
+    bt2c::CStringView name() const noexcept
     {
         return bt_stream_class_get_name(this->libObjPtr());
     }

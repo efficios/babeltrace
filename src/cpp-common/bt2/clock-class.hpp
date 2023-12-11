@@ -13,6 +13,7 @@
 
 #include <babeltrace2/babeltrace.h>
 
+#include "cpp-common/bt2c/c-string-view.hpp"
 #include "cpp-common/bt2c/uuid.hpp"
 #include "cpp-common/bt2s/optional.hpp"
 
@@ -188,7 +189,7 @@ public:
         this->name(name.data());
     }
 
-    const char *name() const noexcept
+    bt2c::CStringView name() const noexcept
     {
         return bt_clock_class_get_name(this->libObjPtr());
     }
@@ -209,7 +210,7 @@ public:
         this->description(description.data());
     }
 
-    const char *description() const noexcept
+    bt2c::CStringView description() const noexcept
     {
         return bt_clock_class_get_description(this->libObjPtr());
     }

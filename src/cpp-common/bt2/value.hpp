@@ -15,6 +15,7 @@
 
 #include "common/assert.h"
 #include "common/common.h"
+#include "cpp-common/bt2c/c-string-view.hpp"
 
 #include "borrowed-object-iterator.hpp"
 #include "borrowed-object.hpp"
@@ -100,6 +101,7 @@ public:
     operator std::uint64_t() const noexcept;
     operator double() const noexcept;
     operator const char *() const noexcept;
+    operator bt2c::CStringView() const noexcept;
 
 private:
     ValueObjT _mObj;
@@ -337,7 +339,8 @@ template <typename ValueObjT>
 CommonValueRawValueProxy<ValueObjT>&
 CommonValueRawValueProxy<ValueObjT>::operator=(const std::string& rawVal)
 {
-    return *this = rawVal.data();
+    _mObj.asString().value(rawVal);
+    return *this;
 }
 
 template <typename ValueObjT>
@@ -366,6 +369,12 @@ CommonValueRawValueProxy<ValueObjT>::operator double() const noexcept
 
 template <typename ValueObjT>
 CommonValueRawValueProxy<ValueObjT>::operator const char *() const noexcept
+{
+    return _mObj.asString().value();
+}
+
+template <typename ValueObjT>
+CommonValueRawValueProxy<ValueObjT>::operator bt2c::CStringView() const noexcept
 {
     return _mObj.asString().value();
 }
@@ -814,7 +823,7 @@ private:
 public:
     using typename CommonValue<LibObjT>::LibObjPtr;
     using Shared = SharedValue<CommonStringValue<LibObjT>, LibObjT>;
-    using Value = const char *;
+    using Value = bt2c::CStringView;
 
     explicit CommonStringValue(const LibObjPtr libObjPtr) noexcept : _ThisCommonValue {libObjPtr}
     {
@@ -861,19 +870,24 @@ public:
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstStringValue`.");
 
-        const auto status = bt_value_string_set(this->libObjPtr(), val);
+        const auto status = bt_value_string_set(this->libObjPtr(), *val);
 
         if (status == BT_VALUE_STRING_SET_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
     }
 
-    void value(const std::string& val) const
+    void value(const char * const val) const
     {
-        this->value(val.data());
+        this->value(bt2c::CStringView {val});
     }
 
-    const char *value() const noexcept
+    void value(const std::string& val) const
+    {
+        this->value(bt2c::CStringView {val.data()});
+    }
+
+    Value value() const noexcept
     {
         return bt_value_string_get(this->libObjPtr());
     }
@@ -1138,7 +1152,7 @@ struct TypeDescr<ConstArrayValue> : public ArrayValueTypeDescr
  * First argument is the entry's key, second is its value.
  */
 template <typename ObjT>
-using CommonMapValueForEachUserFunc = std::function<void(const char *, ObjT)>;
+using CommonMapValueForEachUserFunc = std::function<void(bt2c::CStringView, ObjT)>;
 
 /*
  * Template of a function to be passed to bt_value_map_foreach_entry()

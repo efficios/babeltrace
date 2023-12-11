@@ -9,6 +9,8 @@
 
 #include <babeltrace2/babeltrace.h>
 
+#include "cpp-common/bt2c/c-string-view.hpp"
+
 #include "borrowed-object.hpp"
 
 namespace bt2 {
@@ -36,17 +38,17 @@ public:
     {
     }
 
-    const char *name() const noexcept
+    bt2c::CStringView name() const noexcept
     {
         return bt_component_class_get_name(this->_libCompClsPtr());
     }
 
-    const char *description() const noexcept
+    bt2c::CStringView description() const noexcept
     {
         return bt_component_class_get_description(this->_libCompClsPtr());
     }
 
-    const char *help() const noexcept
+    bt2c::CStringView help() const noexcept
     {
         return bt_component_class_get_help(this->_libCompClsPtr());
     }

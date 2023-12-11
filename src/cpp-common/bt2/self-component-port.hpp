@@ -15,6 +15,7 @@
 #include "logging.hpp"
 
 #include "common/assert.h"
+#include "cpp-common/bt2c/c-string-view.hpp"
 
 #include "borrowed-object-iterator.hpp"
 #include "borrowed-object.hpp"
@@ -78,7 +79,7 @@ public:
         return this->asConstComponent().isSink();
     }
 
-    const char *name() const noexcept
+    bt2c::CStringView name() const noexcept
     {
         return this->asConstComponent().name();
     }
@@ -141,7 +142,7 @@ protected:
     }
 
 public:
-    const char *name() const noexcept
+    bt2c::CStringView name() const noexcept
     {
         return this->_selfComponent().name();
     }
@@ -516,7 +517,7 @@ public:
             internal::SelfComponentPortSpec<LibSelfCompPortT>::asConstPort(this->libObjPtr())};
     }
 
-    const char *name() const noexcept
+    bt2c::CStringView name() const noexcept
     {
         return this->asConstPort().name();
     }

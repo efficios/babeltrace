@@ -13,6 +13,7 @@
 #include <babeltrace2/babeltrace.h>
 
 #include "common/assert.h"
+#include "cpp-common/bt2c/c-string-view.hpp"
 #include "cpp-common/bt2s/optional.hpp"
 
 #include "borrowed-object-iterator.hpp"
@@ -696,7 +697,7 @@ public:
             internal::ConstEnumerationFieldClassMappingSpec<LibObjT>::ranges(this->libObjPtr())};
     }
 
-    const char *label() const noexcept
+    bt2c::CStringView label() const noexcept
     {
         return internal::ConstEnumerationFieldClassMappingSpec<LibObjT>::label(this->libObjPtr());
     }
@@ -1016,7 +1017,7 @@ public:
         return CommonStructureFieldClassMember<const bt_field_class_structure_member> {*this};
     }
 
-    const char *name() const noexcept
+    bt2c::CStringView name() const noexcept
     {
         return bt_field_class_structure_member_get_name(this->libObjPtr());
     }
@@ -1906,7 +1907,7 @@ public:
         return CommonVariantFieldClassOption<const bt_field_class_variant_option> {*this};
     }
 
-    const char *name() const noexcept
+    bt2c::CStringView name() const noexcept
     {
         return bt_field_class_variant_option_get_name(this->libObjPtr());
     }
@@ -2048,7 +2049,7 @@ public:
         return ConstVariantFieldClassOption {_Spec::asBaseOption(this->libObjPtr())};
     }
 
-    const char *name() const noexcept
+    bt2c::CStringView name() const noexcept
     {
         return this->asBaseOption().name();
     }
