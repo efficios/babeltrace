@@ -11,7 +11,7 @@
 
 #include <cstdint>
 
-#include "compat/limits.h"
+#include "compat/limits.h" /* IWYU pragma: keep  */
 
 #define CTF_INDEX_MAGIC    0xC1F1DCC1
 #define CTF_INDEX_MAJOR    1

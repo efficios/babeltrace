@@ -17,8 +17,7 @@
 #include "logging/comp-logging.h"
 
 #include "common/common.h"
-#include "compat/endian.h"
-#include "compat/socket.h"
+#include "compat/endian.h" /* IWYU pragma: keep  */
 
 #include "data-stream.hpp"
 #include "lttng-live.hpp"

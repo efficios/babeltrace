@@ -9,7 +9,7 @@
 
 #include <cstdint>
 
-#include "compat/endian.h"
+#include "compat/endian.h" /* IWYU pragma: keep  */
 
 namespace bt2_common {
 

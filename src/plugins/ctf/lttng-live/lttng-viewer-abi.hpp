@@ -11,7 +11,7 @@
 
 #include <stdint.h>
 
-#include "compat/limits.h"
+#include "compat/limits.h" /* IWYU pragma: keep  */
 
 #define LTTNG_VIEWER_PATH_MAX      4096
 #define LTTNG_VIEWER_NAME_MAX      255

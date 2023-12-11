@@ -15,7 +15,7 @@
 #include "logging/comp-logging.h"
 
 #include "common/assert.h"
-#include "compat/endian.h"
+#include "compat/endian.h" /* IWYU pragma: keep  */
 #include "ctfser/ctfser.h"
 
 #include "fs-sink-ctf-meta.hpp"

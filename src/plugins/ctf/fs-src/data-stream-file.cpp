@@ -20,8 +20,8 @@
 #include "logging/comp-logging.h"
 
 #include "common/assert.h"
-#include "compat/endian.h"
-#include "compat/mman.h"
+#include "compat/endian.h" /* IWYU pragma: keep  */
+#include "compat/mman.h"   /* IWYU pragma: keep  */
 
 #include "../common/msg-iter/msg-iter.hpp"
 #include "data-stream-file.hpp"

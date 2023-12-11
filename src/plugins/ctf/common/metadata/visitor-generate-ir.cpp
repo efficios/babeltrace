@@ -27,7 +27,7 @@
 #include "common/assert.h"
 #include "common/common.h"
 #include "common/uuid.h"
-#include "compat/endian.h"
+#include "compat/endian.h" /* IWYU pragma: keep  */
 
 #include "ast.hpp"
 #include "ctf-meta-visitors.hpp"

@@ -10,7 +10,7 @@
 #include <babeltrace2/babeltrace.h>
 
 #include "common/assert.h"
-#include "compat/endian.h"
+#include "compat/endian.h" /* IWYU pragma: keep  */
 
 #include "fs-sink-ctf-meta.hpp"
 #include "translate-ctf-ir-to-tsdl.hpp"
