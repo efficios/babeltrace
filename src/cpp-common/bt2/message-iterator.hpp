@@ -10,7 +10,7 @@
 #include <babeltrace2/babeltrace.h>
 
 #include "common/common.h"
-#include "cpp-common/optional.hpp"
+#include "cpp-common/bt2s/optional.hpp"
 
 #include "component-port.hpp"
 #include "exc.hpp"
@@ -50,7 +50,7 @@ public:
         return ConstComponent {bt_message_iterator_borrow_component(this->libObjPtr())};
     }
 
-    nonstd::optional<ConstMessageArray> next() const
+    bt2s::optional<ConstMessageArray> next() const
     {
         bt_message_array_const libMsgsPtr;
         std::uint64_t count;
@@ -61,7 +61,7 @@ public:
             /* Caller becomes the owner of the contained messages */
             return ConstMessageArray::wrapExisting(libMsgsPtr, count);
         case BT_MESSAGE_ITERATOR_NEXT_STATUS_END:
-            return nonstd::nullopt;
+            return bt2s::nullopt;
         case BT_MESSAGE_ITERATOR_NEXT_STATUS_AGAIN:
             throw TryAgain {};
         case BT_MESSAGE_ITERATOR_NEXT_STATUS_MEMORY_ERROR:

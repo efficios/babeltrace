@@ -12,7 +12,7 @@
 
 #include <babeltrace2/babeltrace.h>
 
-#include "cpp-common/optional.hpp"
+#include "cpp-common/bt2s/optional.hpp"
 
 #include "borrowed-object.hpp"
 #include "clock-class.hpp"
@@ -163,9 +163,9 @@ public:
 
     Class cls() const noexcept;
     _Stream stream() const noexcept;
-    nonstd::optional<_Packet> packet() const noexcept;
+    bt2s::optional<_Packet> packet() const noexcept;
 
-    nonstd::optional<_StructureField> payloadField() const noexcept
+    bt2s::optional<_StructureField> payloadField() const noexcept
     {
         const auto libObjPtr = _Spec::payloadField(this->libObjPtr());
 
@@ -173,10 +173,10 @@ public:
             return _StructureField {libObjPtr};
         }
 
-        return nonstd::nullopt;
+        return bt2s::nullopt;
     }
 
-    nonstd::optional<_StructureField> specificContextField() const noexcept
+    bt2s::optional<_StructureField> specificContextField() const noexcept
     {
         const auto libObjPtr = _Spec::specificContextField(this->libObjPtr());
 
@@ -184,10 +184,10 @@ public:
             return _StructureField {libObjPtr};
         }
 
-        return nonstd::nullopt;
+        return bt2s::nullopt;
     }
 
-    nonstd::optional<_StructureField> commonContextField() const noexcept
+    bt2s::optional<_StructureField> commonContextField() const noexcept
     {
         const auto libObjPtr = _Spec::commonContextField(this->libObjPtr());
 
@@ -195,7 +195,7 @@ public:
             return _StructureField {libObjPtr};
         }
 
-        return nonstd::nullopt;
+        return bt2s::nullopt;
     }
 };
 
@@ -304,7 +304,7 @@ public:
 
     _Stream stream() const noexcept;
 
-    nonstd::optional<_StructureField> contextField() const noexcept
+    bt2s::optional<_StructureField> contextField() const noexcept
     {
         const auto libObjPtr = _Spec::contextField(this->libObjPtr());
 
@@ -312,7 +312,7 @@ public:
             return _StructureField {libObjPtr};
         }
 
-        return nonstd::nullopt;
+        return bt2s::nullopt;
     }
 
     Shared shared() const noexcept
@@ -345,8 +345,7 @@ struct TypeDescr<ConstPacket> : public PacketTypeDescr
 } /* namespace internal */
 
 template <typename LibObjT>
-nonstd::optional<typename CommonEvent<LibObjT>::_Packet>
-CommonEvent<LibObjT>::packet() const noexcept
+bt2s::optional<typename CommonEvent<LibObjT>::_Packet> CommonEvent<LibObjT>::packet() const noexcept
 {
     const auto libObjPtr = _Spec::packet(this->libObjPtr());
 
@@ -354,7 +353,7 @@ CommonEvent<LibObjT>::packet() const noexcept
         return _Packet {libObjPtr};
     }
 
-    return nonstd::nullopt;
+    return bt2s::nullopt;
 }
 
 namespace internal {
@@ -690,7 +689,7 @@ public:
         bt_trace_set_uuid(this->libObjPtr(), uuid.begin());
     }
 
-    nonstd::optional<bt2c::UuidView> uuid() const noexcept
+    bt2s::optional<bt2c::UuidView> uuid() const noexcept
     {
         const auto uuid = bt_trace_get_uuid(this->libObjPtr());
 
@@ -698,7 +697,7 @@ public:
             return bt2c::UuidView {uuid};
         }
 
-        return nonstd::nullopt;
+        return bt2s::nullopt;
     }
 
     std::uint64_t length() const noexcept
@@ -711,7 +710,7 @@ public:
         return _Stream {_Spec::streamByIndex(this->libObjPtr(), index)};
     }
 
-    nonstd::optional<_Stream> streamById(const std::uint64_t id) const noexcept
+    bt2s::optional<_Stream> streamById(const std::uint64_t id) const noexcept
     {
         const auto libObjPtr = _Spec::streamById(this->libObjPtr(), id);
 
@@ -719,7 +718,7 @@ public:
             return _Stream {libObjPtr};
         }
 
-        return nonstd::nullopt;
+        return bt2s::nullopt;
     }
 
     void environmentEntry(const char * const name, const std::int64_t val) const
@@ -779,7 +778,7 @@ public:
         return ConstEnvironmentEntry {name, ConstValue {libObjPtr}};
     }
 
-    nonstd::optional<ConstValue> environmentEntry(const char * const name) const noexcept
+    bt2s::optional<ConstValue> environmentEntry(const char * const name) const noexcept
     {
         const auto libObjPtr =
             bt_trace_borrow_environment_entry_value_by_name_const(this->libObjPtr(), name);
@@ -788,10 +787,10 @@ public:
             return ConstValue {libObjPtr};
         }
 
-        return nonstd::nullopt;
+        return bt2s::nullopt;
     }
 
-    nonstd::optional<ConstValue> environmentEntry(const std::string& name) const noexcept
+    bt2s::optional<ConstValue> environmentEntry(const std::string& name) const noexcept
     {
         return this->environmentEntry(name.data());
     }
@@ -1011,7 +1010,7 @@ public:
                                      static_cast<bt_event_class_log_level>(logLevel));
     }
 
-    nonstd::optional<LogLevel> logLevel() const noexcept
+    bt2s::optional<LogLevel> logLevel() const noexcept
     {
         bt_event_class_log_level libLogLevel;
         const auto avail = bt_event_class_get_log_level(this->libObjPtr(), &libLogLevel);
@@ -1020,7 +1019,7 @@ public:
             return static_cast<LogLevel>(libLogLevel);
         }
 
-        return nonstd::nullopt;
+        return bt2s::nullopt;
     }
 
     void emfUri(const char * const emfUri) const
@@ -1056,7 +1055,7 @@ public:
         }
     }
 
-    nonstd::optional<_StructureFieldClass> payloadFieldClass() const noexcept
+    bt2s::optional<_StructureFieldClass> payloadFieldClass() const noexcept
     {
         const auto libObjPtr = _Spec::payloadFieldClass(this->libObjPtr());
 
@@ -1064,7 +1063,7 @@ public:
             return _StructureFieldClass {libObjPtr};
         }
 
-        return nonstd::nullopt;
+        return bt2s::nullopt;
     }
 
     void specificContextFieldClass(const StructureFieldClass fc) const
@@ -1079,7 +1078,7 @@ public:
         }
     }
 
-    nonstd::optional<_StructureFieldClass> specificContextFieldClass() const noexcept
+    bt2s::optional<_StructureFieldClass> specificContextFieldClass() const noexcept
     {
         const auto libObjPtr = _Spec::specificContextFieldClass(this->libObjPtr());
 
@@ -1087,7 +1086,7 @@ public:
             return _StructureFieldClass {libObjPtr};
         }
 
-        return nonstd::nullopt;
+        return bt2s::nullopt;
     }
 
     template <typename LibValT>
@@ -1474,7 +1473,7 @@ public:
         BT_ASSERT(status == BT_STREAM_CLASS_SET_DEFAULT_CLOCK_CLASS_STATUS_OK);
     }
 
-    nonstd::optional<_ClockClass> defaultClockClass() const noexcept
+    bt2s::optional<_ClockClass> defaultClockClass() const noexcept
     {
         const auto libObjPtr = _Spec::defaultClockClass(this->libObjPtr());
 
@@ -1482,7 +1481,7 @@ public:
             return _ClockClass {libObjPtr};
         }
 
-        return nonstd::nullopt;
+        return bt2s::nullopt;
     }
 
     std::uint64_t length() const noexcept
@@ -1495,7 +1494,7 @@ public:
         return _EventClass {_Spec::eventClassByIndex(this->libObjPtr(), index)};
     }
 
-    nonstd::optional<_EventClass> eventClassById(const std::uint64_t id) const noexcept
+    bt2s::optional<_EventClass> eventClassById(const std::uint64_t id) const noexcept
     {
         const auto libObjPtr = _Spec::eventClassById(this->libObjPtr(), id);
 
@@ -1503,7 +1502,7 @@ public:
             return _EventClass {libObjPtr};
         }
 
-        return nonstd::nullopt;
+        return bt2s::nullopt;
     }
 
     void packetContextFieldClass(const StructureFieldClass fc) const
@@ -1519,7 +1518,7 @@ public:
         }
     }
 
-    nonstd::optional<_StructureFieldClass> packetContextFieldClass() const noexcept
+    bt2s::optional<_StructureFieldClass> packetContextFieldClass() const noexcept
     {
         const auto libObjPtr = _Spec::packetContextFieldClass(this->libObjPtr());
 
@@ -1527,7 +1526,7 @@ public:
             return _StructureFieldClass {libObjPtr};
         }
 
-        return nonstd::nullopt;
+        return bt2s::nullopt;
     }
 
     void eventCommonContextFieldClass(const StructureFieldClass fc) const
@@ -1543,7 +1542,7 @@ public:
         }
     }
 
-    nonstd::optional<_StructureFieldClass> eventCommonContextFieldClass() const noexcept
+    bt2s::optional<_StructureFieldClass> eventCommonContextFieldClass() const noexcept
     {
         const auto libObjPtr = _Spec::eventCommonContextFieldClass(this->libObjPtr());
 
@@ -1551,7 +1550,7 @@ public:
             return _StructureFieldClass {libObjPtr};
         }
 
-        return nonstd::nullopt;
+        return bt2s::nullopt;
     }
 
     template <typename LibValT>
@@ -1981,7 +1980,7 @@ public:
         return _StreamClass {_Spec::streamClassByIndex(this->libObjPtr(), index)};
     }
 
-    nonstd::optional<_StreamClass> streamClassById(const std::uint64_t id) const noexcept
+    bt2s::optional<_StreamClass> streamClassById(const std::uint64_t id) const noexcept
     {
         const auto libObjPtr = _Spec::streamClassById(this->libObjPtr(), id);
 
@@ -1989,7 +1988,7 @@ public:
             return _StreamClass {libObjPtr};
         }
 
-        return nonstd::nullopt;
+        return bt2s::nullopt;
     }
 
     template <typename LibValT>

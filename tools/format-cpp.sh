@@ -44,7 +44,7 @@ format_cpp() {
 	# We want an absolute starting directory because find(1) excludes
 	# files in specific subdirectories.
 	find "$(realpath "$root_dir")" \( -name '*.cpp' -o -name '*.hpp' \) \
-		! -path '*/src/cpp-common/optional.hpp' \
+		! -path '*/src/cpp-common/vendor/*' \
 		! -path '*/src/cpp-common/string_view.hpp' \
 		! -path '*/src/cpp-common/nlohmann/json.hpp' \
 		! -path '*/src/plugins/ctf/common/metadata/parser.*' \

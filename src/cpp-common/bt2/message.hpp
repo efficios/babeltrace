@@ -15,7 +15,7 @@
 #include "common/assert.h"
 #include "cpp-common/bt2/clock-snapshot.hpp"
 #include "cpp-common/bt2/trace-ir.hpp"
-#include "cpp-common/optional.hpp"
+#include "cpp-common/bt2s/optional.hpp"
 
 #include "borrowed-object.hpp"
 #include "internal/utils.hpp"
@@ -274,7 +274,7 @@ public:
         bt_message_stream_beginning_set_default_clock_snapshot(this->libObjPtr(), val);
     }
 
-    nonstd::optional<ConstClockSnapshot> defaultClockSnapshot() const noexcept
+    bt2s::optional<ConstClockSnapshot> defaultClockSnapshot() const noexcept
     {
         const bt_clock_snapshot *libObjPtr;
         const auto state = bt_message_stream_beginning_borrow_default_clock_snapshot_const(
@@ -284,7 +284,7 @@ public:
             return ConstClockSnapshot {libObjPtr};
         }
 
-        return nonstd::nullopt;
+        return bt2s::nullopt;
     }
 
     Shared shared() const noexcept
@@ -388,7 +388,7 @@ public:
         bt_message_stream_end_set_default_clock_snapshot(this->libObjPtr(), val);
     }
 
-    nonstd::optional<ConstClockSnapshot> defaultClockSnapshot() const noexcept
+    bt2s::optional<ConstClockSnapshot> defaultClockSnapshot() const noexcept
     {
         const bt_clock_snapshot *libObjPtr;
         const auto state = bt_message_stream_end_borrow_default_clock_snapshot_const(
@@ -398,7 +398,7 @@ public:
             return ConstClockSnapshot {libObjPtr};
         }
 
-        return nonstd::nullopt;
+        return bt2s::nullopt;
     }
 
     Shared shared() const noexcept
@@ -839,7 +839,7 @@ public:
         bt_message_discarded_events_set_count(this->libObjPtr(), count);
     }
 
-    nonstd::optional<std::uint64_t> count() const noexcept
+    bt2s::optional<std::uint64_t> count() const noexcept
     {
         std::uint64_t count;
         const auto avail = bt_message_discarded_events_get_count(this->libObjPtr(), &count);
@@ -848,7 +848,7 @@ public:
             return count;
         }
 
-        return nonstd::nullopt;
+        return bt2s::nullopt;
     }
 
     Shared shared() const noexcept
@@ -970,7 +970,7 @@ public:
         bt_message_discarded_packets_set_count(this->libObjPtr(), count);
     }
 
-    nonstd::optional<std::uint64_t> count() const noexcept
+    bt2s::optional<std::uint64_t> count() const noexcept
     {
         std::uint64_t count;
         const auto avail = bt_message_discarded_packets_get_count(this->libObjPtr(), &count);
@@ -979,7 +979,7 @@ public:
             return count;
         }
 
-        return nonstd::nullopt;
+        return bt2s::nullopt;
     }
 
     Shared shared() const noexcept

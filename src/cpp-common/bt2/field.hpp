@@ -13,7 +13,7 @@
 #include <babeltrace2/babeltrace.h>
 
 #include "common/assert.h"
-#include "cpp-common/optional.hpp"
+#include "cpp-common/bt2s/optional.hpp"
 
 #include "borrowed-object.hpp"
 #include "field-class.hpp"
@@ -1116,7 +1116,7 @@ public:
         return CommonField<LibObjT> {_Spec::memberFieldByIndex(this->libObjPtr(), index)};
     }
 
-    nonstd::optional<CommonField<LibObjT>> operator[](const char * const name) const noexcept
+    bt2s::optional<CommonField<LibObjT>> operator[](const char * const name) const noexcept
     {
         const auto libObjPtr = _Spec::memberFieldByName(this->libObjPtr(), name);
 
@@ -1124,10 +1124,10 @@ public:
             return CommonField<LibObjT> {libObjPtr};
         }
 
-        return nonstd::nullopt;
+        return bt2s::nullopt;
     }
 
-    nonstd::optional<CommonField<LibObjT>> operator[](const std::string& name) const noexcept
+    bt2s::optional<CommonField<LibObjT>> operator[](const std::string& name) const noexcept
     {
         return (*this)[name.data()];
     }
@@ -1404,7 +1404,7 @@ public:
         return this->field().has_value();
     }
 
-    nonstd::optional<CommonField<LibObjT>> field() const noexcept
+    bt2s::optional<CommonField<LibObjT>> field() const noexcept
     {
         const auto libObjPtr = _Spec::field(this->libObjPtr());
 
@@ -1412,7 +1412,7 @@ public:
             return CommonField<LibObjT> {libObjPtr};
         }
 
-        return nonstd::nullopt;
+        return bt2s::nullopt;
     }
 };
 

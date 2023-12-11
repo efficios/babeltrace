@@ -54,9 +54,10 @@ noinst_HEADERS = \
 	cpp-common/bt2c/uuid.hpp \
 	cpp-common/bt2c/vector.hpp \
 	cpp-common/bt2s/make-unique.hpp \
+	cpp-common/bt2s/optional.hpp \
 	cpp-common/nlohmann/json.hpp \
-	cpp-common/optional.hpp \
-	cpp-common/string_view.hpp
+	cpp-common/string_view.hpp \
+	cpp-common/vendor/optional-lite/optional.hpp
 
 ## This target generates an include file that contains the git version
 ## string of the current branch, it must be continuously updated when

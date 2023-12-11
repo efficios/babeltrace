@@ -8,7 +8,7 @@
 #define BABELTRACE_CPP_COMMON_BT2_SHARED_OBJECT_HPP
 
 #include "common/assert.h"
-#include "cpp-common/optional.hpp"
+#include "cpp-common/bt2s/optional.hpp"
 
 namespace bt2 {
 
@@ -292,7 +292,7 @@ private:
         }
     }
 
-    nonstd::optional<ObjT> _mObj;
+    bt2s::optional<ObjT> _mObj;
 };
 
 } /* namespace bt2 */

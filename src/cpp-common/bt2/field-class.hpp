@@ -13,7 +13,7 @@
 #include <babeltrace2/babeltrace.h>
 
 #include "common/assert.h"
-#include "cpp-common/optional.hpp"
+#include "cpp-common/bt2s/optional.hpp"
 
 #include "borrowed-object-iterator.hpp"
 #include "borrowed-object.hpp"
@@ -850,7 +850,7 @@ public:
             this->libObjPtr(), index)};
     }
 
-    nonstd::optional<Mapping> operator[](const char * const label) const noexcept
+    bt2s::optional<Mapping> operator[](const char * const label) const noexcept
     {
         const auto libObjPtr = internal::CommonEnumerationFieldClassSpec<MappingT>::mappingByLabel(
             this->libObjPtr(), label);
@@ -859,10 +859,10 @@ public:
             return Mapping {libObjPtr};
         }
 
-        return nonstd::nullopt;
+        return bt2s::nullopt;
     }
 
-    nonstd::optional<Mapping> operator[](const std::string& label) const noexcept
+    bt2s::optional<Mapping> operator[](const std::string& label) const noexcept
     {
         return (*this)[label.data()];
     }
@@ -1188,7 +1188,7 @@ public:
             this->libObjPtr(), index)};
     }
 
-    nonstd::optional<Member> operator[](const char * const name) const noexcept
+    bt2s::optional<Member> operator[](const char * const name) const noexcept
     {
         const auto libObjPtr =
             internal::CommonStructureFieldClassSpec<LibObjT>::memberByName(this->libObjPtr(), name);
@@ -1197,10 +1197,10 @@ public:
             return Member {libObjPtr};
         }
 
-        return nonstd::nullopt;
+        return bt2s::nullopt;
     }
 
-    nonstd::optional<Member> operator[](const std::string& name) const noexcept
+    bt2s::optional<Member> operator[](const std::string& name) const noexcept
     {
         return (*this)[name.data()];
     }
@@ -2186,7 +2186,7 @@ public:
             this->libObjPtr(), index)};
     }
 
-    nonstd::optional<Option> operator[](const char * const name) const noexcept
+    bt2s::optional<Option> operator[](const char * const name) const noexcept
     {
         const auto libObjPtr =
             internal::CommonVariantFieldClassSpec<LibObjT>::optionByName(this->libObjPtr(), name);
@@ -2195,10 +2195,10 @@ public:
             return Option {libObjPtr};
         }
 
-        return nonstd::nullopt;
+        return bt2s::nullopt;
     }
 
-    nonstd::optional<Option> operator[](const std::string& name) const noexcept
+    bt2s::optional<Option> operator[](const std::string& name) const noexcept
     {
         return (*this)[name.data()];
     }
@@ -2282,7 +2282,7 @@ public:
         }
     }
 
-    void appendOption(const nonstd::optional<std::string>& name, const FieldClass fc) const
+    void appendOption(const bt2s::optional<std::string>& name, const FieldClass fc) const
     {
         this->appendOption(name ? name->data() : nullptr, fc);
     }
@@ -2482,7 +2482,7 @@ public:
         return Option {_Spec::optionByIndex(this->libObjPtr(), index)};
     }
 
-    nonstd::optional<Option> operator[](const char * const name) const noexcept
+    bt2s::optional<Option> operator[](const char * const name) const noexcept
     {
         const auto libObjPtr = _Spec::optionByName(this->libObjPtr(), name);
 
@@ -2490,10 +2490,10 @@ public:
             return Option {libObjPtr};
         }
 
-        return nonstd::nullopt;
+        return bt2s::nullopt;
     }
 
-    nonstd::optional<Option> operator[](const std::string& name) const noexcept
+    bt2s::optional<Option> operator[](const std::string& name) const noexcept
     {
         return (*this)[name.data()];
     }
@@ -2514,7 +2514,7 @@ public:
         }
     }
 
-    void appendOption(const nonstd::optional<std::string>& name, const FieldClass fc,
+    void appendOption(const bt2s::optional<std::string>& name, const FieldClass fc,
                       const typename Option::RangeSet ranges) const
     {
         this->appendOption(name ? name->data() : nullptr, fc, ranges);
