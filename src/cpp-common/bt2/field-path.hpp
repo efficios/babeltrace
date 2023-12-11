@@ -13,8 +13,8 @@
 
 #include "common/assert.h"
 
+#include "borrowed-object-iterator.hpp"
 #include "borrowed-object.hpp"
-#include "common-iterator.hpp"
 #include "shared-object.hpp"
 
 namespace bt2 {
@@ -128,8 +128,7 @@ class ConstFieldPath final : public BorrowedObject<const bt_field_path>
 {
 public:
     using Shared = SharedObject<ConstFieldPath, const bt_field_path, internal::FieldPathRefFuncs>;
-
-    using Iterator = CommonIterator<ConstFieldPath, ConstFieldPathItem>;
+    using Iterator = BorrowedObjectIterator<ConstFieldPath>;
 
     enum class Scope
     {

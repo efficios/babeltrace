@@ -18,8 +18,8 @@
 #include "cpp-common/optional.hpp"
 #include "cpp-common/string_view.hpp"
 
+#include "borrowed-object-iterator.hpp"
 #include "borrowed-object.hpp"
-#include "common-iterator.hpp"
 #include "exc.hpp"
 #include "internal/utils.hpp"
 #include "shared-object.hpp"
@@ -777,7 +777,7 @@ private:
 
 public:
     using Shared = SharedValue<CommonArrayValue<LibObjT>, LibObjT>;
-    using Iterator = CommonIterator<CommonArrayValue<LibObjT>, CommonValue<LibObjT>>;
+    using Iterator = BorrowedObjectIterator<CommonArrayValue<LibObjT>>;
 
     explicit CommonArrayValue(const _LibObjPtr libObjPtr) noexcept : _ThisCommonValue {libObjPtr}
     {

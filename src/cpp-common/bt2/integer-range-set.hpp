@@ -12,8 +12,8 @@
 
 #include <babeltrace2/babeltrace.h>
 
+#include "borrowed-object-iterator.hpp"
 #include "borrowed-object.hpp"
-#include "common-iterator.hpp"
 #include "exc.hpp"
 #include "integer-range.hpp"
 #include "internal/utils.hpp"
@@ -150,7 +150,7 @@ public:
         ConstUnsignedIntegerRange, ConstSignedIntegerRange>::type;
 
     using Value = typename Range::Value;
-    using Iterator = CommonIterator<CommonIntegerRangeSet, Range>;
+    using Iterator = BorrowedObjectIterator<CommonIntegerRangeSet>;
 
     explicit CommonIntegerRangeSet(const _LibObjPtr libObjPtr) noexcept :
         _ThisBorrowedObject {libObjPtr}

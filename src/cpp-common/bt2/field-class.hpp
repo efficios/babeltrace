@@ -16,8 +16,8 @@
 #include "cpp-common/optional.hpp"
 #include "cpp-common/string_view.hpp"
 
+#include "borrowed-object-iterator.hpp"
 #include "borrowed-object.hpp"
-#include "common-iterator.hpp"
 #include "exc.hpp"
 #include "field-path.hpp"
 #include "integer-range-set.hpp"
@@ -826,7 +826,7 @@ private:
 
 public:
     using Shared = SharedFieldClass<_ThisCommonEnumerationFieldClass, LibObjT>;
-    using Iterator = CommonIterator<CommonEnumerationFieldClass, MappingT>;
+    using Iterator = BorrowedObjectIterator<CommonEnumerationFieldClass>;
     using Mapping = MappingT;
 
     explicit CommonEnumerationFieldClass(const _LibObjPtr libObjPtr) noexcept :
@@ -1126,11 +1126,10 @@ private:
 
 public:
     using Shared = SharedFieldClass<CommonStructureFieldClass<LibObjT>, LibObjT>;
+    using Iterator = BorrowedObjectIterator<CommonStructureFieldClass<LibObjT>>;
 
     using Member =
         internal::DepType<LibObjT, StructureFieldClassMember, ConstStructureFieldClassMember>;
-
-    using Iterator = CommonIterator<CommonStructureFieldClass<LibObjT>, Member>;
 
     explicit CommonStructureFieldClass(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonFieldClass {libObjPtr}
@@ -2153,11 +2152,10 @@ protected:
 
 public:
     using Shared = SharedFieldClass<CommonVariantFieldClass<LibObjT>, LibObjT>;
+    using Iterator = BorrowedObjectIterator<CommonVariantFieldClass>;
 
     using Option =
         internal::DepType<LibObjT, VariantFieldClassOption, ConstVariantFieldClassOption>;
-
-    using Iterator = CommonIterator<CommonVariantFieldClass, Option>;
 
     explicit CommonVariantFieldClass(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonFieldClass {libObjPtr}
@@ -2473,8 +2471,9 @@ public:
     using Shared = SharedFieldClass<_ThisCommonVariantWithIntegerSelectorFieldClass, LibObjT>;
 
     using Option = OptionT;
+
     using Iterator =
-        CommonIterator<CommonVariantWithIntegerSelectorFieldClass<LibObjT, Option>, Option>;
+        BorrowedObjectIterator<CommonVariantWithIntegerSelectorFieldClass<LibObjT, Option>>;
 
     explicit CommonVariantWithIntegerSelectorFieldClass(const _LibObjPtr libObjPtr) noexcept :
         _ThisCommonVariantWithSelectorFieldClass {libObjPtr}
