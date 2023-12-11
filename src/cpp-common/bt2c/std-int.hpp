@@ -4,12 +4,12 @@
  * SPDX-License-Identifier: MIT
  */
 
-#ifndef BABELTRACE_CPP_COMMON_STD_INT_HPP
-#define BABELTRACE_CPP_COMMON_STD_INT_HPP
+#ifndef BABELTRACE_CPP_COMMON_BT2C_STD_INT_HPP
+#define BABELTRACE_CPP_COMMON_BT2C_STD_INT_HPP
 
 #include <cstdint>
 
-namespace bt2_common {
+namespace bt2c {
 namespace internal {
 
 template <std::size_t LenBitsV, bool IsSignedV>
@@ -76,6 +76,6 @@ struct StdIntTBase<64, false>
 template <std::size_t LenBitsV, bool IsSignedV>
 using StdIntT = typename internal::StdIntTBase<LenBitsV, IsSignedV>::Type;
 
-} /* namespace bt2_common */
+} /* namespace bt2c */
 
-#endif /* BABELTRACE_CPP_COMMON_STD_INT_HPP */
+#endif /* BABELTRACE_CPP_COMMON_BT2C_STD_INT_HPP */

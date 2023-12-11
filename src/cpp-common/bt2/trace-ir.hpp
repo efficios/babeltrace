@@ -685,17 +685,17 @@ public:
         return bt_trace_get_name(this->libObjPtr());
     }
 
-    void uuid(const bt2_common::UuidView& uuid) const noexcept
+    void uuid(const bt2c::UuidView& uuid) const noexcept
     {
         bt_trace_set_uuid(this->libObjPtr(), uuid.begin());
     }
 
-    nonstd::optional<bt2_common::UuidView> uuid() const noexcept
+    nonstd::optional<bt2c::UuidView> uuid() const noexcept
     {
         const auto uuid = bt_trace_get_uuid(this->libObjPtr());
 
         if (uuid) {
-            return bt2_common::UuidView {uuid};
+            return bt2c::UuidView {uuid};
         }
 
         return nonstd::nullopt;

@@ -13,8 +13,8 @@
 
 #include <babeltrace2/babeltrace.h>
 
+#include "cpp-common/bt2c/uuid-view.hpp"
 #include "cpp-common/optional.hpp"
-#include "cpp-common/uuid-view.hpp"
 
 #include "borrowed-object.hpp"
 #include "exc.hpp"
@@ -219,12 +219,12 @@ public:
         bt_clock_class_set_uuid(this->libObjPtr(), uuid);
     }
 
-    nonstd::optional<bt2_common::UuidView> uuid() const noexcept
+    nonstd::optional<bt2c::UuidView> uuid() const noexcept
     {
         const auto uuid = bt_clock_class_get_uuid(this->libObjPtr());
 
         if (uuid) {
-            return bt2_common::UuidView {uuid};
+            return bt2c::UuidView {uuid};
         }
 
         return nonstd::nullopt;

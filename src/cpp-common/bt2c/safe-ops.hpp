@@ -4,15 +4,15 @@
  * SPDX-License-Identifier: MIT
  */
 
-#ifndef BABELTRACE_CPP_COMMON_SAFE_OPS_HPP
-#define BABELTRACE_CPP_COMMON_SAFE_OPS_HPP
+#ifndef BABELTRACE_CPP_COMMON_BT2C_SAFE_OPS_HPP
+#define BABELTRACE_CPP_COMMON_BT2C_SAFE_OPS_HPP
 
 #include <limits>
 #include <type_traits>
 
 #include "common/assert.h"
 
-namespace bt2_common {
+namespace bt2c {
 
 template <typename T>
 constexpr bool safeToMul(const T a, const T b)
@@ -65,6 +65,6 @@ T safeSub(const T a, const T b) noexcept
     return a - b;
 }
 
-} /* namespace bt2_common */
+} /* namespace bt2c */
 
-#endif /* BABELTRACE_CPP_COMMON_SAFE_OPS_HPP */
+#endif /* BABELTRACE_CPP_COMMON_BT2C_SAFE_OPS_HPP */

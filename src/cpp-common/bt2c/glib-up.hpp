@@ -4,14 +4,14 @@
  * SPDX-License-Identifier: MIT
  */
 
-#ifndef BABELTRACE_CPP_COMMON_GLIB_UP_HPP
-#define BABELTRACE_CPP_COMMON_GLIB_UP_HPP
+#ifndef BABELTRACE_CPP_COMMON_BT2C_GLIB_UP_HPP
+#define BABELTRACE_CPP_COMMON_BT2C_GLIB_UP_HPP
 
 #include <memory>
 
 #include <glib.h>
 
-namespace bt2_common {
+namespace bt2c {
 namespace internal {
 
 struct GCharDeleter final
@@ -68,6 +68,6 @@ struct GMappedFileDeleter final
 
 using GMappedFileUP = std::unique_ptr<GMappedFile, internal::GMappedFileDeleter>;
 
-} /* namespace bt2_common */
+} /* namespace bt2c */
 
-#endif /* BABELTRACE_CPP_COMMON_GLIB_UP_HPP */
+#endif /* BABELTRACE_CPP_COMMON_BT2C_GLIB_UP_HPP */

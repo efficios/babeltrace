@@ -11,7 +11,7 @@
 
 #include "common/assert.h"
 
-namespace bt2_common {
+namespace bt2c {
 
 /*
  * Moves the last entry of `vec` to the index `idx`, then removes the last entry.
@@ -32,6 +32,6 @@ void vectorFastRemove(std::vector<T, AllocatorT>& vec,
     vec.pop_back();
 }
 
-} /* namespace bt2_common */
+} /* namespace bt2c */
 
 #endif /* SRC_CPP_COMMON_VECTOR_HPP */

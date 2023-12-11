@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-#ifndef BABELTRACE_CPP_COMMON_UUID_HPP
-#define BABELTRACE_CPP_COMMON_UUID_HPP
+#ifndef BABELTRACE_CPP_COMMON_BT2C_UUID_HPP
+#define BABELTRACE_CPP_COMMON_BT2C_UUID_HPP
 
 #include <algorithm>
 #include <array>
@@ -16,7 +16,7 @@
 
 #include "uuid-view.hpp"
 
-namespace bt2_common {
+namespace bt2c {
 
 /*
  * A universally unique identifier.
@@ -149,6 +149,6 @@ private:
     std::array<Val, UuidView::size()> _mUuid = {};
 };
 
-} /* namespace bt2_common */
+} /* namespace bt2c */
 
-#endif /* BABELTRACE_CPP_COMMON_UUID_HPP */
+#endif /* BABELTRACE_CPP_COMMON_BT2C_UUID_HPP */

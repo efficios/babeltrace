@@ -7,7 +7,7 @@
 #include "uuid-view.hpp"
 #include "uuid.hpp"
 
-namespace bt2_common {
+namespace bt2c {
 
 UuidView::UuidView(const Uuid& uuid) noexcept : _mUuid {uuid.data()}
 {
@@ -18,4 +18,4 @@ UuidView::operator Uuid() const noexcept
     return Uuid {*this};
 }
 
-} /* namespace bt2_common */
+} /* namespace bt2c */

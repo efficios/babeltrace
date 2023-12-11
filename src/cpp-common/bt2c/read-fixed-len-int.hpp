@@ -4,16 +4,16 @@
  * SPDX-License-Identifier: MIT
  */
 
-#ifndef BABELTRACE_CPP_COMMON_READ_FIXED_LEN_INT_HPP
-#define BABELTRACE_CPP_COMMON_READ_FIXED_LEN_INT_HPP
+#ifndef BABELTRACE_CPP_COMMON_BT2C_READ_FIXED_LEN_INT_HPP
+#define BABELTRACE_CPP_COMMON_BT2C_READ_FIXED_LEN_INT_HPP
 
 #include <cstdint>
 #include <cstring>
 #include <type_traits>
 
-#include "cpp-common/endian.hpp"
+#include "endian.hpp"
 
-namespace bt2_common {
+namespace bt2c {
 
 /*
  * Reads a fixed-length integer of unknown byte order into a value of integral
@@ -37,7 +37,7 @@ IntT readFixedLenInt(const std::uint8_t * const buf)
 template <typename IntT>
 IntT readFixedLenIntLe(const std::uint8_t * const buf)
 {
-    return bt2_common::littleEndianToNative(readFixedLenInt<IntT>(buf));
+    return bt2c::littleEndianToNative(readFixedLenInt<IntT>(buf));
 }
 
 /*
@@ -47,9 +47,9 @@ IntT readFixedLenIntLe(const std::uint8_t * const buf)
 template <typename IntT>
 IntT readFixedLenIntBe(const std::uint8_t * const buf)
 {
-    return bt2_common::bigEndianToNative(readFixedLenInt<IntT>(buf));
+    return bt2c::bigEndianToNative(readFixedLenInt<IntT>(buf));
 }
 
-} /* namespace bt2_common */
+} /* namespace bt2c */
 
-#endif /* BABELTRACE_CPP_COMMON_READ_FIXED_LEN_INT_HPP */
+#endif /* BABELTRACE_CPP_COMMON_BT2C_READ_FIXED_LEN_INT_HPP */

@@ -20,10 +20,10 @@ noinst_HEADERS = \
 	cpp-common/bt2/component-port.hpp \
 	cpp-common/bt2/exc.hpp \
 	cpp-common/bt2/field-class.hpp \
-	cpp-common/bt2/field.hpp \
 	cpp-common/bt2/field-path.hpp \
-	cpp-common/bt2/integer-range.hpp \
+	cpp-common/bt2/field.hpp \
 	cpp-common/bt2/integer-range-set.hpp \
+	cpp-common/bt2/integer-range.hpp \
 	cpp-common/bt2/internal/utils.hpp \
 	cpp-common/bt2/logging.hpp \
 	cpp-common/bt2/message-array.hpp \
@@ -36,26 +36,27 @@ noinst_HEADERS = \
 	cpp-common/bt2/self-component-port.hpp \
 	cpp-common/bt2/self-message-iterator-configuration.hpp \
 	cpp-common/bt2/self-message-iterator.hpp \
+	cpp-common/bt2/shared-object.hpp \
 	cpp-common/bt2/trace-ir.hpp \
 	cpp-common/bt2/type-traits.hpp \
 	cpp-common/bt2/value.hpp \
 	cpp-common/bt2/wrap.hpp \
-	cpp-common/align.hpp \
-	cpp-common/endian.hpp \
-	cpp-common/exc.hpp \
-	cpp-common/glib-up.hpp \
-	cpp-common/libc-up.hpp \
-	cpp-common/lib-str.hpp \
-	cpp-common/make-unique.hpp \
+	cpp-common/bt2c/align.hpp \
+	cpp-common/bt2c/endian.hpp \
+	cpp-common/bt2c/exc.hpp \
+	cpp-common/bt2c/glib-up.hpp \
+	cpp-common/bt2c/lib-str.hpp \
+	cpp-common/bt2c/libc-up.hpp \
+	cpp-common/bt2c/make-unique.hpp \
+	cpp-common/bt2c/read-fixed-len-int.hpp \
+	cpp-common/bt2c/safe-ops.hpp \
+	cpp-common/bt2c/std-int.hpp \
+	cpp-common/bt2c/uuid-view.hpp \
+	cpp-common/bt2c/uuid.hpp \
+	cpp-common/bt2c/vector.hpp \
 	cpp-common/nlohmann/json.hpp \
 	cpp-common/optional.hpp \
-	cpp-common/read-fixed-len-int.hpp \
-	cpp-common/safe-ops.hpp \
-	cpp-common/std-int.hpp \
-	cpp-common/string_view.hpp \
-	cpp-common/uuid.hpp \
-	cpp-common/uuid-view.hpp \
-	cpp-common/vector.hpp
+	cpp-common/string_view.hpp
 
 ## This target generates an include file that contains the git version
 ## string of the current branch, it must be continuously updated when

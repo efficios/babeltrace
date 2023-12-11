@@ -4,14 +4,14 @@
  * SPDX-License-Identifier: MIT
  */
 
-#ifndef BABELTRACE_CPP_COMMON_ENDIAN_HPP
-#define BABELTRACE_CPP_COMMON_ENDIAN_HPP
+#ifndef BABELTRACE_CPP_COMMON_BT2C_ENDIAN_HPP
+#define BABELTRACE_CPP_COMMON_BT2C_ENDIAN_HPP
 
 #include <cstdint>
 
 #include "compat/endian.h" /* IWYU pragma: keep  */
 
-namespace bt2_common {
+namespace bt2c {
 
 static inline std::uint8_t littleEndianToNative(const std::uint8_t val) noexcept
 {
@@ -93,6 +93,6 @@ static inline std::int64_t bigEndianToNative(const std::int64_t val) noexcept
     return static_cast<std::int64_t>(bigEndianToNative(static_cast<std::uint64_t>(val)));
 }
 
-} /* namespace bt2_common */
+} /* namespace bt2c */
 
-#endif /* BABELTRACE_CPP_COMMON_ENDIAN_HPP */
+#endif /* BABELTRACE_CPP_COMMON_BT2C_ENDIAN_HPP */

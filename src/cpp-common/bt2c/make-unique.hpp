@@ -4,14 +4,14 @@
  * SPDX-License-Identifier: MIT
  */
 
-#ifndef BABELTRACE_CPP_COMMON_MAKE_UNIQUE_HPP
-#define BABELTRACE_CPP_COMMON_MAKE_UNIQUE_HPP
+#ifndef BABELTRACE_CPP_COMMON_BT2C_MAKE_UNIQUE_HPP
+#define BABELTRACE_CPP_COMMON_BT2C_MAKE_UNIQUE_HPP
 
 #include <memory>
 #include <type_traits>
 #include <utility>
 
-namespace bt2_common {
+namespace bt2c {
 
 /*
  * Our implementation of std::make_unique<>() for C++11.
@@ -24,6 +24,6 @@ std::unique_ptr<T> makeUnique(ArgTs&&...args)
     return std::unique_ptr<T>(new T {std::forward<ArgTs>(args)...});
 }
 
-} /* namespace bt2_common */
+} /* namespace bt2c */
 
-#endif /* BABELTRACE_CPP_COMMON_MAKE_UNIQUE_HPP */
+#endif /* BABELTRACE_CPP_COMMON_BT2C_MAKE_UNIQUE_HPP */
