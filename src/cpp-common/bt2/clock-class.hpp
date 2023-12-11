@@ -13,7 +13,7 @@
 
 #include <babeltrace2/babeltrace.h>
 
-#include "cpp-common/bt2c/uuid-view.hpp"
+#include "cpp-common/bt2c/uuid.hpp"
 #include "cpp-common/bt2s/optional.hpp"
 
 #include "borrowed-object.hpp"
