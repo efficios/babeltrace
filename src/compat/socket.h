@@ -36,8 +36,8 @@ int bt_socket_init(int log_level BT_SOCKET_LOG_LEVEL_UNUSED_ATTR)
 
 	ret = WSAStartup(verreq, &wsa);
 	if (ret != 0) {
-#ifdef BT_LOG_WRITE_CUR_LVL
-		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+#ifdef BT_LOG_WRITE_PRINTF_CUR_LVL
+		BT_LOG_WRITE_PRINTF_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
 				"Winsock init failed with error: %d", ret);
 #endif
 		goto end;

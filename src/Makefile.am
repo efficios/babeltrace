@@ -168,7 +168,8 @@ fd_cache_libfd_cache_la_SOURCES = \
 
 logging_liblogging_la_SOURCES = \
 	logging/comp-logging.h \
-	logging/log.c \
+	logging/log-api.c \
+	logging/log-api.h \
 	logging/log.h
 
 param_parse_libparam_parse_la_SOURCES = \

@@ -413,8 +413,8 @@ ssize_t bt_common_read(int fd, void *buf, size_t count,
 				/* retry operation */
 				continue;
 			} else {
-#ifdef BT_LOG_WRITE_ERRNO_CUR_LVL
-				BT_LOG_WRITE_ERRNO_CUR_LVL(BT_LOG_ERROR,
+#ifdef BT_LOG_WRITE_ERRNO_PRINTF_CUR_LVL
+				BT_LOG_WRITE_ERRNO_PRINTF_CUR_LVL(BT_LOG_ERROR,
 					log_level, BT_LOG_TAG,
 					"Error while reading", ": fd=%d", fd);
 #endif

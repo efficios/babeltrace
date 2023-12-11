@@ -84,7 +84,7 @@ void log_python_traceback(int log_level)
 			goto end;
 		}
 
-		BT_LOG_WRITE(log_level, BT_LOG_TAG,
+		BT_LOG_WRITE_PRINTF(log_level, BT_LOG_TAG,
 			"Exception occurred: Python traceback:\n%s", exc->str);
 	}
 

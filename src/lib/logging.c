@@ -28,7 +28,7 @@ int bt_lib_log_level = BT_LOG_NONE;
 BT_EXPORT
 enum bt_logging_level bt_logging_get_minimal_level(void)
 {
-	return BT_MINIMAL_LOG_LEVEL;
+	return BT_LOG_MINIMAL_LEVEL;
 }
 
 BT_EXPORT
@@ -50,7 +50,7 @@ void __attribute__((constructor)) bt_logging_ctor(void)
 		bt_version_get_development_stage() : "";
 
 	bt_logging_set_global_level(
-		bt_log_get_level_from_env("LIBBABELTRACE2_INIT_LOG_LEVEL"));
+		(int) bt_log_get_level_from_env("LIBBABELTRACE2_INIT_LOG_LEVEL"));
 	BT_LOGI("Babeltrace %u.%u.%u%s library loaded: "
 		"major=%u, minor=%u, patch=%u, extra=\"%s\"",
 		bt_version_get_major(), bt_version_get_minor(),

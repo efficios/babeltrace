@@ -58,7 +58,7 @@
  */
 #define BT_ASSERT_COND_MSG(_fmt, ...)					\
 	do {								\
-		bt_lib_log(_BT_LOG_SRCLOC_FUNCTION, __FILE__,		\
+		bt_lib_log(__FILE__, __func__,				\
 			__LINE__, BT_LOG_FATAL, BT_LOG_TAG,		\
 			(_fmt), ##__VA_ARGS__);				\
 	} while (0)

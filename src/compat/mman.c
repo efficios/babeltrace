@@ -285,7 +285,7 @@ size_t bt_mmap_get_offset_align_size(int log_level)
 	SYSTEM_INFO sysinfo;
 
 	GetNativeSystemInfo(&sysinfo);
-	BT_LOG_WRITE_CUR_LVL(BT_LOG_DEBUG, log_level, BT_LOG_TAG,
+	BT_LOG_WRITE_PRINTF_CUR_LVL(BT_LOG_DEBUG, log_level, BT_LOG_TAG,
 		"Allocator granularity is %lu.",
 		sysinfo.dwAllocationGranularity);
 

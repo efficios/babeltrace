@@ -15,7 +15,7 @@
 
 #define BT_COMP_LOG_SELF_COMP       (mdec->config.self_comp)
 #define BT_COMP_LOG_SELF_COMP_CLASS (mdec->config.self_comp_class)
-#define BT_LOG_OUTPUT_LEVEL         (mdec->config.log_level)
+#define BT_LOG_OUTPUT_LEVEL         ((enum bt_log_level) mdec->config.log_level)
 #define BT_LOG_TAG                  "PLUGIN/CTF/META/DECODER"
 #include "logging.hpp"
 #include "logging/comp-logging.h"

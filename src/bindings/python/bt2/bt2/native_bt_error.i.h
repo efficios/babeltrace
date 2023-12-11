@@ -13,7 +13,8 @@ PyObject *bt_bt2_format_bt_error_cause(const bt_error_cause *error_cause)
 	PyObject *py_error_cause_str = NULL;
 
 	error_cause_str = format_bt_error_cause(error_cause, 80,
-		bt_python_bindings_bt2_log_level, BT_COMMON_COLOR_WHEN_NEVER);
+		(bt_logging_level) bt_python_bindings_bt2_log_level,
+		BT_COMMON_COLOR_WHEN_NEVER);
 	BT_ASSERT(error_cause_str);
 
 	py_error_cause_str = PyString_FromString(error_cause_str);
@@ -30,7 +31,8 @@ PyObject *bt_bt2_format_bt_error(const bt_error *error)
 	PyObject *py_error_str = NULL;
 
 	error_str = format_bt_error(error, 80,
-		bt_python_bindings_bt2_log_level, BT_COMMON_COLOR_WHEN_NEVER);
+		(bt_logging_level) bt_python_bindings_bt2_log_level,
+		BT_COMMON_COLOR_WHEN_NEVER);
 	BT_ASSERT(error_str);
 
 	py_error_str = PyString_FromString(error_str);

@@ -26,7 +26,7 @@ int bt_lib_log_level;
 #define BT_LIB_LOG(_lvl, _fmt, ...)					\
 	do {								\
 		if (BT_LOG_ON(_lvl)) {					\
-			bt_lib_log(_BT_LOG_SRCLOC_FUNCTION, __FILE__,	\
+			bt_lib_log(__FILE__, __func__,			\
 				__LINE__, _lvl, _BT_LOG_TAG,		\
 				(_fmt), ##__VA_ARGS__);			\
 		}							\
@@ -49,16 +49,16 @@ int bt_lib_log_level;
  * Use one of the BT_LIB_LOG*() macros above instead of calling this
  * function directly.
  */
-void bt_lib_log(const char *func, const char *file, unsigned line,
+void bt_lib_log(const char *file, const char *func, unsigned line,
 		int lvl, const char *tag, const char *fmt, ...);
 
-void bt_lib_log_v(const char *func, const char *file, unsigned line,
+void bt_lib_log_v(const char *file, const char *func, unsigned line,
 		int lvl, const char *tag, const char *fmt, va_list *args);
 
 #define BT_LIB_LOG_AND_APPEND(_lvl, _fmt, ...)				\
 	do {								\
 		bt_lib_maybe_log_and_append_cause(			\
-			_BT_LOG_SRCLOC_FUNCTION, __FILE__,		\
+			__func__, __FILE__,				\
 			__LINE__, _lvl, _BT_LOG_TAG,			\
 			(_fmt), ##__VA_ARGS__);				\
 	} while (0)

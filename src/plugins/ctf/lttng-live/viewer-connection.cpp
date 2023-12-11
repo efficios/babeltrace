@@ -12,7 +12,7 @@
 #include <babeltrace2/babeltrace.h>
 
 #define BT_COMP_LOG_SELF_COMP (viewer_connection->self_comp)
-#define BT_LOG_OUTPUT_LEVEL   (viewer_connection->log_level)
+#define BT_LOG_OUTPUT_LEVEL   ((enum bt_log_level) viewer_connection->log_level)
 #define BT_LOG_TAG            "PLUGIN/SRC.CTF.LTTNG-LIVE/VIEWER"
 #include "logging/comp-logging.h"
 

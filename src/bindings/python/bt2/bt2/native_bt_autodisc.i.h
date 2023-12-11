@@ -86,7 +86,7 @@ bt_value *bt_bt2_auto_discover_source_components(const bt_value *inputs,
 		plugins,
 		plugin_count,
 		NULL,
-		bt_python_bindings_bt2_log_level,
+		(bt_logging_level) bt_python_bindings_bt2_log_level,
 		&auto_disc,
 		NULL);
 	if (status != 0) {

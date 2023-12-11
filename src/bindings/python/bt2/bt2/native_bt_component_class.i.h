@@ -298,7 +298,8 @@ component_class_get_supported_mip_versions(
 
 	py_cls = lookup_cc_ptr_to_py_cls(component_class);
 	if (!py_cls) {
-		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+		BT_LOG_WRITE_PRINTF_CUR_LVL(BT_LOG_ERROR,
+			(enum bt_log_level) log_level, BT_LOG_TAG,
 			"Cannot find Python class associated to native component class: "
 			"comp-cls-addr=%p", component_class);
 		goto error;
@@ -307,7 +308,8 @@ component_class_get_supported_mip_versions(
 	py_params_ptr = SWIG_NewPointerObj(SWIG_as_voidptr(params),
 		SWIGTYPE_p_bt_value, 0);
 	if (!py_params_ptr) {
-		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+		BT_LOG_WRITE_PRINTF_CUR_LVL(BT_LOG_ERROR,
+			(enum bt_log_level) log_level, BT_LOG_TAG,
 			BT_FMT_SWIG_ALLOC_FAILED);
 		goto error;
 	}
@@ -324,7 +326,8 @@ component_class_get_supported_mip_versions(
 		py_params_ptr, init_method_data ? init_method_data : Py_None,
 		(int) log_level);
 	if (!py_range_set_addr) {
-		BT_LOG_WRITE_CUR_LVL(BT_LOG_WARNING, log_level, BT_LOG_TAG,
+		BT_LOG_WRITE_PRINTF_CUR_LVL(BT_LOG_WARNING,
+			(enum bt_log_level) log_level, BT_LOG_TAG,
 			"Failed to call Python class's _bt_get_supported_mip_versions_from_native() method: "
 			"py-cls-addr=%p", py_cls);
 		status = py_exc_to_status_component_class_clear(self_component_class,
@@ -355,7 +358,8 @@ component_class_get_supported_mip_versions(
 			bt_integer_range_unsigned_get_lower(range),
 			bt_integer_range_unsigned_get_upper(range));
 		if (add_range_status) {
-			BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+			BT_LOG_WRITE_PRINTF_CUR_LVL(BT_LOG_ERROR,
+				(enum bt_log_level) log_level, BT_LOG_TAG,
 				"Failed to add range to supported MIP versions range set.");
 			goto error;
 		}
@@ -939,7 +943,8 @@ bt_component_class_query_method_status component_class_query(
 
 	py_cls = lookup_cc_ptr_to_py_cls(component_class);
 	if (!py_cls) {
-		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+		BT_LOG_WRITE_PRINTF_CUR_LVL(BT_LOG_ERROR,
+			(enum bt_log_level) log_level, BT_LOG_TAG,
 			"Cannot find Python class associated to native component class: "
 			"comp-cls-addr=%p", component_class);
 		goto error;
@@ -948,7 +953,8 @@ bt_component_class_query_method_status component_class_query(
 	py_params_ptr = SWIG_NewPointerObj(SWIG_as_voidptr(params),
 		SWIGTYPE_p_bt_value, 0);
 	if (!py_params_ptr) {
-		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+		BT_LOG_WRITE_PRINTF_CUR_LVL(BT_LOG_ERROR,
+			(enum bt_log_level) log_level, BT_LOG_TAG,
 			BT_FMT_SWIG_ALLOC_FAILED);
 		goto error;
 	}
@@ -957,14 +963,16 @@ bt_component_class_query_method_status component_class_query(
 		SWIG_as_voidptr(priv_query_executor),
 		SWIGTYPE_p_bt_private_query_executor, 0);
 	if (!py_priv_query_exec_ptr) {
-		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+		BT_LOG_WRITE_PRINTF_CUR_LVL(BT_LOG_ERROR,
+			(enum bt_log_level) log_level, BT_LOG_TAG,
 			BT_FMT_SWIG_ALLOC_FAILED);
 		goto error;
 	}
 
 	py_object = SWIG_FromCharPtr(object);
 	if (!py_object) {
-		BT_LOG_WRITE_CUR_LVL(BT_LOG_ERROR, log_level, BT_LOG_TAG,
+		BT_LOG_WRITE_PRINTF_CUR_LVL(BT_LOG_ERROR,
+			(enum bt_log_level) log_level, BT_LOG_TAG,
 			"Failed to create a Python string.");
 		goto error;
 	}
@@ -985,8 +993,9 @@ bt_component_class_query_method_status component_class_query(
 			log_level);
 		if (status < 0) {
 #define BT_FMT "Failed to call Python class's _bt_query_from_native() method: py-cls-addr=%p"
-			BT_LOG_WRITE_CUR_LVL(BT_LOG_WARNING, log_level, BT_LOG_TAG,
-				BT_FMT, py_cls);
+			BT_LOG_WRITE_PRINTF_CUR_LVL(BT_LOG_WARNING,
+				(enum bt_log_level) log_level,
+				BT_LOG_TAG, BT_FMT, py_cls);
 			BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT_CLASS(
 				self_component_class, BT_FMT, py_cls);
 #undef BT_FMT

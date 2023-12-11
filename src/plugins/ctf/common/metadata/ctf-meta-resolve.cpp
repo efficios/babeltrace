@@ -14,7 +14,7 @@
 
 #define BT_COMP_LOG_SELF_COMP       (ctx->self_comp)
 #define BT_COMP_LOG_SELF_COMP_CLASS (ctx->self_comp_class)
-#define BT_LOG_OUTPUT_LEVEL         (ctx->log_level)
+#define BT_LOG_OUTPUT_LEVEL         ((enum bt_log_level) ctx->log_level)
 #define BT_LOG_TAG                  "PLUGIN/CTF/META/RESOLVE"
 #include "logging.hpp"
 #include "logging/comp-logging.h"

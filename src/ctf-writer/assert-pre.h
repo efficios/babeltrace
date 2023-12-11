@@ -58,7 +58,7 @@
  */
 # define BT_CTF_ASSERT_PRE_MSG(_fmt, ...)				\
 	do {								\
-		_bt_log_write_d(_BT_LOG_SRCLOC_FUNCTION, __FILE__,	\
+		bt_log_write_printf(__FILE__, __func__,			\
 			__LINE__, BT_LOG_FATAL, BT_LOG_TAG, (_fmt),	\
 			##__VA_ARGS__);					\
 	} while (0)

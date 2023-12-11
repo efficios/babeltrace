@@ -1813,7 +1813,7 @@ bt_get_greatest_operative_mip_version_status get_greatest_operative_mip_version(
 	}
 
 	status = bt_get_greatest_operative_mip_version(comp_descr_set,
-		bt_cli_log_level, mip_version);
+		(bt_logging_level) bt_cli_log_level, mip_version);
 
 end:
 	bt_component_descriptor_set_put_ref(comp_descr_set);
@@ -2565,7 +2565,7 @@ void warn_command_name_and_directory_clash(struct bt_config *cfg)
 
 	if (g_file_test(cfg->command_name,
 			G_FILE_TEST_EXISTS | G_FILE_TEST_IS_DIR)) {
-		_bt_log_write_d(_BT_LOG_SRCLOC_FUNCTION, __FILE__, __LINE__,
+		bt_log_write_printf(__FILE__, __func__, __LINE__,
 				BT_LOG_WARNING, BT_LOG_TAG,
 				"The `%s` command was executed. "
 				"If you meant to convert a trace located in "
@@ -2608,8 +2608,8 @@ void print_error_causes(void)
 	 */
 	fputc('\n',  stderr);
 
-	error_str = format_bt_error(error, columns, bt_cli_log_level,
-		BT_COMMON_COLOR_WHEN_AUTO);
+	error_str = format_bt_error(error, columns,
+		(bt_logging_level) bt_cli_log_level, BT_COMMON_COLOR_WHEN_AUTO);
 	BT_ASSERT(error_str);
 
 	fprintf(stderr, "%s\n", error_str);

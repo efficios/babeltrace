@@ -8,7 +8,7 @@
  * Babeltrace SO info tests
  */
 
-#define BT_LOG_OUTPUT_LEVEL BT_LOG_WARNING
+#define BT_LOG_OUTPUT_LEVEL ((bt_logging_level) BT_LOG_WARNING)
 #define BT_LOG_TAG "TEST/BIN-INFO"
 #include "logging/log.h"
 

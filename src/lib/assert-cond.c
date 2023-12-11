@@ -69,7 +69,7 @@ void bt_lib_assert_cond_failed(const char *cond_type, const char *func,
 	BT_ASSERT_COND_MSG("------------------------------------------------------------------------");
 	BT_ASSERT_COND_MSG("Error is:");
 	va_start(args, fmt);
-	bt_lib_log_v(_BT_LOG_SRCLOC_FUNCTION, __FILE__, __LINE__, BT_LOG_FATAL,
+	bt_lib_log_v(__FILE__, __func__, __LINE__, BT_LOG_FATAL,
 		BT_LOG_TAG, fmt, &args);
 	va_end(args);
 	BT_ASSERT_COND_MSG("Aborting...");

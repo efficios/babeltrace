@@ -20,7 +20,9 @@
 
 /* Logs with level `_lvl` for self component `_self_comp` */
 #define BT_COMP_LOG(_lvl, _self_comp, _fmt, ...)			\
-	BT_LOG_WRITE((_lvl), BT_LOG_TAG, _BT_COMP_LOG_COMP_PREFIX _fmt,	\
+	BT_LOG_WRITE_PRINTF_CUR_LVL((enum bt_log_level) (_lvl),		\
+		(enum bt_log_level) (BT_LOG_OUTPUT_LEVEL), BT_LOG_TAG,	\
+		_BT_COMP_LOG_COMP_PREFIX _fmt,				\
 		(_self_comp) ?						\
 			bt_component_get_name(				\
 				bt_self_component_as_component(_self_comp)) : \
@@ -29,13 +31,16 @@
 
 /* Logs with level `_lvl` for self component class `_self_comp_class` */
 #define BT_COMP_CLASS_LOG(_lvl, _self_comp_class, _fmt, ...)		\
-	BT_LOG_WRITE((_lvl), BT_LOG_TAG, _BT_COMP_LOG_COMP_PREFIX _fmt,	\
+	BT_LOG_WRITE_PRINTF_CUR_LVL((enum bt_log_level) (_lvl),		\
+		(enum bt_log_level) (BT_LOG_OUTPUT_LEVEL), BT_LOG_TAG,	\
+		_BT_COMP_LOG_COMP_PREFIX _fmt,				\
 		bt_component_class_get_name(				\
 			bt_self_component_class_as_component_class(	\
 				_self_comp_class)), ##__VA_ARGS__)
 
 #define BT_COMP_LOG_CUR_LVL(_lvl, _cur_lvl, _self_comp, _fmt, ...)	\
-	BT_LOG_WRITE_CUR_LVL((_lvl), (_cur_lvl), BT_LOG_TAG,		\
+	BT_LOG_WRITE_PRINTF_CUR_LVL((enum bt_log_level) (_lvl),		\
+		(enum bt_log_level) (_cur_lvl), BT_LOG_TAG,		\
 		_BT_COMP_LOG_COMP_PREFIX _fmt,				\
 		(_self_comp) ?						\
 			bt_component_get_name(				\
@@ -44,7 +49,9 @@
 		##__VA_ARGS__)
 
 #define BT_COMP_LOG_ERRNO(_lvl, _self_comp, _msg, _fmt, ...)		\
-	BT_LOG_WRITE_ERRNO((_lvl), BT_LOG_TAG, _msg,			\
+	BT_LOG_WRITE_ERRNO_PRINTF_CUR_LVL((enum bt_log_level) (_lvl),	\
+		(enum bt_log_level) (BT_LOG_OUTPUT_LEVEL),		\
+		BT_LOG_TAG, _msg,					\
 		_BT_COMP_LOG_COMP_PREFIX _fmt,				\
 		(_self_comp) ?						\
 			bt_component_get_name(				\
@@ -53,7 +60,8 @@
 		##__VA_ARGS__)
 
 #define BT_COMP_LOG_ERRNO_CUR_LVL(_lvl, _cur_lvl, _self_comp, _msg, _fmt, ...) \
-	BT_LOG_WRITE_ERRNO_CUR_LVL((_lvl), (_cur_lvl), BT_LOG_TAG, _msg, \
+	BT_LOG_WRITE_ERRNO_PRINTF_CUR_LVL((enum bt_log_level) (_lvl),	\
+		(enum bt_log_level) (_cur_lvl), BT_LOG_TAG, _msg,	\
 		_BT_COMP_LOG_COMP_PREFIX _fmt,				\
 		(_self_comp) ?						\
 			bt_component_get_name(				\
@@ -62,7 +70,9 @@
 		##__VA_ARGS__)
 
 #define BT_COMP_LOG_MEM(_lvl, _self_comp, _data_ptr, _data_sz, _fmt, ...) \
-	BT_LOG_WRITE_MEM((_lvl), BT_LOG_TAG, (_data_ptr), (_data_sz),	\
+	BT_LOG_WRITE_MEM_PRINTF_CUR_LVL((enum bt_log_level) (_lvl),	\
+		(enum bt_log_level) (BT_LOG_OUTPUT_LEVEL), BT_LOG_TAG,	\
+		(_data_ptr), (_data_sz),				\
 		_BT_COMP_LOG_COMP_PREFIX _fmt,				\
 		(_self_comp) ?						\
 			bt_component_get_name(				\
@@ -159,7 +169,8 @@
 
 /* Logs error and errno string from component class context. */
 #define BT_COMP_CLASS_LOG_ERRNO(_lvl, _self_comp_class, _msg, _fmt, ...)		\
-	BT_LOG_WRITE_ERRNO((_lvl), BT_LOG_TAG, _msg,					\
+	BT_LOG_WRITE_ERRNO_PRINTF_CUR_LVL((enum bt_log_level) (_lvl),			\
+		(enum bt_log_level) (BT_LOG_OUTPUT_LEVEL), BT_LOG_TAG, _msg,		\
 		_BT_COMP_LOG_COMP_PREFIX _fmt,						\
 		bt_component_class_get_name(						\
 			bt_self_component_class_as_component_class(_self_comp_class))  	\

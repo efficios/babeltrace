@@ -12,7 +12,7 @@
 
 #include <babeltrace2/babeltrace.h>
 
-#define BT_LOG_OUTPUT_LEVEL log_level
+#define BT_LOG_OUTPUT_LEVEL ((enum bt_log_level) log_level)
 #define BT_LOG_TAG          "PLUGIN/SRC.CTF.FS/QUERY"
 #include "logging/comp-logging.h"
 #include "logging/log.h"
