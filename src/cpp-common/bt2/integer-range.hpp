@@ -12,7 +12,7 @@
 
 #include <babeltrace2/babeltrace.h>
 
-#include "internal/borrowed-obj.hpp"
+#include "borrowed-obj.hpp"
 
 namespace bt2 {
 
@@ -66,11 +66,11 @@ struct ConstIntegerRangeSpec<const bt_integer_range_signed> final
 } /* namespace internal */
 
 template <typename LibObjT>
-class ConstIntegerRange final : public internal::BorrowedObj<LibObjT>
+class ConstIntegerRange final : public BorrowedObj<LibObjT>
 {
 private:
-    using typename internal::BorrowedObj<LibObjT>::_ThisBorrowedObj;
-    using typename internal::BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
+    using typename BorrowedObj<LibObjT>::_LibObjPtr;
     using _ThisConstIntegerRange = ConstIntegerRange<LibObjT>;
 
 public:

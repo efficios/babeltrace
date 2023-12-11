@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-#ifndef BABELTRACE_CPP_COMMON_BT2_INTERNAL_BORROWED_OBJ_HPP
-#define BABELTRACE_CPP_COMMON_BT2_INTERNAL_BORROWED_OBJ_HPP
+#ifndef BABELTRACE_CPP_COMMON_BT2_BORROWED_OBJ_HPP
+#define BABELTRACE_CPP_COMMON_BT2_BORROWED_OBJ_HPP
 
 #include <functional>
 #include <type_traits>
@@ -13,7 +13,6 @@
 #include "common/assert.h"
 
 namespace bt2 {
-namespace internal {
 
 /*
  * An instance of this class wraps a pointer to a libbabeltrace2 object
@@ -164,7 +163,6 @@ private:
     _LibObjPtr _mLibObjPtr;
 };
 
-} /* namespace internal */
 } /* namespace bt2 */
 
-#endif /* BABELTRACE_CPP_COMMON_BT2_INTERNAL_BORROWED_OBJ_HPP */
+#endif /* BABELTRACE_CPP_COMMON_BT2_BORROWED_OBJ_HPP */

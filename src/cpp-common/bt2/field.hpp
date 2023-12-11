@@ -16,8 +16,8 @@
 #include "cpp-common/optional.hpp"
 #include "cpp-common/string_view.hpp"
 
+#include "borrowed-obj.hpp"
 #include "field-class.hpp"
-#include "internal/borrowed-obj.hpp"
 #include "internal/utils.hpp"
 
 namespace bt2 {
@@ -92,13 +92,13 @@ struct CommonFieldSpec<const bt_field> final
 } /* namespace internal */
 
 template <typename LibObjT>
-class CommonField : public internal::BorrowedObj<LibObjT>
+class CommonField : public BorrowedObj<LibObjT>
 {
 private:
-    using typename internal::BorrowedObj<LibObjT>::_ThisBorrowedObj;
+    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
 
 protected:
-    using typename internal::BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObj<LibObjT>::_LibObjPtr;
     using _ThisCommonField = CommonField<LibObjT>;
 
 public:

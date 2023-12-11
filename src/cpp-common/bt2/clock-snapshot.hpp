@@ -11,12 +11,12 @@
 
 #include <babeltrace2/babeltrace.h>
 
+#include "borrowed-obj.hpp"
 #include "exc.hpp"
-#include "internal/borrowed-obj.hpp"
 
 namespace bt2 {
 
-class ConstClockSnapshot final : public internal::BorrowedObj<const bt_clock_snapshot>
+class ConstClockSnapshot final : public BorrowedObj<const bt_clock_snapshot>
 {
 public:
     explicit ConstClockSnapshot(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObj {libObjPtr}

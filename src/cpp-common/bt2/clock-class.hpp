@@ -17,8 +17,8 @@
 #include "cpp-common/string_view.hpp"
 #include "cpp-common/uuid-view.hpp"
 
+#include "borrowed-obj.hpp"
 #include "exc.hpp"
-#include "internal/borrowed-obj.hpp"
 #include "internal/shared-obj.hpp"
 #include "internal/utils.hpp"
 #include "value.hpp"
@@ -92,11 +92,11 @@ private:
 };
 
 template <typename LibObjT>
-class CommonClockClass final : public internal::BorrowedObj<LibObjT>
+class CommonClockClass final : public BorrowedObj<LibObjT>
 {
 private:
-    using typename internal::BorrowedObj<LibObjT>::_ThisBorrowedObj;
-    using typename internal::BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
+    using typename BorrowedObj<LibObjT>::_LibObjPtr;
     using _ThisCommonClockClass = CommonClockClass<LibObjT>;
 
 public:

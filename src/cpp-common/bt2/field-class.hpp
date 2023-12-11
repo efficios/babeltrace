@@ -16,11 +16,11 @@
 #include "cpp-common/optional.hpp"
 #include "cpp-common/string_view.hpp"
 
+#include "borrowed-obj.hpp"
 #include "common-iter.hpp"
 #include "exc.hpp"
 #include "field-path.hpp"
 #include "integer-range-set.hpp"
-#include "internal/borrowed-obj.hpp"
 #include "internal/shared-obj.hpp"
 #include "internal/utils.hpp"
 #include "value.hpp"
@@ -161,7 +161,7 @@ enum class FieldClassType
 };
 
 template <typename LibObjT>
-class CommonFieldClass : public internal::BorrowedObj<LibObjT>
+class CommonFieldClass : public BorrowedObj<LibObjT>
 {
     /* Allow appendMember() to call `fc.libObjPtr()` */
     friend class CommonStructureFieldClass<bt_field_class>;
@@ -187,10 +187,10 @@ class CommonFieldClass : public internal::BorrowedObj<LibObjT>
     friend class CommonTraceClass<bt_trace_class>;
 
 private:
-    using typename internal::BorrowedObj<LibObjT>::_ThisBorrowedObj;
+    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
 
 protected:
-    using typename internal::BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObj<LibObjT>::_LibObjPtr;
     using _ThisCommonFieldClass = CommonFieldClass<LibObjT>;
 
 public:
@@ -679,11 +679,11 @@ struct ConstEnumerationFieldClassMappingSpec<const bt_field_class_enumeration_si
 } /* namespace internal */
 
 template <typename LibObjT>
-class ConstEnumerationFieldClassMapping final : public internal::BorrowedObj<LibObjT>
+class ConstEnumerationFieldClassMapping final : public BorrowedObj<LibObjT>
 {
 private:
-    using typename internal::BorrowedObj<LibObjT>::_ThisBorrowedObj;
-    using typename internal::BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
+    using typename BorrowedObj<LibObjT>::_LibObjPtr;
 
 public:
     using RangeSet = typename std::conditional<
@@ -1000,11 +1000,11 @@ struct CommonStructureFieldClassMemberSpec<const bt_field_class_structure_member
 } /* namespace internal */
 
 template <typename LibObjT>
-class CommonStructureFieldClassMember final : public internal::BorrowedObj<LibObjT>
+class CommonStructureFieldClassMember final : public BorrowedObj<LibObjT>
 {
 private:
-    using typename internal::BorrowedObj<LibObjT>::_LibObjPtr;
-    using typename internal::BorrowedObj<LibObjT>::_ThisBorrowedObj;
+    using typename BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
 
     using _FieldClass =
         typename std::conditional<std::is_const<LibObjT>::value, ConstFieldClass, FieldClass>::type;
@@ -1925,11 +1925,11 @@ struct CommonVariantFieldClassOptionSpec<const bt_field_class_variant_option> fi
 } /* namespace internal */
 
 template <typename LibObjT>
-class CommonVariantFieldClassOption : public internal::BorrowedObj<LibObjT>
+class CommonVariantFieldClassOption : public BorrowedObj<LibObjT>
 {
 private:
-    using typename internal::BorrowedObj<LibObjT>::_ThisBorrowedObj;
-    using typename internal::BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
+    using typename BorrowedObj<LibObjT>::_LibObjPtr;
 
     using _FieldClass =
         typename std::conditional<std::is_const<LibObjT>::value, ConstFieldClass, FieldClass>::type;
@@ -2076,11 +2076,11 @@ struct ConstVariantWithIntegerSelectorFieldClassOptionSpec<
 } /* namespace internal */
 
 template <typename LibObjT>
-class ConstVariantWithIntegerSelectorFieldClassOption : public internal::BorrowedObj<LibObjT>
+class ConstVariantWithIntegerSelectorFieldClassOption : public BorrowedObj<LibObjT>
 {
 private:
-    using typename internal::BorrowedObj<LibObjT>::_ThisBorrowedObj;
-    using typename internal::BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
+    using typename BorrowedObj<LibObjT>::_LibObjPtr;
     using _Spec = internal::ConstVariantWithIntegerSelectorFieldClassOptionSpec<LibObjT>;
 
 public:

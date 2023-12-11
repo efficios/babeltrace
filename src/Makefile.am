@@ -12,6 +12,7 @@ SUBDIRS += bindings/python/bt2
 endif
 
 noinst_HEADERS = \
+	cpp-common/bt2/borrowed-obj.hpp \
 	cpp-common/bt2/clock-class.hpp \
 	cpp-common/bt2/clock-snapshot.hpp \
 	cpp-common/bt2/common-iter.hpp \
@@ -21,7 +22,6 @@ noinst_HEADERS = \
 	cpp-common/bt2/field-path.hpp \
 	cpp-common/bt2/integer-range.hpp \
 	cpp-common/bt2/integer-range-set.hpp \
-	cpp-common/bt2/internal/borrowed-obj.hpp \
 	cpp-common/bt2/internal/shared-obj.hpp \
 	cpp-common/bt2/internal/utils.hpp \
 	cpp-common/bt2/logging.hpp \

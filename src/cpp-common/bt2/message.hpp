@@ -17,7 +17,7 @@
 #include "cpp-common/bt2/trace-ir.hpp"
 #include "cpp-common/optional.hpp"
 
-#include "internal/borrowed-obj.hpp"
+#include "borrowed-obj.hpp"
 #include "internal/shared-obj.hpp"
 #include "internal/utils.hpp"
 
@@ -79,13 +79,13 @@ enum class MessageType
 };
 
 template <typename LibObjT>
-class CommonMessage : public internal::BorrowedObj<LibObjT>
+class CommonMessage : public BorrowedObj<LibObjT>
 {
 private:
-    using typename internal::BorrowedObj<LibObjT>::_ThisBorrowedObj;
+    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
 
 protected:
-    using typename internal::BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObj<LibObjT>::_LibObjPtr;
     using _ThisCommonMessage = CommonMessage<LibObjT>;
 
 public:

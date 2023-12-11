@@ -18,9 +18,9 @@
 #include "cpp-common/optional.hpp"
 #include "cpp-common/string_view.hpp"
 
+#include "borrowed-obj.hpp"
 #include "common-iter.hpp"
 #include "exc.hpp"
-#include "internal/borrowed-obj.hpp"
 #include "internal/shared-obj.hpp"
 #include "internal/utils.hpp"
 
@@ -100,7 +100,7 @@ template <typename LibObjT>
 class CommonStream;
 
 template <typename LibObjT>
-class CommonValue : public internal::BorrowedObj<LibObjT>
+class CommonValue : public BorrowedObj<LibObjT>
 {
     /* Allow append() to call `val.libObjPtr()` */
     friend class CommonArrayValue<bt_value>;
@@ -121,10 +121,10 @@ class CommonValue : public internal::BorrowedObj<LibObjT>
     friend class CommonValue<const bt_value>;
 
 private:
-    using typename internal::BorrowedObj<LibObjT>::_ThisBorrowedObj;
+    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
 
 protected:
-    using typename internal::BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObj<LibObjT>::_LibObjPtr;
     using _ThisCommonValue = CommonValue<LibObjT>;
 
 public:

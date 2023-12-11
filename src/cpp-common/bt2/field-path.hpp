@@ -13,8 +13,8 @@
 
 #include "common/assert.h"
 
+#include "borrowed-obj.hpp"
 #include "common-iter.hpp"
-#include "internal/borrowed-obj.hpp"
 #include "internal/shared-obj.hpp"
 
 namespace bt2 {
@@ -28,7 +28,7 @@ enum class FieldPathItemType
     CURRENT_OPTION_CONTENT = BT_FIELD_PATH_ITEM_TYPE_CURRENT_OPTION_CONTENT,
 };
 
-class ConstFieldPathItem : public internal::BorrowedObj<const bt_field_path_item>
+class ConstFieldPathItem : public BorrowedObj<const bt_field_path_item>
 {
 public:
     explicit ConstFieldPathItem(const _LibObjPtr libObjPtr) noexcept : _ThisBorrowedObj {libObjPtr}
@@ -123,7 +123,7 @@ struct FieldPathRefFuncs final
 
 } /* namespace internal */
 
-class ConstFieldPath final : public internal::BorrowedObj<const bt_field_path>
+class ConstFieldPath final : public BorrowedObj<const bt_field_path>
 {
 public:
     using Shared =

@@ -12,10 +12,10 @@
 
 #include <babeltrace2/babeltrace.h>
 
+#include "borrowed-obj.hpp"
 #include "common-iter.hpp"
 #include "exc.hpp"
 #include "integer-range.hpp"
-#include "internal/borrowed-obj.hpp"
 #include "internal/utils.hpp"
 
 namespace bt2 {
@@ -141,7 +141,7 @@ template <typename LibObjT>
 class CommonTraceClass;
 
 template <typename LibObjT>
-class CommonIntegerRangeSet final : public internal::BorrowedObj<LibObjT>
+class CommonIntegerRangeSet final : public BorrowedObj<LibObjT>
 {
     /* Allow operator==() to call `other.libObjPtr()` */
     friend class CommonIntegerRangeSet<bt_integer_range_set_unsigned>;
@@ -164,8 +164,8 @@ class CommonIntegerRangeSet final : public internal::BorrowedObj<LibObjT>
     friend class CommonTraceClass<bt_trace_class>;
 
 private:
-    using typename internal::BorrowedObj<LibObjT>::_ThisBorrowedObj;
-    using typename internal::BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
+    using typename BorrowedObj<LibObjT>::_LibObjPtr;
     using _ConstLibObjT = typename std::add_const<LibObjT>::type;
     using _RefFuncs = internal::IntegerRangeSetRefFuncs<_ConstLibObjT>;
     using _Spec = internal::CommonIntegerRangeSetSpec<_ConstLibObjT>;

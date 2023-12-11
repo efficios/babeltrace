@@ -15,10 +15,10 @@
 #include "cpp-common/optional.hpp"
 #include "cpp-common/string_view.hpp"
 
+#include "borrowed-obj.hpp"
 #include "clock-class.hpp"
 #include "field-class.hpp"
 #include "field.hpp"
-#include "internal/borrowed-obj.hpp"
 #include "internal/utils.hpp"
 #include "value.hpp"
 
@@ -123,11 +123,11 @@ struct CommonEventSpec<const bt_event> final
 } /* namespace internal */
 
 template <typename LibObjT>
-class CommonEvent final : public internal::BorrowedObj<LibObjT>
+class CommonEvent final : public BorrowedObj<LibObjT>
 {
 private:
-    using typename internal::BorrowedObj<LibObjT>::_ThisBorrowedObj;
-    using typename internal::BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
+    using typename BorrowedObj<LibObjT>::_LibObjPtr;
     using _ConstSpec = internal::CommonEventSpec<const bt_event>;
     using _Spec = internal::CommonEventSpec<LibObjT>;
 
@@ -307,11 +307,11 @@ struct CommonPacketSpec<const bt_packet> final
 } /* namespace internal */
 
 template <typename LibObjT>
-class CommonPacket final : public internal::BorrowedObj<LibObjT>
+class CommonPacket final : public BorrowedObj<LibObjT>
 {
 private:
-    using typename internal::BorrowedObj<LibObjT>::_ThisBorrowedObj;
-    using typename internal::BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
+    using typename BorrowedObj<LibObjT>::_LibObjPtr;
     using _ConstSpec = internal::CommonPacketSpec<const bt_packet>;
     using _Spec = internal::CommonPacketSpec<LibObjT>;
     using _ThisCommonPacket = CommonPacket<LibObjT>;
@@ -481,11 +481,11 @@ struct CommonStreamSpec<const bt_stream> final
 } /* namespace internal */
 
 template <typename LibObjT>
-class CommonStream final : public internal::BorrowedObj<LibObjT>
+class CommonStream final : public BorrowedObj<LibObjT>
 {
 private:
-    using typename internal::BorrowedObj<LibObjT>::_ThisBorrowedObj;
-    using typename internal::BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
+    using typename BorrowedObj<LibObjT>::_LibObjPtr;
     using _ConstSpec = internal::CommonStreamSpec<const bt_stream>;
     using _Spec = internal::CommonStreamSpec<LibObjT>;
     using _ThisCommonStream = CommonStream<LibObjT>;
@@ -711,14 +711,14 @@ struct CommonTraceSpec<const bt_trace> final
 } /* namespace internal */
 
 template <typename LibObjT>
-class CommonTrace final : public internal::BorrowedObj<LibObjT>
+class CommonTrace final : public BorrowedObj<LibObjT>
 {
     /* Allow instantiate() to call `trace.libObjPtr()` */
     friend class CommonStreamClass<bt_stream_class>;
 
 private:
-    using typename internal::BorrowedObj<LibObjT>::_ThisBorrowedObj;
-    using typename internal::BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
+    using typename BorrowedObj<LibObjT>::_LibObjPtr;
     using _ConstSpec = internal::CommonTraceSpec<const bt_trace>;
     using _Spec = internal::CommonTraceSpec<LibObjT>;
     using _ThisCommonTrace = CommonTrace<LibObjT>;
@@ -1047,11 +1047,11 @@ struct CommonEventClassSpec<const bt_event_class> final
 } /* namespace internal */
 
 template <typename LibObjT>
-class CommonEventClass final : public internal::BorrowedObj<LibObjT>
+class CommonEventClass final : public BorrowedObj<LibObjT>
 {
 private:
-    using typename internal::BorrowedObj<LibObjT>::_ThisBorrowedObj;
-    using typename internal::BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
+    using typename BorrowedObj<LibObjT>::_LibObjPtr;
     using _ConstSpec = internal::CommonEventClassSpec<const bt_event_class>;
     using _Spec = internal::CommonEventClassSpec<LibObjT>;
     using _ThisCommonEventClass = CommonEventClass<LibObjT>;
@@ -1423,11 +1423,11 @@ struct CommonStreamClassSpec<const bt_stream_class> final
 } /* namespace internal */
 
 template <typename LibObjT>
-class CommonStreamClass final : public internal::BorrowedObj<LibObjT>
+class CommonStreamClass final : public BorrowedObj<LibObjT>
 {
 private:
-    using typename internal::BorrowedObj<LibObjT>::_ThisBorrowedObj;
-    using typename internal::BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
+    using typename BorrowedObj<LibObjT>::_LibObjPtr;
     using _ConstSpec = internal::CommonStreamClassSpec<const bt_stream_class>;
     using _Spec = internal::CommonStreamClassSpec<LibObjT>;
     using _ThisCommonStreamClass = CommonStreamClass<LibObjT>;
@@ -1916,11 +1916,11 @@ struct CommonTraceClassSpec<const bt_trace_class> final
 } /* namespace internal */
 
 template <typename LibObjT>
-class CommonTraceClass final : public internal::BorrowedObj<LibObjT>
+class CommonTraceClass final : public BorrowedObj<LibObjT>
 {
 private:
-    using typename internal::BorrowedObj<LibObjT>::_ThisBorrowedObj;
-    using typename internal::BorrowedObj<LibObjT>::_LibObjPtr;
+    using typename BorrowedObj<LibObjT>::_ThisBorrowedObj;
+    using typename BorrowedObj<LibObjT>::_LibObjPtr;
     using _ConstSpec = internal::CommonTraceClassSpec<const bt_trace_class>;
     using _Spec = internal::CommonTraceClassSpec<LibObjT>;
     using _ThisCommonTraceClass = CommonTraceClass<LibObjT>;
