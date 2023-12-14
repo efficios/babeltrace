@@ -36,6 +36,10 @@
 # include <mach.h>
 #endif
 
+#ifdef __FreeBSD__
+# include <sys/thr.h>
+#endif
+
 #include "common/assert.h"
 #include "common/common.h"
 #include "common/macros.h"
@@ -191,6 +195,18 @@ void append_pid_tid_to_msg_buf(char ** const at)
 
 		mach_port_deallocate(mach_task_self(), mach_port);
 		tid = (unsigned int) mach_port;
+	}
+#elif defined(__FreeBSD__)
+	{
+		long ltid;
+
+		thr_self(&ltid);
+
+		/*
+		 * The thread ID is an integer in the range from
+		 * `PID_MAX + 2` (100001) to `INT_MAX`.
+		 */
+		tid = (unsigned int) ltid;
 	}
 #else
 # error "Platform not supported"
