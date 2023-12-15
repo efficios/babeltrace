@@ -1411,6 +1411,14 @@ lttng_live_get_next_index(struct lttng_live_msg_iter *lttng_live_msg_iter,
     BT_COMP_LOGD("Received response from relay daemon: cmd=%s, response=%s",
                  lttng_viewer_command_string(LTTNG_VIEWER_GET_NEXT_INDEX),
                  lttng_viewer_next_index_return_code_string(rp_status));
+
+    if (flags & LTTNG_VIEWER_FLAG_NEW_STREAM) {
+        BT_COMP_LOGD("Marking all sessions as possibly needing new streams: "
+                     "response=%s, response-flag=NEW_STREAM",
+                     lttng_viewer_next_index_return_code_string(rp_status));
+        lttng_live_need_new_streams(lttng_live_msg_iter);
+    }
+
     switch (rp_status) {
     case LTTNG_VIEWER_INDEX_INACTIVE:
     {
@@ -1442,7 +1450,6 @@ lttng_live_get_next_index(struct lttng_live_msg_iter *lttng_live_msg_iter,
             stream->ctf_stream_class_id.value = ctf_stream_class_id;
             stream->ctf_stream_class_id.is_set = true;
         }
-
         lttng_live_stream_iterator_set_state(stream, LTTNG_LIVE_STREAM_ACTIVE_DATA);
 
         if (flags & LTTNG_VIEWER_FLAG_NEW_METADATA) {
@@ -1450,12 +1457,6 @@ lttng_live_get_next_index(struct lttng_live_msg_iter *lttng_live_msg_iter,
                          "response=%s, response-flag=NEW_METADATA, trace-id=%" PRIu64,
                          lttng_viewer_next_index_return_code_string(rp_status), trace->id);
             trace->metadata_stream_state = LTTNG_LIVE_METADATA_STREAM_STATE_NEEDED;
-        }
-        if (flags & LTTNG_VIEWER_FLAG_NEW_STREAM) {
-            BT_COMP_LOGD("Marking all sessions as possibly needing new streams: "
-                         "response=%s, response-flag=NEW_STREAM",
-                         lttng_viewer_next_index_return_code_string(rp_status));
-            lttng_live_need_new_streams(lttng_live_msg_iter);
         }
         status = LTTNG_LIVE_ITERATOR_STATUS_OK;
         break;
@@ -1484,6 +1485,7 @@ lttng_live_get_next_index(struct lttng_live_msg_iter *lttng_live_msg_iter,
         status = LTTNG_LIVE_ITERATOR_STATUS_ERROR;
         goto end;
     }
+
     goto end;
 
 error:
