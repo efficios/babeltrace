@@ -61,7 +61,7 @@ export BT_TESTS_BUILDDIR
 
 # Source the generated environment file if it's present.
 if [ -f "${BT_TESTS_BUILDDIR}/utils/env.sh" ]; then
-	# shellcheck source=./env.sh
+	# shellcheck disable=SC1091
 	. "${BT_TESTS_BUILDDIR}/utils/env.sh"
 fi
 
