@@ -99,7 +99,7 @@ steps:
 5. Copy the resulting trace back into the Babeltrace repository.
 
 When running babeltrace with the `--debug-info-target-prefix` option or
-`target-prefix` component paramater set to the directory containing the right
+`target-prefix` component parameter set to the directory containing the right
 `libhello-so` file. In the example used above, the `libhello-so` file is in the
 `x86-64-linux-gnu/dwarf-full/` directory.
 In the printed trace, the `my_provider:my_first_tracepoint` events should

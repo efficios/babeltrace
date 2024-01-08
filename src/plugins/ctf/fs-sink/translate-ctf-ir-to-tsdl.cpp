@@ -717,7 +717,7 @@ static void append_stream_class(struct ctx *ctx, struct fs_sink_ctf_stream_class
     }
 
     /*
-     * Unconditionnally write the packet sequence number as, even if
+     * Unconditionally write the packet sequence number as, even if
      * there's no possible discarded packets message, it's still
      * useful information to have.
      */

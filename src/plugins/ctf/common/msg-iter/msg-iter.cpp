@@ -1791,7 +1791,7 @@ end:
 
 /*
  * Ensure the message iterator's `stored_values` array is large enough to
- * accomodate `storing_index`.
+ * accommodate `storing_index`.
  *
  * We may need more slots in the array than initially allocated if more
  * metadata arrives along the way.
@@ -2741,7 +2741,7 @@ enum ctf_msg_iter_status ctf_msg_iter_get_next_message(struct ctf_msg_iter *msg_
             }
             goto end;
         case STATE_EMIT_MSG_DISCARDED_EVENTS:
-            /* create_msg_discared_events() logs errors */
+            /* create_msg_discarded_events() logs errors */
             *message = create_msg_discarded_events(msg_it);
 
             if (!*message) {
@@ -2750,7 +2750,7 @@ enum ctf_msg_iter_status ctf_msg_iter_get_next_message(struct ctf_msg_iter *msg_
 
             goto end;
         case STATE_EMIT_MSG_DISCARDED_PACKETS:
-            /* create_msg_discared_packets() logs errors */
+            /* create_msg_discarded_packets() logs errors */
             *message = create_msg_discarded_packets(msg_it);
 
             if (!*message) {

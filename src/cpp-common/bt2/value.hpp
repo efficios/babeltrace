@@ -1162,7 +1162,7 @@ using CommonMapValueForEachUserFunc = std::function<void(bt2c::CStringView, ObjT
  * `CommonMapValueForEachUserFunc<ObjT>` (the user function to call).
  *
  * This function catches any exception which the user function throws
- * and returns the `ErrorStatus` value. If there's no execption, this
+ * and returns the `ErrorStatus` value. If there's no exception, this
  * function returns the `OkStatus` value.
  */
 template <typename ObjT, typename LibObjT, typename LibStatusT, int OkStatus, int ErrorStatus>

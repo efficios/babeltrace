@@ -73,7 +73,7 @@ struct bt_ctf_field_type_common {
 
 	/*
 	 * A type can't be modified once it is added to an event or after a
-	 * a field has been instanciated from it.
+	 * a field has been instantiated from it.
 	 */
 	int frozen;
 

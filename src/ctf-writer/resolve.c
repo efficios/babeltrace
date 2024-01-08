@@ -1048,7 +1048,7 @@ int resolve_sequence_or_variant_type(struct bt_ctf_field_type_common *type,
 		ret = bt_ctf_field_type_common_variant_set_tag_field_path(
 			type, target_field_path);
 		if (ret) {
-			BT_LOGW("Cannot set varaint field type's tag field path: "
+			BT_LOGW("Cannot set variant field type's tag field path: "
 				"ret=%d, ft-addr=%p, path=\"%s\", target-field-path=\"%s\"",
 				ret, type, pathstr,
 				target_field_path_pretty_str);
@@ -1058,7 +1058,7 @@ int resolve_sequence_or_variant_type(struct bt_ctf_field_type_common *type,
 		ret = bt_ctf_field_type_common_variant_set_tag_field_type(
 			type, target_type);
 		if (ret) {
-			BT_LOGW("Cannot set varaint field type's tag field type: "
+			BT_LOGW("Cannot set variant field type's tag field type: "
 				"ret=%d, ft-addr=%p, path=\"%s\", target-field-path=\"%s\"",
 				ret, type, pathstr,
 				target_field_path_pretty_str);

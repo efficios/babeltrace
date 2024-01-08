@@ -137,7 +137,7 @@ ctf_fs_iterator_next(bt_self_message_iterator *iterator, bt_message_array_const 
          * accumulated message objects in the output
          * message array, so we need to return
          * BT_MESSAGE_ITERATOR_NEXT_METHOD_STATUS_OK so that they are
-         * transfered to downstream. This other status occurs
+         * transferred to downstream. This other status occurs
          * again the next time muxer_msg_iter_do_next() is
          * called, possibly without any accumulated
          * message, in which case we'll return it.

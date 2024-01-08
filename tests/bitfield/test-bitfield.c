@@ -748,7 +748,7 @@ int main(int argc, char **argv)
 		return print_encodings(src, shift, len);
 	}
 
-	/* Run tap-formated tests */
+	/* Run tap-formatted tests */
 	run_test();
 	return exit_status();
 }

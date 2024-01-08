@@ -196,7 +196,7 @@ int bt_dwarf_die_get_call_line(struct bt_dwarf_die *die,
  * @param addr		The memory address to verify
  * @param contains	Out parameter, true if addr is contained,
  *			false if not
- * @returns		0 on succes, -1 on failure
+ * @returns		0 on success, -1 on failure
  */
 int bt_dwarf_die_contains_addr(struct bt_dwarf_die *die, uint64_t addr,
 		bool *contains);

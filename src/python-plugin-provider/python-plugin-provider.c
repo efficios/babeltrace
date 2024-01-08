@@ -663,7 +663,7 @@ int bt_plugin_python_create_all_from_file(const char *path,
 	/*
 	 * Initialize Python now.
 	 *
-	 * This is not done in the library contructor because the
+	 * This is not done in the library constructor because the
 	 * interpreter is somewhat slow to initialize. If you don't
 	 * have any potential Python plugins, you don't need to endure
 	 * this waiting time everytime you load the library.

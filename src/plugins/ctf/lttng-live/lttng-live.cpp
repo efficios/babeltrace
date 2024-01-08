@@ -1109,7 +1109,7 @@ handle_late_message(struct lttng_live_msg_iter *lttng_live_msg_iter,
      * by this component. We CANNOT send it as is.
      *
      * The only expected scenario in which that could happen is the
-     * following, everything else is a bug in this component, relay deamon,
+     * following, everything else is a bug in this component, relay daemon,
      * or CTF parser.
      *
      * Expected scenario: The CTF message iterator emitted discarded
@@ -1276,7 +1276,7 @@ next_stream_iterator_for_trace(struct lttng_live_msg_iter *lttng_live_msg_iter,
 
             /*
              * Get the timestamp in nanoseconds from origin of this
-             * messsage.
+             * message.
              */
             live_get_msg_ts_ns(lttng_live_msg_iter, msg, lttng_live_msg_iter->last_msg_ts_ns,
                                &curr_msg_ts_ns);
@@ -1684,7 +1684,7 @@ lttng_live_msg_iter_next(bt_self_message_iterator *self_msg_it, bt_message_array
 
         /*
          * Insert the next message to the message batch. This will set
-         * stream iterator current messsage to NULL so that next time
+         * stream iterator current message to NULL so that next time
          * we fetch the next message of that stream iterator
          */
         BT_MESSAGE_MOVE_REF(msgs[*count], youngest_stream_iter->current_msg);
@@ -1704,7 +1704,7 @@ return_status:
         /*
          * If we gathered messages, return _OK even if the graph was
          * interrupted. This allows for the components downstream to at
-         * least get the thoses messages. If the graph was indeed
+         * least get the those messages. If the graph was indeed
          * interrupted there should not be another _next() call as the
          * application will tear down the graph. This component class
          * doesn't support restarting after an interruption.

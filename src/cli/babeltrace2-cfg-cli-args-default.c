@@ -42,7 +42,7 @@ enum bt_config_cli_args_status bt_config_cli_args_create_with_default(int argc,
 	g_setenv("LIBBABELTRACE2_PLUGIN_PROVIDER_DIR", CONFIG_IN_TREE_PROVIDER_DIR, 0);
 #else
 	/*
-	 * If the Pyhton plugin provider is disabled, use a non-exitent path to avoid
+	 * If the Python plugin provider is disabled, use a non-exitent path to avoid
 	 * loading the system installed provider if it exit, if the env variable is
 	 * already set, do not overwrite it.
 	 */

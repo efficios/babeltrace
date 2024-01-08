@@ -33,7 +33,7 @@ A <strong><em>component class</em></strong> is the class of a \bt_comp:
 
 @attention
     This module (component class development API) offers functions to
-    programatically create component classes. To get the properties of
+    programmatically create component classes. To get the properties of
     an existing component class, see \ref api-comp-cls.
 
 A component class has <em>methods</em>. This module essentially

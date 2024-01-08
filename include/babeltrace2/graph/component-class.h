@@ -41,7 +41,7 @@ initialization parameters, to create many components with the
 
 There are two ways to obtain a component class:
 
-- Create one programatically: see \ref api-comp-cls-dev.
+- Create one programmatically: see \ref api-comp-cls-dev.
 
 - Borrow one from a \bt_plugin.
 

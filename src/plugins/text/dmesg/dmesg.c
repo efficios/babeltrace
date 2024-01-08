@@ -852,7 +852,7 @@ bt_message_iterator_class_next_method_status dmesg_msg_iter_next(
 		 * accumulated message objects in the output
 		 * message array, so we need to return
 		 * BT_SELF_MESSAGE_ITERATOR_STATUS_OK so that they
-		 * are transfered to downstream. This other status
+		 * are transferred to downstream. This other status
 		 * occurs again the next time muxer_msg_iter_do_next()
 		 * is called, possibly without any accumulated
 		 * message, in which case we'll return it.

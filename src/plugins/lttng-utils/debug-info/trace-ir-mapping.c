@@ -40,7 +40,7 @@ bt_trace_class *create_new_mapped_trace_class(struct trace_ir_maps *ir_maps,
 
 	BT_ASSERT(!metadata_maps->output_trace_class);
 
-	/* Create the ouput trace class. */
+	/* Create the output trace class. */
 	metadata_maps->output_trace_class  =
 		bt_trace_class_create(ir_maps->self_comp);
 	if (!metadata_maps->output_trace_class) {

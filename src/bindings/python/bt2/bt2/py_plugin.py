@@ -106,7 +106,7 @@ def _try_load_plugin_module(path):
     module_name = "bt_plugin_{}".format(h.hexdigest())
     assert module_name not in sys.modules
 
-    # try loading the module: any raised exception is catched by the caller
+    # try loading the module: any raised exception is caught by the caller
     if sys.version_info < (3, 5):
         mod = importlib.machinery.SourceFileLoader(module_name, path).load_module()
     else:

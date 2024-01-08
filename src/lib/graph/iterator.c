@@ -1257,7 +1257,7 @@ bt_message_iterator_next(
 	 * by its downstream owner.
 	 *
 	 * For the same reason, there is no way that this iterator could
-	 * have seeked (cannot seek a self message iterator).
+	 * have sought (cannot seek a self message iterator).
 	 */
 	BT_ASSERT_DBG(iterator->state ==
 		BT_MESSAGE_ITERATOR_STATE_ACTIVE);
@@ -2028,7 +2028,7 @@ end:
 
 /*
  * This function is installed as the iterator's next callback after we have
- * auto-seeked (seeked to the beginning and fast-forwarded) to send the
+ * auto-sought (sought to the beginning and fast-forwarded) to send the
  * messages saved in iterator->auto_seek.msgs.  Once this is done, the original
  * next callback is put back.
  */

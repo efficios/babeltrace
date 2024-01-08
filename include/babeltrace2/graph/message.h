@@ -792,7 +792,7 @@ A message iterator inactivity message has the following property:
 <h1>\anchor api-msg-mip Message Interchange Protocol</h1>
 
 The <em>Message Interchange Protocol</em> (MIP) is the system of rules
-used by \bt_p_comp and \bt_p_msg_iter to exchance messages within a
+used by \bt_p_comp and \bt_p_msg_iter to exchange messages within a
 trace processing graph.
 
 The MIP covers everything related to messages and what they contain, as

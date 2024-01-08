@@ -171,7 +171,7 @@ class _UserMessageIterator(_MessageIterator):
         raise bt2_utils.Stop
 
     def _bt_next_from_native(self):
-        # this can raise anything: it's catched by the native part
+        # this can raise anything: it's caught by the native part
         try:
             msg = next(self)
         except StopIteration:

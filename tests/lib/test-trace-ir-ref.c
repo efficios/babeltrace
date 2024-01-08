@@ -567,7 +567,7 @@ static void test_put_order(void)
 /**
  * The objective of this test is to implement and expand upon the scenario
  * described in the reference counting documentation and ensure that any node of
- * the Trace, Stream Class, Event Class, Stream and Event hiearchy keeps all
+ * the Trace, Stream Class, Event Class, Stream and Event hierarchy keeps all
  * other "alive" and reachable.
  *
  * External tools (e.g. valgrind) should be used to confirm that this

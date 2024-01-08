@@ -745,7 +745,7 @@ void print_enum_value_bit_flag_label_arrays(struct pretty_component *pretty)
  *
  * This function will set the count to the count of mapping labels that match
  * the value. If count == 0, the caller has nothing to do, if count > 0,
- * the label_array contains the labels to print and the caller is reponsible
+ * the label_array contains the labels to print and the caller is responsible
  * to call g_free on it once the values have been used.
  */
 static
@@ -835,7 +835,7 @@ end:
  *
  * This function will set the count to the count of mapping labels that match
  * the value. If count == 0, the caller has nothing to do, if count > 0,
- * the label_array contains the labels to print and the caller is reponsible
+ * the label_array contains the labels to print and the caller is responsible
  * to call g_free on it once the values have been used.
  */
 static

@@ -419,21 +419,21 @@ The available message iterator class methods to implement are:
     this method, then the next time your
     \link api-msg-iter-cls-meth-next "next" method\endlink is called:
 
-    - For each "active" \bt_stream at the seeked time point, you must
+    - For each "active" \bt_stream at the sought time point, you must
       emit a \bt_sb_msg for this stream before you emit any other
       message for this stream.
 
       The stream beginning message must have a
       \ref api-msg-sb-prop-cs "default clock snapshot" which corresponds
-      to the seeked time point.
+      to the sought time point.
 
-    - For each "active" \bt_pkt at the seeked time point, you must
+    - For each "active" \bt_pkt at the sought time point, you must
       emit a \bt_pb_msg for this packet before you emit any other
       message for this packet.
 
       The packet beginning message must have a
       \ref api-msg-pb-prop-cs "default clock snapshot" which corresponds
-      to the seeked time point.
+      to the sought time point.
 
     The \bt_name project recommends that this method executes fast
     enough so as not to block an interactive application running on the

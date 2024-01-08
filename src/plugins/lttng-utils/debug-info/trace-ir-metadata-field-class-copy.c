@@ -22,7 +22,7 @@
 #include "trace-ir-metadata-field-class-copy.h"
 
 /*
- * This fonction walks througth the nested structures field class to resolve a
+ * This function walks through the nested structures field class to resolve a
  * field path object. A field path is made of indexes inside possibly nested
  * structures ultimately leading to a field class.
  */

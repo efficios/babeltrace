@@ -678,7 +678,7 @@ void append_complex_event(struct bt_ctf_stream_class *stream_class,
 	bt_ctf_object_put_ref(ret_field_type);
 
 	event = bt_ctf_event_create(event_class);
-	ok(event, "Instanciate a complex event");
+	ok(event, "Instantiate a complex event");
 
 	ret_event_class = bt_ctf_event_get_class(event);
 	ok(ret_event_class == event_class,
@@ -999,19 +999,19 @@ void type_field_tests(void)
 	bt_ctf_object_put_ref(returned_type);
 
 	int_16 = bt_ctf_field_create(int_16_type);
-	ok(int_16, "Instanciate a signed 16-bit integer");
+	ok(int_16, "Instantiate a signed 16-bit integer");
 	uint_12 = bt_ctf_field_create(uint_12_type);
-	ok(uint_12, "Instanciate an unsigned 12-bit integer");
+	ok(uint_12, "Instantiate an unsigned 12-bit integer");
 	returned_type = bt_ctf_field_get_type(int_16);
 	ok(returned_type == int_16_type,
 		"bt_ctf_field_get_type returns the correct type");
 
-	/* Can't modify types after instanciating them */
+	/* Can't modify types after instantiating them */
 	ok(bt_ctf_field_type_integer_set_base(uint_12_type,
 		BT_CTF_INTEGER_BASE_DECIMAL),
-		"Check an integer type' base can't be modified after instanciation");
+		"Check an integer type' base can't be modified after instantiation");
 	ok(bt_ctf_field_type_integer_set_signed(uint_12_type, 0),
-		"Check an integer type's signedness can't be modified after instanciation");
+		"Check an integer type's signedness can't be modified after instantiation");
 
 	/* Check overflows are properly tested for */
 	ok(bt_ctf_field_integer_signed_set_value(int_16, -32768) == 0,
@@ -1027,7 +1027,7 @@ void type_field_tests(void)
 		"Check 0 is allowed for an unsigned 12-bit integer");
 
 	string = bt_ctf_field_create(string_type);
-	ok(string, "Instanciate a string field");
+	ok(string, "Instantiate a string field");
 	ok(bt_ctf_field_string_set_value(string, "A value") == 0,
 		"Set a string's value");
 
@@ -1421,7 +1421,7 @@ end:
 }
 
 static
-void test_instanciate_event_before_stream(struct bt_ctf_writer *writer,
+void test_instantiate_event_before_stream(struct bt_ctf_writer *writer,
 		struct bt_ctf_clock *clock)
 {
 	int ret = 0;
@@ -1513,7 +1513,7 @@ void test_instanciate_event_before_stream(struct bt_ctf_writer *writer,
 		"bt_ctf_event_get_stream returns an event's stream after it has been appended");
 end:
 	ok(ret == 0,
-		"Create an event before instanciating its associated stream");
+		"Create an event before instantiating its associated stream");
 	bt_ctf_object_put_ref(stream);
 	bt_ctf_object_put_ref(ret_stream);
 	bt_ctf_object_put_ref(stream_class);
@@ -1697,14 +1697,14 @@ int main(int argc, char **argv)
 		== 0, "Add version (%s) environment field to writer instance",
 		name.version);
 	ok(bt_ctf_writer_add_environment_field(writer, "machine", name.machine)
-		== 0, "Add machine (%s) environment field to writer istance",
+		== 0, "Add machine (%s) environment field to writer instance",
 		name.machine);
 
 	/* Define a clock and add it to the trace */
 	ok(!bt_ctf_clock_create("signed"),
 		"Illegal clock name rejected");
 	clock = bt_ctf_clock_create(clock_name);
-	ok(clock, "Clock created sucessfully");
+	ok(clock, "Clock created successfully");
 	returned_clock_name = bt_ctf_clock_get_name(clock);
 	ok(returned_clock_name, "bt_ctf_clock_get_name returns a clock name");
 	ok(returned_clock_name ? strcmp(returned_clock_name, clock_name) == 0 : 0,
@@ -1922,7 +1922,7 @@ int main(int argc, char **argv)
 	ok(bt_ctf_trace_get_stream_count(trace) == 0,
 		"bt_ctf_trace_get_stream_count() succeeds and returns the correct value (0)");
 	stream1 = bt_ctf_writer_create_stream(writer, stream_class);
-	ok(stream1, "Instanciate a stream class from writer");
+	ok(stream1, "Instantiate a stream class from writer");
 	ok(bt_ctf_trace_get_stream_count(trace) == 1,
 		"bt_ctf_trace_get_stream_count() succeeds and returns the correct value (1)");
 	stream = bt_ctf_trace_get_stream_by_index(trace, 0);
@@ -1966,7 +1966,7 @@ int main(int argc, char **argv)
 	ret = bt_ctf_field_type_structure_add_field(packet_header_type,
 		packet_header_field_type, "should_fail");
 	ok(ret < 0,
-		"Trace packet header type can't be modified once a stream has been instanciated");
+		"Trace packet header type can't be modified once a stream has been instantiated");
 
 	/*
 	 * Try to modify the packet context type after a stream has been
@@ -1975,7 +1975,7 @@ int main(int argc, char **argv)
 	ret = bt_ctf_field_type_structure_add_field(packet_context_type,
 		packet_context_field_type, "should_fail");
 	ok(ret < 0,
-		"Packet context type can't be modified once a stream has been instanciated");
+		"Packet context type can't be modified once a stream has been instantiated");
 
 	/*
 	 * Try to modify the stream event context type after a stream has been
@@ -1984,9 +1984,9 @@ int main(int argc, char **argv)
 	ret = bt_ctf_field_type_structure_add_field(stream_event_context_type,
 		integer_type, "should_fail");
 	ok(ret < 0,
-		"Stream event context type can't be modified once a stream has been instanciated");
+		"Stream event context type can't be modified once a stream has been instantiated");
 
-	/* Should fail after instanciating a stream (frozen) */
+	/* Should fail after instantiating a stream (frozen) */
 	ok(bt_ctf_stream_class_set_clock(stream_class, clock),
 		"Changes to a stream class that was already instantiated fail");
 
@@ -2021,7 +2021,7 @@ int main(int argc, char **argv)
 
 	test_clock_utils();
 
-	test_instanciate_event_before_stream(writer, clock);
+	test_instantiate_event_before_stream(writer, clock);
 
 	append_simple_event(stream_class, stream1, clock);
 

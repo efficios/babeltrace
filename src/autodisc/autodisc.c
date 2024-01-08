@@ -347,7 +347,7 @@ auto_source_discovery_internal_status support_info_query_all_sources(
 		const bt_component_class_source *source;
 		const bt_plugin *plugin;
 		const bt_value *group;
-		double weigth;
+		double weight;
 	} winner = { NULL, NULL, NULL, 0 };
 
 	if (interrupter && bt_interrupter_is_set(interrupter)) {
@@ -479,7 +479,7 @@ auto_source_discovery_internal_status support_info_query_all_sources(
 					bt_plugin_get_name(plugin), bt_component_class_get_name(cc), input,
 					input_type, weight, group_value ? bt_value_string_get(group_value) : "(none)");
 
-				if (weight > winner.weigth) {
+				if (weight > winner.weight) {
 					winner.source = source_cc;
 					winner.plugin = plugin;
 
@@ -487,7 +487,7 @@ auto_source_discovery_internal_status support_info_query_all_sources(
 					winner.group = group_value;
 					bt_value_get_ref(winner.group);
 
-					winner.weigth = weight;
+					winner.weight = weight;
 				}
 			} else if (query_status == BT_QUERY_EXECUTOR_QUERY_STATUS_ERROR) {
 				BT_AUTODISC_LOGE_APPEND_CAUSE("babeltrace.support-info query failed.");
@@ -516,7 +516,7 @@ auto_source_discovery_internal_status support_info_query_all_sources(
 		group = winner.group ? bt_value_string_get(winner.group) : NULL;
 
 		BT_LOGI("Input awarded: input=%s, type=%s, component-class-name=source.%s.%s, weight=%f, group=%s",
-			input, input_type, plugin_name, source_name, winner.weigth, group ? group : "(none)");
+			input, input_type, plugin_name, source_name, winner.weight, group ? group : "(none)");
 
 		status = auto_source_discovery_add(auto_disc, plugin_name,
 			source_name, group, input, original_input_index, log_level);

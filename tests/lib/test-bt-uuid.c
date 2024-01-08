@@ -175,7 +175,7 @@ void run_test(void)
 
 int main(void)
 {
-	/* Run tap-formated tests */
+	/* Run tap-formatted tests */
 	run_test();
 
 	return exit_status();

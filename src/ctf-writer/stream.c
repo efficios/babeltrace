@@ -1923,7 +1923,7 @@ end:
  * Returns the following codes:
  * 1 if the field was found and set,
  * 0 if nothing was done (field not found, or was already set),
- * <0 if an error was encoutered
+ * <0 if an error was encountered
  */
 static
 int try_set_structure_field_integer(struct bt_ctf_field *structure, const char *name,

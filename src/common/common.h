@@ -334,7 +334,7 @@ size_t bt_common_get_page_size(int log_level);
 /*
  * Adds the digit separator `sep` as many times as needed to form groups
  * of `digits_per_group` digits within `str`. `str` must have enough
- * room to accomodate the new separators, that is:
+ * room to accommodate the new separators, that is:
  *
  *     strlen(str) + (strlen(str) / digits_per_group) + 1
  *

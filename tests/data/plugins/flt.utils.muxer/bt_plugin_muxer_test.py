@@ -368,7 +368,7 @@ class DiffEventClassName:
         stream = trace.create_stream(sc, 0)
 
         # Use event class name length as timestamp so that both stream
-        # beginning message are not at the same time. This test is targetting
+        # beginning message are not at the same time. This test is targeting
         # event message.
         sb_msg = msg_iter._create_stream_beginning_message(stream, len(ec.name))
         ev_msg = msg_iter._create_event_message(ec, stream, 50)
@@ -405,7 +405,7 @@ class DiffEventClassId:
         stream = trace.create_stream(sc, 0)
 
         # Use event class id as timestamp so that both stream beginning message
-        # are not at the same time. This test is targetting event message.
+        # are not at the same time. This test is targeting event message.
         sb_msg = msg_iter._create_stream_beginning_message(stream, ec.id)
         ev_msg = msg_iter._create_event_message(ec, stream, 50)
         se_msg = msg_iter._create_stream_end_message(stream, iter_id * 193)

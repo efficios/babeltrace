@@ -69,7 +69,7 @@ fi
 
 	# Fetch the BT_VERSION_EXTRA_DESCRIPTION define from "version/extra_version_description",
 	# sanitize and format it with a sed script to replace all non-alpha-numeric values
-	# with "-" and join all lines by replacing "\n" with litteral string c-style "\n" and
+	# with "-" and join all lines by replacing "\n" with literal string c-style "\n" and
 	# output it to "version.i.tmp".
 	echo "#define BT_VERSION_EXTRA_DESCRIPTION \"$($SED -E ':a ; N ; $!ba ; s/[^a-zA-Z0-9 \n\t\.,]/-/g ; s/\r{0,1}\n/\\n/g' "$TOP_SRCDIR/version/extra_version_description" 2> /dev/null)\""
 
@@ -80,7 +80,7 @@ fi
 	# The sanitize step uses sed with a script to replace all
 	# non-alpha-numeric values, except " " (space), to "-".
 	# The formatting step uses sed with a script to join all lines
-	# by replacing "\n" with litteral string c-style "\n".
+	# by replacing "\n" with literal string c-style "\n".
 	# shellcheck disable=SC2012
 	echo "#define BT_VERSION_EXTRA_PATCHES \"$(ls -1 "$TOP_SRCDIR/version/extra_patches" | $GREP -v '^README.adoc' | $SED -E ':a ; N ; $!ba ; s/[^a-zA-Z0-9 \n\t\.]/-/g ; s/\r{0,1}\n/\\n/g' 2> /dev/null)\""
 } >> common/version.i.tmp

@@ -31,7 +31,7 @@ if __name__ == "__main__":
     mut_exclu_group.add_argument(
         "-t",
         "--test-case",
-        help="Run a specfic test module name, test class "
+        help="Run a specific test module name, test class "
         "name, or test method name "
         "(e.g. test_event.EventTestCase.test_clock_value)",
         type=str,

@@ -71,7 +71,7 @@ enum debug_info_trace_ir_mapping_status copy_trace_content(
 		bt_trace_borrow_environment_entry_by_index_const(
 			in_trace, i, &value_name, &value);
 
-		BT_COMP_LOGD("Copying trace environnement entry: "
+		BT_COMP_LOGD("Copying trace environment entry: "
 			"index=%" PRId64 ", value-addr=%p, value-name=\"%s\"",
 			i, value, value_name);
 

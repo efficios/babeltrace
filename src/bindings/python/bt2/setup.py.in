@@ -60,12 +60,12 @@ def get_cflags():
 
 
 # distutils performs a similar transformation step on LDSHARED on
-# darwin to use the overriden CC as the default command for LDSHARED
+# darwin to use the overridden CC as the default command for LDSHARED
 # (see distutils' customize_compiler() step in the sysconfig module).
 #
 # This takes it a step further by using our own LDFLAGS (when available)
-# along with the overriden compiler and ensure that flags that are unsupported
-# by either the Python interprter's CC or the overriden CC don't cause a
+# along with the overridden compiler and ensure that flags that are unsupported
+# by either the Python interprter's CC or the overridden CC don't cause a
 # build failure.
 def get_ldshared():
     cc = os.environ.get("CC")

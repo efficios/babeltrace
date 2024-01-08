@@ -102,7 +102,7 @@ class UserMessageIteratorTestCase(unittest.TestCase):
         self.assertTrue(flt_iter_initialized)
 
     # Test that creating a message iterator from a sink component on a
-    # non-connected inport port raises.
+    # non-connected input port raises.
     def test_create_from_sink_component_unconnected_port_raises(self):
         class MySink(bt2._UserSinkComponent):
             def __init__(comp_self, config, params, obj):
@@ -124,8 +124,8 @@ class UserMessageIteratorTestCase(unittest.TestCase):
         graph.run()
         self.assertTrue(seen)
 
-    # Test that creating a message iterator from a message iteartor on a
-    # non-connected inport port raises.
+    # Test that creating a message iterator from a message iterator on a
+    # non-connected input port raises.
     def test_create_from_message_iterator_unconnected_port_raises(self):
         class MyFilterIter(bt2._UserMessageIterator):
             def __init__(iter_self, config, port):

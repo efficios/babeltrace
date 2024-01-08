@@ -165,7 +165,7 @@ end:
     if (metadata_fp) {
         ret = fclose(metadata_fp);
         if (ret) {
-            BT_LOGE_ERRNO("Cannot close metatada file stream", ": path=\"%s\"", path);
+            BT_LOGE_ERRNO("Cannot close metadata file stream", ": path=\"%s\"", path);
         }
     }
 

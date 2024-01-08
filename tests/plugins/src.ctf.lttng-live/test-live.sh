@@ -375,7 +375,7 @@ test_split_metadata() {
 test_stored_values() {
 	# Split metadata, where the new metadata requires additional stored
 	# value slots in CTF message iterators.
-	local test_text="split metadata requiring additionnal stored values"
+	local test_text="split metadata requiring additional stored values"
 	local cli_args_template="-i lttng-live net://localhost:@PORT@/host/hostname/stored-values -c sink.text.details"
 	local server_args=("$test_data_dir/stored-values.json")
 	local expected_stdout="${test_data_dir}/stored-values.expect"

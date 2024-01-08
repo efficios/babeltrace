@@ -60,7 +60,7 @@ struct bt_graph {
 	 *
 	 * In terms of ownership:
 	 * 1) The graph is the components' parent,
-	 * 2) The graph is the connnections' parent,
+	 * 2) The graph is the connections' parent,
 	 * 3) Components share the ownership of their connections,
 	 * 4) A connection holds weak references to its two component endpoints.
 	 */

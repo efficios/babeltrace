@@ -14,7 +14,7 @@
 #include <babeltrace2/babeltrace.h>
 
 /*
- * `bt_field_*_enumeration` are backed by 64 bits integers so the maximun
+ * `bt_field_*_enumeration` are backed by 64 bits integers so the maximum
  * number of bitflags in any enumeration is 64.
  */
 #define ENUMERATION_MAX_BITFLAGS_COUNT (sizeof(uint64_t) * 8)

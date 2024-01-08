@@ -917,7 +917,7 @@ int bt_ctf_stream_class_serialize(struct bt_ctf_stream_class *stream_class,
 	 * The reference to the trace is only borrowed since the
 	 * serialization of the stream class might have been triggered
 	 * by the trace's destruction. In such a case, the trace's
-	 * reference count would, unexepectedly, go through the sequence
+	 * reference count would, unexpectedly, go through the sequence
 	 * 1 -> 0 -> 1 -> 0 -> ..., provoking an endless loop of destruction
 	 * and serialization.
 	 */

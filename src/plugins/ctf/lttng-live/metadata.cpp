@@ -212,7 +212,7 @@ enum lttng_live_iterator_status lttng_live_metadata_update(struct lttng_live_tra
             goto end;
         }
 
-        /* The relay sent zero bytes of metdata. */
+        /* The relay sent zero bytes of metadata. */
         trace->metadata_stream_state = LTTNG_LIVE_METADATA_STREAM_STATE_NOT_NEEDED;
         goto end;
     }
@@ -263,7 +263,7 @@ enum lttng_live_iterator_status lttng_live_metadata_update(struct lttng_live_tra
             trace->clock_class = borrow_any_clock_class(trace->trace_class);
         }
 
-        /* The metadata was updated succesfully. */
+        /* The metadata was updated successfully. */
         trace->metadata_stream_state = LTTNG_LIVE_METADATA_STREAM_STATE_NOT_NEEDED;
 
         break;

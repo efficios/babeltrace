@@ -66,10 +66,10 @@ int message_type_weight(const bt_message_type msg_type)
 }
 
 /*
- * Compare 2 messages to order them in a determinitic way based on their
+ * Compare 2 messages to order them in a deterministic way based on their
  * types.
- * Returns -1 is left mesage must go first
- * Returns 1 is right mesage must go first
+ * Returns -1 is left message must go first
+ * Returns 1 is right message must go first
  */
 static
 int compare_messages_by_type(struct messages_to_compare *msgs)

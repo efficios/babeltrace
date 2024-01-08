@@ -243,7 +243,7 @@ For example, with the following command line (all options have no
 argument):
 
 @code{.unparsed}
--f -m meow --jus mix --kilo
+-f -m meow --just mix --kilo
 @endcode
 
 The original argument index of \c meow is&nbsp;2 while the original
@@ -278,7 +278,7 @@ For example, with the following command line (all options have no
 argument):
 
 @code{.unparsed}
--f -m meow --jus mix --kilo
+-f -m meow --just mix --kilo
 @endcode
 
 The non-option index of \c meow is&nbsp;0 while the original

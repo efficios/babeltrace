@@ -110,7 +110,7 @@ AX_C___ATTRIBUTE__
 AS_IF([test "x$ax_cv___attribute__" != "xyes"],
   [AC_MSG_ERROR([The compiler does not support __attribute__ extensions])])
 
-# Make sur we have pthread support
+# Make sure we have pthread support
 AX_PTHREAD([], [AC_MSG_ERROR([Could not configure pthread support])])
 
 # Checks for typedefs, structures, and compiler characteristics.
@@ -396,9 +396,9 @@ AS_IF([test "x$BABELTRACE_DEBUG_MODE" = x1], [
 ], [BABELTRACE_DEBUG_MODE=0])
 
 
-##                              ##
-## Optionnal features selection ##
-##                              ##
+##                             ##
+## Optional features selection ##
+##                             ##
 
 # Python bindings
 # Disabled by default
