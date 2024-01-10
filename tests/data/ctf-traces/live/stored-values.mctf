@@ -77,7 +77,6 @@ m:packet(p2_ts, 2)
 [         0 : 32] # Minor
 [        56 : 32] # Index entry size (56 bytes)
 
-# Packet 1
 !macro entry(beg_label, end_label, ts_beg)
   [                  beg_label : 64] # offset in bytes
   [8 * (end_label - beg_label) : 64] # total size in bits
