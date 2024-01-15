@@ -8,6 +8,13 @@ SUBDIRS = \
 	plugins \
 	param-validation
 
+AM_CPPFLAGS += -I$(top_srcdir)/tests/utils
+
+COMMON_TEST_LDADD = \
+	$(top_builddir)/tests/utils/tap/libtap.la \
+	$(top_builddir)/src/common/libcommon.la \
+	$(top_builddir)/src/logging/liblogging.la
+
 # Directories added to EXTRA_DIST will be recursively copied to the distribution.
 EXTRA_DIST = $(srcdir)/data \
 	     bindings/python/bt2/.coveragerc
@@ -63,6 +70,8 @@ dist_check_SCRIPTS = \
 	python-plugin-provider/test-python-plugin-provider.sh \
 	python-plugin-provider/test_python_plugin_provider.py
 
+noinst_PROGRAMS =
+
 TESTS_BINDINGS =
 
 if ENABLE_PYTHON_BINDINGS
@@ -79,6 +88,18 @@ TESTS_CLI = \
 	cli/test-trace-copy.sh \
 	cli/test-trace-read.sh \
 	cli/test-trimmer.sh
+
+noinst_PROGRAMS += \
+	cpp-common/test-c-string-view
+
+cpp_common_test_c_string_view_SOURCES = \
+	cpp-common/test-c-string-view.cpp
+
+cpp_common_test_c_string_view_LDADD = \
+	$(COMMON_TEST_LDADD)
+
+TESTS_CPP_COMMON = \
+	cpp-common/test-c-string-view
 
 TESTS_LIB = \
 	lib/test-bt-uuid \
@@ -176,6 +197,7 @@ LOG_DRIVER = env AM_TAP_AWK='$(AWK)' \
 TESTS_NO_BITFIELD = \
 	$(TESTS_BINDINGS) \
 	$(TESTS_CLI) \
+	$(TESTS_CPP_COMMON) \
 	$(TESTS_CTF_WRITER) \
 	$(TESTS_LIB) \
 	$(TESTS_PARAM_VALIDATION) \
@@ -192,6 +214,7 @@ endef
 $(eval $(call check_target,bindings,$(TESTS_BINDINGS)))
 $(eval $(call check_target,bitfield,$(TESTS_BITFIELD)))
 $(eval $(call check_target,cli,$(TESTS_CLI)))
+$(eval $(call check_target,cpp-common,$(TESTS_CPP_COMMON)))
 $(eval $(call check_target,ctf-writer,$(TESTS_CTF_WRITER)))
 $(eval $(call check_target,lib,$(TESTS_LIB)))
 $(eval $(call check_target,plugins,$(TESTS_PLUGINS)))

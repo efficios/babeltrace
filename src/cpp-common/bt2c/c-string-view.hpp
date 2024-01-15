@@ -15,6 +15,8 @@
 #include "cpp-common/bt2s/string-view.hpp"
 #include "cpp-common/vendor/fmt/format.h"
 
+#include "type-traits.hpp"
+
 namespace bt2c {
 
 /*
@@ -181,6 +183,67 @@ private:
 static inline const char *format_as(const CStringView& str)
 {
     return str ? *str : "(null)";
+}
+
+namespace internal {
+
+template <typename StrT>
+const char *asConstCharPtr(StrT&& val) noexcept
+{
+    return val.data();
+}
+
+inline const char *asConstCharPtr(const char * const val) noexcept
+{
+    return val;
+}
+
+template <typename StrT>
+using ComparableWithCStringView =
+    IsOneOf<typename std::decay<StrT>::type, CStringView, std::string, const char *>;
+
+} /* namespace internal */
+
+/*
+ * Returns true if `lhs` is equal to `rhs`.
+ *
+ * `LhsT` and `RhsT` may be any of:
+ *
+ * • `const char *`
+ * • `std::string`
+ * • `CStringView`
+ *
+ * Both `lhs` and `rhs` must not have an underlying `nullptr` raw data.
+ */
+template <
+    typename LhsT, typename RhsT,
+    typename = typename std::enable_if<internal::ComparableWithCStringView<LhsT>::value>::type,
+    typename = typename std::enable_if<internal::ComparableWithCStringView<RhsT>::value>::type>
+bool operator==(LhsT&& lhs, RhsT&& rhs) noexcept
+{
+    const auto rawLhs = internal::asConstCharPtr(lhs);
+    const auto rawRhs = internal::asConstCharPtr(rhs);
+
+    BT_ASSERT_DBG(rawLhs);
+    BT_ASSERT_DBG(rawRhs);
+    return std::strcmp(rawLhs, rawRhs) == 0;
+}
+
+/*
+ * Returns true if `lhs` is not equal to `rhs`.
+ *
+ * `LhsT` and `RhsT` may be any of:
+ *
+ * • `const char *`
+ * • `std::string`
+ * • `CStringView`
+ *
+ * Both `lhs` and `rhs` must not have an underlying `nullptr` raw data.
+ */
+template <typename LhsT, typename RhsT>
+bool operator!=(LhsT&& lhs, RhsT&& rhs) noexcept
+{
+    return !(std::forward<LhsT>(lhs) == std::forward<RhsT>(rhs));
 }
 
 } /* namespace bt2c */
