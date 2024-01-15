@@ -96,7 +96,7 @@ TESTS_CTF_WRITER = \
 	ctf-writer/test-ctf-writer.sh
 
 if !ENABLE_BUILT_IN_PLUGINS
-TESTS_LIB += lib/test-plugin.sh
+TESTS_LIB += lib/test-plugins.sh
 endif
 
 TESTS_PLUGINS = \

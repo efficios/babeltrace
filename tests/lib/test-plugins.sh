@@ -14,4 +14,4 @@ fi
 # shellcheck source=../utils/utils.sh
 source "$UTILSSH"
 
-"${BT_TESTS_BUILDDIR}/lib/plugin" "${BT_TESTS_BUILDDIR}/lib/test-plugin-plugins/.libs"
+"${BT_TESTS_BUILDDIR}/lib/test-plugins" "${BT_TESTS_BUILDDIR}/lib/test-plugins-plugins/.libs"
