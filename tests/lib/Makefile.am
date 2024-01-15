@@ -52,11 +52,19 @@ test_remove_destruction_listener_in_destruction_listener_SOURCES = \
 	test-remove-destruction-listener-in-destruction-listener.c
 
 if !ENABLE_BUILT_IN_PLUGINS
-noinst_PROGRAMS += test-plugins
-test_plugins_LDADD = $(COMMON_TEST_LDADD) \
-	$(top_builddir)/src/lib/libbabeltrace2.la
+noinst_PROGRAMS += test-plugins test-plugin-init-fail
+SUBDIRS += test-plugins-plugins test-plugin-init-fail-plugin
+
 test_plugins_SOURCES = test-plugins.c
-SUBDIRS += test-plugins-plugins
+test_plugins_LDADD = \
+	$(COMMON_TEST_LDADD) \
+	$(top_builddir)/src/lib/libbabeltrace2.la
+
+test_plugin_init_fail_SOURCES = test-plugin-init-fail.cpp
+test_plugin_init_fail_LDADD = \
+	$(COMMON_TEST_LDADD) \
+	$(top_builddir)/src/cpp-common/vendor/fmt/libfmt.la \
+	$(top_builddir)/src/lib/libbabeltrace2.la
 endif
 
 dist_check_SCRIPTS = test-plugins.sh test-fields.sh

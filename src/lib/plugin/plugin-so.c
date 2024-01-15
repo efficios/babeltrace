@@ -734,6 +734,12 @@ int bt_plugin_so_init(struct bt_plugin *plugin,
 				status = init_status;
 				goto end;
 			} else {
+				/*
+				 * Since we don't return an error,
+				 * there's no way to communicate this
+				 * error to the caller.
+				 */
+				bt_current_thread_clear_error();
 				BT_LIB_LOGW(
 					"User's plugin initialization function failed: "
 					"status=%s",
@@ -1335,6 +1341,12 @@ int bt_plugin_so_create_all_from_sections(
 			/* Add to plugin set */
 			bt_plugin_set_add_plugin(*plugin_set_out, plugin);
 			BT_OBJECT_PUT_REF_AND_RESET(plugin);
+		} else if (status == BT_FUNC_STATUS_NOT_FOUND) {
+			/*
+			 * There was an error initializing the plugin,
+			 * but `fail_on_load_error` is false.
+			 */
+		        BT_OBJECT_PUT_REF_AND_RESET(plugin);
 		} else if (status < 0) {
 			/*
 			 * bt_plugin_so_init() handles
