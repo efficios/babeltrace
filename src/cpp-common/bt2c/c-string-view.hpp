@@ -13,7 +13,7 @@
 
 #include "common/assert.h"
 #include "cpp-common/bt2s/string-view.hpp"
-#include "cpp-common/vendor/fmt/core.h"
+#include "cpp-common/vendor/fmt/format.h"
 
 namespace bt2c {
 
@@ -169,24 +169,11 @@ private:
     const char *_mStr = nullptr;
 };
 
-} /* namespace bt2c */
-
-namespace fmt {
-
-template <>
-struct formatter<bt2c::CStringView>
+static inline const char *format_as(const CStringView& str)
 {
-    constexpr auto parse(format_parse_context& ctx) const -> format_parse_context::iterator
-    {
-        return ctx.end();
-    }
+    return str ? *str : "(null)";
+}
 
-    auto format(const bt2c::CStringView& str, format_context& ctx) const -> format_context::iterator
-    {
-        return str ? fmt::format_to(ctx.out(), "{}", *str) : fmt::format_to(ctx.out(), "(null)");
-    }
-};
-
-} /* namespace fmt */
+} /* namespace bt2c */
 
 #endif /* BABELTRACE_CPP_COMMON_BT2C_C_STRING_VIEW_HPP */
