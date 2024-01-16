@@ -31,14 +31,14 @@ public:
      *
      * Intentionally not explicit.
      */
-    CStringView() noexcept = default;
+    constexpr CStringView() noexcept = default;
 
     /*
      * Builds a view of the C string `str` (may be `nullptr`).
      *
      * Intentionally not explicit.
      */
-    CStringView(const char * const str) noexcept : _mStr {str}
+    constexpr CStringView(const char * const str) noexcept : _mStr {str}
     {
     }
 
