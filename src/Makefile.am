@@ -29,11 +29,10 @@ noinst_HEADERS = \
 	cpp-common/bt2/message-array.hpp \
 	cpp-common/bt2/message-iterator.hpp \
 	cpp-common/bt2/message.hpp \
-	cpp-common/bt2/shared-object.hpp \
-	cpp-common/bt2/raw-value-proxy.hpp \
 	cpp-common/bt2/optional-borrowed-object.hpp \
 	cpp-common/bt2/plugin-dev.hpp \
 	cpp-common/bt2/private-query-executor.hpp \
+	cpp-common/bt2/raw-value-proxy.hpp \
 	cpp-common/bt2/self-component-class.hpp \
 	cpp-common/bt2/self-component-port.hpp \
 	cpp-common/bt2/self-message-iterator-configuration.hpp \
