@@ -173,7 +173,7 @@ public:
         return static_cast<bool>(bt_clock_class_origin_is_unix_epoch(this->libObjPtr()));
     }
 
-    void name(const char * const name) const
+    void name(const bt2c::CStringView name) const
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstClockClass`.");
 
@@ -184,17 +184,12 @@ public:
         }
     }
 
-    void name(const std::string& name) const
-    {
-        this->name(name.data());
-    }
-
     bt2c::CStringView name() const noexcept
     {
         return bt_clock_class_get_name(this->libObjPtr());
     }
 
-    void description(const char * const description) const
+    void description(const bt2c::CStringView description) const
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstClockClass`.");
 
@@ -203,11 +198,6 @@ public:
         if (status == BT_CLOCK_CLASS_SET_DESCRIPTION_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
-    }
-
-    void description(const std::string& description) const
-    {
-        this->description(description.data());
     }
 
     bt2c::CStringView description() const noexcept

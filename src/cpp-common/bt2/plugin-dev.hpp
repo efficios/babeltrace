@@ -24,12 +24,12 @@
 namespace bt2 {
 namespace internal {
 
-constexpr const char *unhandledExcLogStr() noexcept
+constexpr bt2c::CStringView unhandledExcLogStr() noexcept
 {
     return "Unhandled exception.";
 }
 
-constexpr const char *unhandledExcLogTag() noexcept
+constexpr bt2c::CStringView unhandledExcLogTag() noexcept
 {
     return "PLUGIN-DEV-HPP";
 }
@@ -519,8 +519,8 @@ protected:
 
 public:
     static Value::Shared query(const SelfComponentClass selfCompCls,
-                               const PrivateQueryExecutor privQueryExec, const char * const obj,
-                               const ConstValue params)
+                               const PrivateQueryExecutor privQueryExec,
+                               const bt2c::CStringView obj, const ConstValue params)
     {
         return UserComponentT::_query(selfCompCls, privQueryExec, obj, params);
     }
@@ -540,7 +540,8 @@ public:
 
 protected:
     /* Overloadable */
-    static Value::Shared _query(SelfComponentClass, PrivateQueryExecutor, const char *, ConstValue)
+    static Value::Shared _query(SelfComponentClass, PrivateQueryExecutor, bt2c::CStringView,
+                                ConstValue)
     {
         throw UnknownObject {};
     }
@@ -558,23 +559,12 @@ protected:
     }
 
     template <typename DataT>
-    _OutputPorts::Port _addOutputPort(const char * const name, DataT * const data)
+    _OutputPorts::Port _addOutputPort(const bt2c::CStringView name, DataT * const data)
     {
         return this->_selfComp().addOutputPort(name, data);
     }
 
-    _OutputPorts::Port _addOutputPort(const char *name)
-    {
-        return this->_selfComp().addOutputPort(name);
-    }
-
-    template <typename DataT>
-    _OutputPorts::Port _addOutputPort(const std::string& name, DataT * const data)
-    {
-        return this->_selfComp().addOutputPort(name, data);
-    }
-
-    _OutputPorts::Port _addOutputPort(const std::string& name)
+    _OutputPorts::Port _addOutputPort(const bt2c::CStringView name)
     {
         return this->_selfComp().addOutputPort(name);
     }
@@ -607,8 +597,8 @@ protected:
 
 public:
     static Value::Shared query(const SelfComponentClass selfCompCls,
-                               const PrivateQueryExecutor privQueryExec, const char * const obj,
-                               const ConstValue params)
+                               const PrivateQueryExecutor privQueryExec,
+                               const bt2c::CStringView obj, const ConstValue params)
     {
         return UserComponentT::_query(selfCompCls, privQueryExec, obj, params);
     }
@@ -634,7 +624,8 @@ public:
 
 protected:
     /* Overloadable */
-    static Value::Shared _query(SelfComponentClass, PrivateQueryExecutor, const char *, ConstValue)
+    static Value::Shared _query(SelfComponentClass, PrivateQueryExecutor, bt2c::CStringView,
+                                ConstValue)
     {
         throw UnknownObject {};
     }
@@ -657,23 +648,12 @@ protected:
     }
 
     template <typename DataT>
-    _OutputPorts::Port _addInputPort(const char * const name, DataT * const data)
+    _OutputPorts::Port _addInputPort(const bt2c::CStringView name, DataT * const data)
     {
         return this->_selfComp().addInputPort(name, data);
     }
 
-    _InputPorts::Port _addInputPort(const char *name)
-    {
-        return this->_selfComp().addInputPort(name);
-    }
-
-    template <typename DataT>
-    _InputPorts::Port _addInputPort(const std::string& name, DataT * const data)
-    {
-        return this->_selfComp().addInputPort(name, data);
-    }
-
-    _InputPorts::Port _addInputPort(const std::string& name)
+    _InputPorts::Port _addInputPort(const bt2c::CStringView name)
     {
         return this->_selfComp().addInputPort(name);
     }
@@ -684,23 +664,12 @@ protected:
     }
 
     template <typename DataT>
-    _OutputPorts::Port _addOutputPort(const char * const name, DataT * const data)
+    _OutputPorts::Port _addOutputPort(const bt2c::CStringView name, DataT * const data)
     {
         return this->_selfComp().addOutputPort(name, data);
     }
 
-    _OutputPorts::Port _addOutputPort(const char *name)
-    {
-        return this->_selfComp().addOutputPort(name);
-    }
-
-    template <typename DataT>
-    _OutputPorts::Port _addOutputPort(const std::string& name, DataT * const data)
-    {
-        return this->_selfComp().addOutputPort(name, data);
-    }
-
-    _OutputPorts::Port _addOutputPort(const std::string& name)
+    _OutputPorts::Port _addOutputPort(const bt2c::CStringView name)
     {
         return this->_selfComp().addOutputPort(name);
     }
@@ -739,8 +708,8 @@ protected:
 
 public:
     static Value::Shared query(const SelfComponentClass selfCompCls,
-                               const PrivateQueryExecutor privQueryExec, const char * const obj,
-                               const ConstValue params)
+                               const PrivateQueryExecutor privQueryExec,
+                               const bt2c::CStringView obj, const ConstValue params)
     {
         return UserComponentT::_query(selfCompCls, privQueryExec, obj, params);
     }
@@ -770,7 +739,8 @@ public:
 
 protected:
     /* Overloadable */
-    static Value::Shared _query(SelfComponentClass, PrivateQueryExecutor, const char *, ConstValue)
+    static Value::Shared _query(SelfComponentClass, PrivateQueryExecutor, bt2c::CStringView,
+                                ConstValue)
     {
         throw UnknownObject {};
     }
@@ -798,23 +768,12 @@ protected:
     }
 
     template <typename DataT>
-    _InputPorts::Port _addInputPort(const char * const name, DataT * const data)
+    _InputPorts::Port _addInputPort(const bt2c::CStringView name, DataT * const data)
     {
         return this->_selfComp().addInputPort(name, data);
     }
 
-    _InputPorts::Port _addInputPort(const char *name)
-    {
-        return this->_selfComp().addInputPort(name);
-    }
-
-    template <typename DataT>
-    _InputPorts::Port _addInputPort(const std::string& name, DataT * const data)
-    {
-        return this->_selfComp().addInputPort(name, data);
-    }
-
-    _InputPorts::Port _addInputPort(const std::string& name)
+    _InputPorts::Port _addInputPort(const bt2c::CStringView name)
     {
         return this->_selfComp().addInputPort(name);
     }

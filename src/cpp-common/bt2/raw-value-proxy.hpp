@@ -39,27 +39,6 @@ private:
     ObjT _mObj;
 };
 
-template <typename ObjT>
-class RawStringValueProxy final : public RawValueProxy<ObjT>
-{
-public:
-    explicit RawStringValueProxy(const ObjT obj) : RawValueProxy<ObjT> {obj}
-    {
-    }
-
-    RawStringValueProxy& operator=(const char * const rawVal)
-    {
-        RawValueProxy<ObjT>::operator=(bt2c::CStringView {rawVal});
-        return *this;
-    }
-
-    RawStringValueProxy& operator=(const std::string& rawVal)
-    {
-        RawValueProxy<ObjT>::operator=(bt2c::CStringView {rawVal.data()});
-        return *this;
-    }
-};
-
 } /* namespace bt2 */
 
 #endif /* BABELTRACE_CPP_COMMON_BT2_RAW_VALUE_PROXY_HPP */

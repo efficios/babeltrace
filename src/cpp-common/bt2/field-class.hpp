@@ -853,18 +853,13 @@ public:
             this->libObjPtr(), index)};
     }
 
-    OptionalBorrowedObject<Mapping> operator[](const char * const label) const noexcept
+    OptionalBorrowedObject<Mapping> operator[](const bt2c::CStringView label) const noexcept
     {
         return internal::CommonEnumerationFieldClassSpec<MappingT>::mappingByLabel(
             this->libObjPtr(), label);
     }
 
-    OptionalBorrowedObject<Mapping> operator[](const std::string& label) const noexcept
-    {
-        return (*this)[label.data()];
-    }
-
-    void addMapping(const char * const label, const typename Mapping::RangeSet ranges) const
+    void addMapping(const bt2c::CStringView label, const typename Mapping::RangeSet ranges) const
     {
         const auto status = internal::CommonEnumerationFieldClassSpec<MappingT>::addMapping(
             this->libObjPtr(), label, ranges.libObjPtr());
@@ -872,11 +867,6 @@ public:
         if (status == BT_FIELD_CLASS_ENUMERATION_ADD_MAPPING_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
-    }
-
-    void addMapping(const std::string& label, const typename Mapping::RangeSet ranges) const
-    {
-        this->addMapping(label.data(), ranges);
     }
 
     Iterator begin() const noexcept
@@ -1146,7 +1136,7 @@ public:
         return CommonStructureFieldClass<const bt_field_class> {*this};
     }
 
-    void appendMember(const char * const name, const FieldClass fc) const
+    void appendMember(const bt2c::CStringView name, const FieldClass fc) const
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstStructureFieldClass`.");
@@ -1157,11 +1147,6 @@ public:
         if (status == BT_FIELD_CLASS_STRUCTURE_APPEND_MEMBER_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
-    }
-
-    void appendMember(const std::string& name, const FieldClass fc) const
-    {
-        this->appendMember(name.data(), fc);
     }
 
     std::uint64_t length() const noexcept
@@ -1185,15 +1170,10 @@ public:
             this->libObjPtr(), index)};
     }
 
-    OptionalBorrowedObject<Member> operator[](const char * const name) const noexcept
+    OptionalBorrowedObject<Member> operator[](const bt2c::CStringView name) const noexcept
     {
         return internal::CommonStructureFieldClassSpec<LibObjT>::memberByName(this->libObjPtr(),
                                                                               name);
-    }
-
-    OptionalBorrowedObject<Member> operator[](const std::string& name) const noexcept
-    {
-        return (*this)[name.data()];
     }
 
     Shared shared() const noexcept
@@ -2176,15 +2156,10 @@ public:
             this->libObjPtr(), index)};
     }
 
-    OptionalBorrowedObject<Option> operator[](const char * const name) const noexcept
+    OptionalBorrowedObject<Option> operator[](const bt2c::CStringView name) const noexcept
     {
         return internal::CommonVariantFieldClassSpec<LibObjT>::optionByName(this->libObjPtr(),
                                                                             name);
-    }
-
-    OptionalBorrowedObject<Option> operator[](const std::string& name) const noexcept
-    {
-        return (*this)[name.data()];
     }
 
     Shared shared() const noexcept
@@ -2264,6 +2239,11 @@ public:
             BT_FIELD_CLASS_VARIANT_WITHOUT_SELECTOR_FIELD_APPEND_OPTION_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
+    }
+
+    void appendOption(const bt2c::CStringView name, const FieldClass fc) const
+    {
+        return this->appendOption(name.data(), fc);
     }
 
     void appendOption(const bt2s::optional<std::string>& name, const FieldClass fc) const
@@ -2466,14 +2446,9 @@ public:
         return Option {_Spec::optionByIndex(this->libObjPtr(), index)};
     }
 
-    OptionalBorrowedObject<Option> operator[](const char * const name) const noexcept
+    OptionalBorrowedObject<Option> operator[](const bt2c::CStringView name) const noexcept
     {
         return _Spec::optionByName(this->libObjPtr(), name);
-    }
-
-    OptionalBorrowedObject<Option> operator[](const std::string& name) const noexcept
-    {
-        return (*this)[name.data()];
     }
 
     void appendOption(const char * const name, const FieldClass fc,
@@ -2490,6 +2465,12 @@ public:
             BT_FIELD_CLASS_VARIANT_WITH_SELECTOR_FIELD_APPEND_OPTION_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
+    }
+
+    void appendOption(const bt2c::CStringView name, const FieldClass fc,
+                      const typename Option::RangeSet ranges) const
+    {
+        return this->appendOption(name.data(), fc, ranges);
     }
 
     void appendOption(const bt2s::optional<std::string>& name, const FieldClass fc,

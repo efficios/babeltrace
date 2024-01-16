@@ -262,8 +262,7 @@ public:
     }
 
     Port operator[](std::uint64_t index) const noexcept;
-    Port operator[](const char *name) const noexcept;
-    Port operator[](const std::string& name) const noexcept;
+    Port operator[](bt2c::CStringView name) const noexcept;
     Iterator begin() const noexcept;
     Iterator end() const noexcept;
 };
@@ -505,16 +504,9 @@ ConstComponentPorts<LibCompT, LibPortT>::operator[](const std::uint64_t index) c
 
 template <typename LibCompT, typename LibPortT>
 typename ConstComponentPorts<LibCompT, LibPortT>::Port
-ConstComponentPorts<LibCompT, LibPortT>::operator[](const char * const name) const noexcept
+ConstComponentPorts<LibCompT, LibPortT>::operator[](const bt2c::CStringView name) const noexcept
 {
     return Port {_Spec::portByName(this->libObjPtr(), name)};
-}
-
-template <typename LibCompT, typename LibPortT>
-typename ConstComponentPorts<LibCompT, LibPortT>::Port
-ConstComponentPorts<LibCompT, LibPortT>::operator[](const std::string& name) const noexcept
-{
-    return (*this)[name.data()];
 }
 
 template <typename LibCompT, typename LibPortT>

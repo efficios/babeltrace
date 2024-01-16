@@ -297,8 +297,7 @@ public:
     }
 
     Port operator[](std::uint64_t index) const noexcept;
-    Port operator[](const char *name) const noexcept;
-    Port operator[](const std::string& name) const noexcept;
+    Port operator[](bt2c::CStringView name) const noexcept;
     Iterator begin() const noexcept;
     Iterator end() const noexcept;
     Port front() const noexcept;
@@ -323,14 +322,10 @@ public:
     }
 
     template <typename DataT>
-    OutputPorts::Port addOutputPort(const char *name, DataT& data) const;
+    OutputPorts::Port addOutputPort(bt2c::CStringView name, DataT& data) const;
 
-    OutputPorts::Port addOutputPort(const char *name) const;
+    OutputPorts::Port addOutputPort(bt2c::CStringView name) const;
 
-    template <typename DataT>
-    OutputPorts::Port addOutputPort(const std::string& name, DataT& data) const;
-
-    OutputPorts::Port addOutputPort(const std::string& name) const;
     OutputPorts outputPorts() const noexcept;
 
 private:
@@ -358,25 +353,17 @@ public:
     }
 
     template <typename DataT>
-    InputPorts::Port addInputPort(const char *name, DataT& data) const;
+    InputPorts::Port addInputPort(bt2c::CStringView name, DataT& data) const;
 
-    InputPorts::Port addInputPort(const char *name) const;
+    InputPorts::Port addInputPort(bt2c::CStringView name) const;
 
-    template <typename DataT>
-    InputPorts::Port addInputPort(const std::string& name, DataT& data) const;
-
-    InputPorts::Port addInputPort(const std::string& name) const;
     InputPorts inputPorts() const noexcept;
 
     template <typename DataT>
-    OutputPorts::Port addOutputPort(const char *name, DataT& data) const;
+    OutputPorts::Port addOutputPort(bt2c::CStringView name, DataT& data) const;
 
-    OutputPorts::Port addOutputPort(const char *name) const;
+    OutputPorts::Port addOutputPort(bt2c::CStringView name) const;
 
-    template <typename DataT>
-    OutputPorts::Port addOutputPort(const std::string& name, DataT& data) const;
-
-    OutputPorts::Port addOutputPort(const std::string& name) const;
     OutputPorts outputPorts() const noexcept;
 
 private:
@@ -411,14 +398,10 @@ public:
     }
 
     template <typename DataT>
-    InputPorts::Port addInputPort(const char *name, DataT& data) const;
+    InputPorts::Port addInputPort(bt2c::CStringView name, DataT& data) const;
 
-    InputPorts::Port addInputPort(const char *name) const;
+    InputPorts::Port addInputPort(bt2c::CStringView name) const;
 
-    template <typename DataT>
-    InputPorts::Port addInputPort(const std::string& name, DataT& data) const;
-
-    InputPorts::Port addInputPort(const std::string& name) const;
     InputPorts inputPorts() const noexcept;
 
 private:
@@ -556,17 +539,9 @@ SelfComponentPorts<LibSelfCompT, LibSelfCompPortT, LibPortT>::operator[](
 template <typename LibSelfCompT, typename LibSelfCompPortT, typename LibPortT>
 typename SelfComponentPorts<LibSelfCompT, LibSelfCompPortT, LibPortT>::Port
 SelfComponentPorts<LibSelfCompT, LibSelfCompPortT, LibPortT>::operator[](
-    const char * const name) const noexcept
+    const bt2c::CStringView name) const noexcept
 {
     return Port {_Spec::portByName(this->libObjPtr(), name)};
-}
-
-template <typename LibSelfCompT, typename LibSelfCompPortT, typename LibPortT>
-typename SelfComponentPorts<LibSelfCompT, LibSelfCompPortT, LibPortT>::Port
-SelfComponentPorts<LibSelfCompT, LibSelfCompPortT, LibPortT>::operator[](
-    const std::string& name) const noexcept
-{
-    return (*this)[name.data()];
 }
 
 template <typename LibSelfCompT, typename LibSelfCompPortT, typename LibPortT>
@@ -611,29 +586,16 @@ SelfSourceComponent::OutputPorts::Port SelfSourceComponent::_addOutputPort(const
 }
 
 template <typename DataT>
-SelfSourceComponent::OutputPorts::Port SelfSourceComponent::addOutputPort(const char * const name,
-                                                                          DataT& data) const
+SelfSourceComponent::OutputPorts::Port
+SelfSourceComponent::addOutputPort(const bt2c::CStringView name, DataT& data) const
 {
     return this->_addOutputPort(name, &data);
 }
 
 inline SelfSourceComponent::OutputPorts::Port
-SelfSourceComponent::addOutputPort(const char * const name) const
+SelfSourceComponent::addOutputPort(const bt2c::CStringView name) const
 {
     return this->_addOutputPort<void>(name, nullptr);
-}
-
-template <typename DataT>
-SelfSourceComponent::OutputPorts::Port SelfSourceComponent::addOutputPort(const std::string& name,
-                                                                          DataT& data) const
-{
-    return this->_addOutputPort(name.data(), &data);
-}
-
-inline SelfSourceComponent::OutputPorts::Port
-SelfSourceComponent::addOutputPort(const std::string& name) const
-{
-    return this->_addOutputPort<void>(name.data(), nullptr);
 }
 
 inline SelfSourceComponent::OutputPorts SelfSourceComponent::outputPorts() const noexcept
@@ -650,29 +612,16 @@ SelfFilterComponent::OutputPorts::Port SelfFilterComponent::_addOutputPort(const
 }
 
 template <typename DataT>
-SelfFilterComponent::OutputPorts::Port SelfFilterComponent::addOutputPort(const char * const name,
-                                                                          DataT& data) const
+SelfFilterComponent::OutputPorts::Port
+SelfFilterComponent::addOutputPort(const bt2c::CStringView name, DataT& data) const
 {
     return this->_addOutputPort(name, &data);
 }
 
 inline SelfFilterComponent::OutputPorts::Port
-SelfFilterComponent::addOutputPort(const char * const name) const
+SelfFilterComponent::addOutputPort(const bt2c::CStringView name) const
 {
     return this->_addOutputPort<void>(name, nullptr);
-}
-
-template <typename DataT>
-SelfFilterComponent::OutputPorts::Port SelfFilterComponent::addOutputPort(const std::string& name,
-                                                                          DataT& data) const
-{
-    return this->_addOutputPort(name.data(), &data);
-}
-
-inline SelfFilterComponent::OutputPorts::Port
-SelfFilterComponent::addOutputPort(const std::string& name) const
-{
-    return this->_addOutputPort<void>(name.data(), nullptr);
 }
 
 inline SelfFilterComponent::OutputPorts SelfFilterComponent::outputPorts() const noexcept
@@ -689,29 +638,16 @@ SelfFilterComponent::InputPorts::Port SelfFilterComponent::_addInputPort(const c
 }
 
 template <typename DataT>
-SelfFilterComponent::InputPorts::Port SelfFilterComponent::addInputPort(const char * const name,
-                                                                        DataT& data) const
+SelfFilterComponent::InputPorts::Port
+SelfFilterComponent::addInputPort(const bt2c::CStringView name, DataT& data) const
 {
     return this->_addInputPort(name, &data);
 }
 
 inline SelfFilterComponent::InputPorts::Port
-SelfFilterComponent::addInputPort(const char * const name) const
+SelfFilterComponent::addInputPort(const bt2c::CStringView name) const
 {
     return this->_addInputPort<void>(name, nullptr);
-}
-
-template <typename DataT>
-SelfFilterComponent::InputPorts::Port SelfFilterComponent::addInputPort(const std::string& name,
-                                                                        DataT& data) const
-{
-    return this->_addInputPort(name.data(), &data);
-}
-
-inline SelfFilterComponent::InputPorts::Port
-SelfFilterComponent::addInputPort(const std::string& name) const
-{
-    return this->_addInputPort<void>(name.data(), nullptr);
 }
 
 inline SelfFilterComponent::InputPorts SelfFilterComponent::inputPorts() const noexcept
@@ -749,29 +685,16 @@ SelfSinkComponent::InputPorts::Port SelfSinkComponent::_addInputPort(const char 
 }
 
 template <typename DataT>
-SelfSinkComponent::InputPorts::Port SelfSinkComponent::addInputPort(const char * const name,
+SelfSinkComponent::InputPorts::Port SelfSinkComponent::addInputPort(const bt2c::CStringView name,
                                                                     DataT& data) const
 {
     return this->_addInputPort(name, &data);
 }
 
 inline SelfSinkComponent::InputPorts::Port
-SelfSinkComponent::addInputPort(const char * const name) const
+SelfSinkComponent::addInputPort(const bt2c::CStringView name) const
 {
     return this->_addInputPort<void>(name, nullptr);
-}
-
-template <typename DataT>
-SelfSinkComponent::InputPorts::Port SelfSinkComponent::addInputPort(const std::string& name,
-                                                                    DataT& data) const
-{
-    return this->_addInputPort(name.data(), &data);
-}
-
-inline SelfSinkComponent::InputPorts::Port
-SelfSinkComponent::addInputPort(const std::string& name) const
-{
-    return this->_addInputPort<void>(name.data(), nullptr);
 }
 
 inline SelfSinkComponent::InputPorts SelfSinkComponent::inputPorts() const noexcept

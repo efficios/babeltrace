@@ -957,12 +957,12 @@ public:
         return CommonStringField<const bt_field> {*this};
     }
 
-    RawStringValueProxy<CommonStringField> operator*() const noexcept
+    RawValueProxy<CommonStringField> operator*() const noexcept
     {
-        return RawStringValueProxy<CommonStringField> {*this};
+        return RawValueProxy<CommonStringField> {*this};
     }
 
-    void value(const Value& val) const
+    void value(const Value val) const
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstStringField`.");
@@ -974,17 +974,7 @@ public:
         }
     }
 
-    void value(const char * const val) const
-    {
-        this->value(bt2c::CStringView {val});
-    }
-
-    void value(const std::string& val) const
-    {
-        this->value(bt2c::CStringView {val.data()});
-    }
-
-    void append(const char * const begin, const std::uint64_t len) const
+    void append(const bt2c::CStringView begin, const std::uint64_t len) const
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstStringField`.");
@@ -996,7 +986,7 @@ public:
         }
     }
 
-    void append(const char * const val) const
+    void append(const bt2c::CStringView val) const
     {
         this->append(val, std::strlen(val));
     }
@@ -1128,14 +1118,10 @@ public:
         return CommonField<LibObjT> {_Spec::memberFieldByIndex(this->libObjPtr(), index)};
     }
 
-    OptionalBorrowedObject<CommonField<LibObjT>> operator[](const char * const name) const noexcept
+    OptionalBorrowedObject<CommonField<LibObjT>>
+    operator[](const bt2c::CStringView name) const noexcept
     {
         return _Spec::memberFieldByName(this->libObjPtr(), name);
-    }
-
-    OptionalBorrowedObject<CommonField<LibObjT>> operator[](const std::string& name) const noexcept
-    {
-        return (*this)[name.data()];
     }
 };
 

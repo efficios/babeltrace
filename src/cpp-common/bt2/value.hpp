@@ -95,12 +95,11 @@ public:
     CommonValueRawValueProxy& operator=(std::uint64_t rawVal) noexcept;
     CommonValueRawValueProxy& operator=(double rawVal) noexcept;
     CommonValueRawValueProxy& operator=(const char *rawVal);
-    CommonValueRawValueProxy& operator=(const std::string& rawVal);
+    CommonValueRawValueProxy& operator=(bt2c::CStringView rawVal);
     operator bool() const noexcept;
     operator std::int64_t() const noexcept;
     operator std::uint64_t() const noexcept;
     operator double() const noexcept;
-    operator const char *() const noexcept;
     operator bt2c::CStringView() const noexcept;
 
 private:
@@ -260,10 +259,8 @@ public:
         this->asMap().insert(std::forward<KeyT>(key), std::forward<ValT>(val));
     }
 
-    CommonArrayValue<bt_value> insertEmptyArray(const char *key) const;
-    CommonArrayValue<bt_value> insertEmptyArray(const std::string& key) const;
-    CommonMapValue<bt_value> insertEmptyMap(const char *key) const;
-    CommonMapValue<bt_value> insertEmptyMap(const std::string& key) const;
+    CommonArrayValue<bt_value> insertEmptyArray(bt2c::CStringView key) const;
+    CommonMapValue<bt_value> insertEmptyMap(bt2c::CStringView key) const;
 
     Shared shared() const noexcept
     {
@@ -337,7 +334,7 @@ CommonValueRawValueProxy<ValueObjT>::operator=(const char * const rawVal)
 
 template <typename ValueObjT>
 CommonValueRawValueProxy<ValueObjT>&
-CommonValueRawValueProxy<ValueObjT>::operator=(const std::string& rawVal)
+CommonValueRawValueProxy<ValueObjT>::operator=(const bt2c::CStringView rawVal)
 {
     _mObj.asString().value(rawVal);
     return *this;
@@ -365,12 +362,6 @@ template <typename ValueObjT>
 CommonValueRawValueProxy<ValueObjT>::operator double() const noexcept
 {
     return _mObj.asReal().value();
-}
-
-template <typename ValueObjT>
-CommonValueRawValueProxy<ValueObjT>::operator const char *() const noexcept
-{
-    return _mObj.asString().value();
 }
 
 template <typename ValueObjT>
@@ -830,17 +821,12 @@ public:
         BT_ASSERT_DBG(this->isString());
     }
 
-    static Shared create(const char * const rawVal = "")
+    static Shared create(const bt2c::CStringView rawVal = "")
     {
         const auto libObjPtr = bt_value_string_create_init(rawVal);
 
         internal::validateCreatedObjPtr(libObjPtr);
         return CommonStringValue::Shared::createWithoutRef(libObjPtr);
-    }
-
-    static Shared create(const std::string& rawVal)
-    {
-        return CommonStringValue::create(rawVal.data());
     }
 
     template <typename OtherLibObjT>
@@ -860,9 +846,9 @@ public:
         return CommonStringValue<const bt_value> {*this};
     }
 
-    RawStringValueProxy<CommonStringValue> operator*() const noexcept
+    RawValueProxy<CommonStringValue> operator*() const noexcept
     {
-        return RawStringValueProxy<CommonStringValue> {*this};
+        return RawValueProxy<CommonStringValue> {*this};
     }
 
     void value(const Value val) const
@@ -875,16 +861,6 @@ public:
         if (status == BT_VALUE_STRING_SET_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
-    }
-
-    void value(const char * const val) const
-    {
-        this->value(bt2c::CStringView {val});
-    }
-
-    void value(const std::string& val) const
-    {
-        this->value(bt2c::CStringView {val.data()});
     }
 
     Value value() const noexcept
@@ -1068,7 +1044,7 @@ public:
         this->_handleAppendLibStatus(status);
     }
 
-    void append(const std::string& rawVal) const
+    void append(const bt2c::CStringView rawVal) const
     {
         this->append(rawVal.data());
     }
@@ -1106,7 +1082,7 @@ public:
         this->append(rawVal);
     }
 
-    void operator+=(const std::string& rawVal) const
+    void operator+=(const bt2c::CStringView rawVal) const
     {
         this->append(rawVal);
     }
@@ -1299,27 +1275,18 @@ public:
         return this->length() == 0;
     }
 
-    OptionalBorrowedObject<CommonValue<LibObjT>> operator[](const char * const key) const noexcept
+    OptionalBorrowedObject<CommonValue<LibObjT>>
+    operator[](const bt2c::CStringView key) const noexcept
     {
         return internal::CommonMapValueSpec<LibObjT>::entryByKey(this->libObjPtr(), key);
     }
 
-    OptionalBorrowedObject<CommonValue<LibObjT>> operator[](const std::string& key) const noexcept
-    {
-        return (*this)[key.data()];
-    }
-
-    bool hasEntry(const char * const key) const noexcept
+    bool hasEntry(const bt2c::CStringView key) const noexcept
     {
         return static_cast<bool>(bt_value_map_has_entry(this->libObjPtr(), key));
     }
 
-    bool hasEntry(const std::string& key) const noexcept
-    {
-        return this->hasEntry(key.data());
-    }
-
-    void insert(const char * const key, const Value val) const
+    void insert(const bt2c::CStringView key, const Value val) const
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstMapValue`.");
 
@@ -1328,12 +1295,7 @@ public:
         this->_handleInsertLibStatus(status);
     }
 
-    void insert(const std::string& key, const Value val) const
-    {
-        this->insert(key.data(), val);
-    }
-
-    void insert(const char * const key, const bool rawVal) const
+    void insert(const bt2c::CStringView key, const bool rawVal) const
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstMapValue`.");
 
@@ -1343,12 +1305,7 @@ public:
         this->_handleInsertLibStatus(status);
     }
 
-    void insert(const std::string& key, const bool rawVal) const
-    {
-        this->insert(key.data(), rawVal);
-    }
-
-    void insert(const char * const key, const std::uint64_t rawVal) const
+    void insert(const bt2c::CStringView key, const std::uint64_t rawVal) const
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstMapValue`.");
 
@@ -1357,13 +1314,7 @@ public:
 
         this->_handleInsertLibStatus(status);
     }
-
-    void insert(const std::string& key, const std::uint64_t rawVal) const
-    {
-        this->insert(key.data(), rawVal);
-    }
-
-    void insert(const char * const key, const std::int64_t rawVal) const
+    void insert(const bt2c::CStringView key, const std::int64_t rawVal) const
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstMapValue`.");
 
@@ -1373,12 +1324,7 @@ public:
         this->_handleInsertLibStatus(status);
     }
 
-    void insert(const std::string& key, const std::int64_t rawVal) const
-    {
-        this->insert(key.data(), rawVal);
-    }
-
-    void insert(const char * const key, const double rawVal) const
+    void insert(const bt2c::CStringView key, const double rawVal) const
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstMapValue`.");
 
@@ -1387,12 +1333,7 @@ public:
         this->_handleInsertLibStatus(status);
     }
 
-    void insert(const std::string& key, const double rawVal) const
-    {
-        this->insert(key.data(), rawVal);
-    }
-
-    void insert(const char * const key, const char * const rawVal) const
+    void insert(const bt2c::CStringView key, const char *rawVal) const
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstMapValue`.");
 
@@ -1401,25 +1342,13 @@ public:
         this->_handleInsertLibStatus(status);
     }
 
-    void insert(const char * const key, const std::string& rawVal) const
+    void insert(const bt2c::CStringView key, const bt2c::CStringView rawVal) const
     {
-        this->insert(key, rawVal.data());
+        return this->insert(key, rawVal.data());
     }
 
-    void insert(const std::string& key, const char * const rawVal) const
-    {
-        this->insert(key.data(), rawVal);
-    }
-
-    void insert(const std::string& key, const std::string& rawVal) const
-    {
-        this->insert(key.data(), rawVal.data());
-    }
-
-    CommonArrayValue<bt_value> insertEmptyArray(const char *key) const;
-    CommonArrayValue<bt_value> insertEmptyArray(const std::string& key) const;
-    CommonMapValue<bt_value> insertEmptyMap(const char *key) const;
-    CommonMapValue<bt_value> insertEmptyMap(const std::string& key) const;
+    CommonArrayValue<bt_value> insertEmptyArray(bt2c::CStringView key) const;
+    CommonMapValue<bt_value> insertEmptyMap(bt2c::CStringView key) const;
 
     void forEach(const internal::CommonMapValueForEachUserFunc<CommonValue<LibObjT>>& func) const
     {
@@ -1476,25 +1405,13 @@ MapValue CommonValue<LibObjT>::appendEmptyMap() const
 }
 
 template <typename LibObjT>
-ArrayValue CommonValue<LibObjT>::insertEmptyArray(const char * const key) const
+ArrayValue CommonValue<LibObjT>::insertEmptyArray(const bt2c::CStringView key) const
 {
     return this->asMap().insertEmptyArray(key);
 }
 
 template <typename LibObjT>
-ArrayValue CommonValue<LibObjT>::insertEmptyArray(const std::string& key) const
-{
-    return this->asMap().insertEmptyArray(key);
-}
-
-template <typename LibObjT>
-MapValue CommonValue<LibObjT>::insertEmptyMap(const char * const key) const
-{
-    return this->asMap().insertEmptyMap(key);
-}
-
-template <typename LibObjT>
-MapValue CommonValue<LibObjT>::insertEmptyMap(const std::string& key) const
+MapValue CommonValue<LibObjT>::insertEmptyMap(const bt2c::CStringView key) const
 {
     return this->asMap().insertEmptyMap(key);
 }
@@ -1580,7 +1497,7 @@ MapValue CommonArrayValue<LibObjT>::appendEmptyMap() const
 }
 
 template <typename LibObjT>
-ArrayValue CommonMapValue<LibObjT>::insertEmptyArray(const char * const key) const
+ArrayValue CommonMapValue<LibObjT>::insertEmptyArray(const bt2c::CStringView key) const
 {
     static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstMapValue`.");
 
@@ -1592,13 +1509,7 @@ ArrayValue CommonMapValue<LibObjT>::insertEmptyArray(const char * const key) con
 }
 
 template <typename LibObjT>
-ArrayValue CommonMapValue<LibObjT>::insertEmptyArray(const std::string& key) const
-{
-    return this->insertEmptyArray(key.data());
-}
-
-template <typename LibObjT>
-MapValue CommonMapValue<LibObjT>::insertEmptyMap(const char * const key) const
+MapValue CommonMapValue<LibObjT>::insertEmptyMap(const bt2c::CStringView key) const
 {
     static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstMapValue`.");
 
@@ -1607,12 +1518,6 @@ MapValue CommonMapValue<LibObjT>::insertEmptyMap(const char * const key) const
 
     this->_handleInsertLibStatus(status);
     return MapValue {libEntryPtr};
-}
-
-template <typename LibObjT>
-MapValue CommonMapValue<LibObjT>::insertEmptyMap(const std::string& key) const
-{
-    return this->insertEmptyMap(key.data());
 }
 
 inline BoolValue::Shared createValue(const bool rawVal)
@@ -1640,7 +1545,7 @@ inline StringValue::Shared createValue(const char * const rawVal)
     return StringValue::create(rawVal);
 }
 
-inline StringValue::Shared createValue(const std::string& rawVal)
+inline StringValue::Shared createValue(const bt2c::CStringView rawVal)
 {
     return StringValue::create(rawVal);
 }

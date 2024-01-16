@@ -445,7 +445,7 @@ public:
         return bt_stream_get_id(this->libObjPtr());
     }
 
-    void name(const char * const name) const
+    void name(const bt2c::CStringView name) const
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstStream`.");
 
@@ -454,11 +454,6 @@ public:
         if (status == BT_STREAM_SET_NAME_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
-    }
-
-    void name(const std::string& name) const
-    {
-        this->name(name.data());
     }
 
     bt2c::CStringView name() const noexcept
@@ -637,7 +632,7 @@ public:
 
     Class cls() const noexcept;
 
-    void name(const char * const name) const
+    void name(const bt2c::CStringView name) const
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTrace`.");
 
@@ -646,11 +641,6 @@ public:
         if (status == BT_TRACE_SET_NAME_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
-    }
-
-    void name(const std::string& name) const
-    {
-        this->name(name.data());
     }
 
     bt2c::CStringView name() const noexcept
@@ -689,7 +679,7 @@ public:
         return _Spec::streamById(this->libObjPtr(), id);
     }
 
-    void environmentEntry(const char * const name, const std::int64_t val) const
+    void environmentEntry(const bt2c::CStringView name, const std::int64_t val) const
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTrace`.");
 
@@ -700,12 +690,7 @@ public:
         }
     }
 
-    void environmentEntry(const std::string& name, const std::int64_t val) const
-    {
-        this->environmentEntry(name.data(), val);
-    }
-
-    void environmentEntry(const char * const name, const char * const val) const
+    void environmentEntry(const bt2c::CStringView name, const bt2c::CStringView val) const
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTrace`.");
 
@@ -714,21 +699,6 @@ public:
         if (status == BT_TRACE_SET_ENVIRONMENT_ENTRY_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
-    }
-
-    void environmentEntry(const std::string& name, const char * const val) const
-    {
-        this->environmentEntry(name.data(), val);
-    }
-
-    void environmentEntry(const char * const name, const std::string& val) const
-    {
-        this->environmentEntry(name, val.data());
-    }
-
-    void environmentEntry(const std::string& name, const std::string& val) const
-    {
-        this->environmentEntry(name.data(), val.data());
     }
 
     std::uint64_t environmentSize() const noexcept
@@ -746,14 +716,9 @@ public:
         return ConstEnvironmentEntry {name, ConstValue {libObjPtr}};
     }
 
-    OptionalBorrowedObject<ConstValue> environmentEntry(const char * const name) const noexcept
+    OptionalBorrowedObject<ConstValue> environmentEntry(const bt2c::CStringView name) const noexcept
     {
         return bt_trace_borrow_environment_entry_value_by_name_const(this->libObjPtr(), name);
-    }
-
-    OptionalBorrowedObject<ConstValue> environmentEntry(const std::string& name) const noexcept
-    {
-        return this->environmentEntry(name.data());
     }
 
     template <typename LibValT>
@@ -942,7 +907,7 @@ public:
         return bt_event_class_get_id(this->libObjPtr());
     }
 
-    void name(const char * const name) const
+    void name(const bt2c::CStringView name) const
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstEventClass`.");
 
@@ -951,11 +916,6 @@ public:
         if (status == BT_EVENT_CLASS_SET_NAME_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
-    }
-
-    void name(const std::string& name) const
-    {
-        this->name(name.data());
     }
 
     bt2c::CStringView name() const noexcept
@@ -982,7 +942,7 @@ public:
         return bt2s::nullopt;
     }
 
-    void emfUri(const char * const emfUri) const
+    void emfUri(const bt2c::CStringView emfUri) const
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstEventClass`.");
 
@@ -991,11 +951,6 @@ public:
         if (status == BT_EVENT_CLASS_SET_EMF_URI_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
-    }
-
-    void emfUri(const std::string& emfUri) const
-    {
-        this->emfUri(emfUri.data());
     }
 
     bt2c::CStringView emfUri() const noexcept
@@ -1285,7 +1240,7 @@ public:
         return bt_stream_class_get_id(this->libObjPtr());
     }
 
-    void name(const char * const name) const
+    void name(const bt2c::CStringView name) const
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstStreamClass`.");
@@ -1295,11 +1250,6 @@ public:
         if (status == BT_STREAM_CLASS_SET_NAME_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
-    }
-
-    void name(const std::string& name) const
-    {
-        this->name(name.data());
     }
 
     bt2c::CStringView name() const noexcept
