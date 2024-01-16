@@ -43,6 +43,15 @@ public:
     }
 
     /*
+     * Builds a view of the string `str`.
+     *
+     * Intentionally not explicit.
+     */
+    CStringView(const std::string& str) noexcept : _mStr {str.c_str()}
+    {
+    }
+
+    /*
      * Makes this view view the C string `str` (may be `nullptr`).
      *
      * Intentionally not explicit.
