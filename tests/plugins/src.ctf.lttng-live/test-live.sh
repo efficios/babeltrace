@@ -393,7 +393,30 @@ test_stored_values() {
 	rm -rf "$tmp_dir"
 }
 
-plan_tests 18
+test_live_new_stream_during_inactivity() {
+	# Announce a new stream while an existing stream is inactive.
+	# This requires the live consumer to check for new announced streams
+	# when it receives inactivity beacons.
+	local test_text="new stream announced while an existing stream is inactive"
+	local cli_args_template="-i lttng-live net://localhost:@PORT@/host/hostname/new-streams -c sink.text.details"
+	local server_args=("$test_data_dir/new-streams.json")
+	local expected_stdout="${test_data_dir}/new-streams.expect"
+	local expected_stderr="/dev/null"
+	local tmp_dir
+
+	tmp_dir=$(mktemp -d -t 'test-new-streams.XXXXXXX')
+
+	# Generate test trace.
+	bt_gen_mctf_trace "${trace_dir}/live/new-streams/first-trace.mctf" "$tmp_dir/first-trace"
+	bt_gen_mctf_trace "${trace_dir}/live/new-streams/second-trace.mctf" "$tmp_dir/second-trace"
+
+	run_test "$test_text" "$cli_args_template" "$expected_stdout" \
+		"$expected_stderr" "$tmp_dir" "${server_args[@]}"
+
+	rm -rf "$tmp_dir"
+}
+
+plan_tests 20
 
 test_list_sessions
 test_base
@@ -403,3 +426,4 @@ test_compare_to_ctf_fs
 test_inactivity_discarded_packet
 test_split_metadata
 test_stored_values
+test_live_new_stream_during_inactivity

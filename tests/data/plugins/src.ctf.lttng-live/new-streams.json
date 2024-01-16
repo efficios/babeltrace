@@ -1,0 +1,22 @@
+[
+    {
+        "name": "new-streams",
+        "id": 0,
+        "hostname": "hostname",
+        "live-timer-freq": 1,
+        "client-count": 0,
+        "traces": [
+            {
+                "path": "first-trace",
+                "creation-timestamp": 0,
+                "beacons": {
+                    "first_trace_stream_0": [40, 50, 85, 100, 120, 200]
+                }
+            },
+            {
+                "path": "second-trace",
+                "creation-timestamp": 80
+            }
+        ]
+    }
+]

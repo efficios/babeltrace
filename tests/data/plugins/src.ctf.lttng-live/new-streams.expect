@@ -1,0 +1,181 @@
+Trace class:
+  Stream class (ID 0):
+    Supports packets: Yes
+    Packets have beginning default clock snapshot: Yes
+    Packets have end default clock snapshot: Yes
+    Supports discarded events: No
+    Supports discarded packets: No
+    Default clock class:
+      Name: cycle_counter_test
+      Frequency (Hz): 1,000,000,000
+      Precision (cycles): 0
+      Offset (s): 0
+      Offset (cycles): 0
+      Origin is Unix epoch: No
+      UUID: 5b59e7db-5e49-418a-9adf-e1adfdf571c4
+    Event class `first_trace_event` (ID 0):
+      Payload field class: Structure (1 member):
+        value: Unsigned integer (8-bit, Base 10)
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 1}
+Stream beginning:
+  Name: stream-1
+  Trace:
+    Stream (ID 1, Class ID 0)
+
+[10 cycles, 10 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 1}
+Packet beginning
+
+[10 cycles, 10 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 1}
+Event `first_trace_event` (Class ID 0):
+  Payload:
+    value: 42
+
+[11 cycles, 11 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 1}
+Packet end
+
+[20 cycles, 20 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 1}
+Packet beginning
+
+[20 cycles, 20 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 1}
+Event `first_trace_event` (Class ID 0):
+  Payload:
+    value: 42
+
+[21 cycles, 21 ns from origin]
+{Trace 0, Stream class ID 0, Stream ID 1}
+Packet end
+
+[40 cycles, 40 ns from origin]
+Message iterator inactivity:
+  Clock class:
+    Name: cycle_counter_test
+    Frequency (Hz): 1,000,000,000
+    Precision (cycles): 0
+    Offset (s): 0
+    Offset (cycles): 0
+    Origin is Unix epoch: No
+    UUID: 5b59e7db-5e49-418a-9adf-e1adfdf571c4
+
+[50 cycles, 50 ns from origin]
+Message iterator inactivity:
+  Clock class:
+    Name: cycle_counter_test
+    Frequency (Hz): 1,000,000,000
+    Precision (cycles): 0
+    Offset (s): 0
+    Offset (cycles): 0
+    Origin is Unix epoch: No
+    UUID: 5b59e7db-5e49-418a-9adf-e1adfdf571c4
+
+Trace class:
+  Stream class (ID 0):
+    Supports packets: Yes
+    Packets have beginning default clock snapshot: Yes
+    Packets have end default clock snapshot: Yes
+    Supports discarded events: No
+    Supports discarded packets: No
+    Default clock class:
+      Name: cycle_counter_test
+      Frequency (Hz): 1,000,000,000
+      Precision (cycles): 0
+      Offset (s): 0
+      Offset (cycles): 0
+      Origin is Unix epoch: No
+      UUID: 5b59e7db-5e49-418a-9adf-e1adfdf571c4
+    Event class `second_trace_event` (ID 0):
+      Payload field class: Structure (1 member):
+        value: Unsigned integer (8-bit, Base 10)
+
+[Unknown]
+{Trace 1, Stream class ID 0, Stream ID 3}
+Stream beginning:
+  Name: stream-3
+  Trace:
+    Stream (ID 3, Class ID 0)
+
+[85 cycles, 85 ns from origin]
+Message iterator inactivity:
+  Clock class:
+    Name: cycle_counter_test
+    Frequency (Hz): 1,000,000,000
+    Precision (cycles): 0
+    Offset (s): 0
+    Offset (cycles): 0
+    Origin is Unix epoch: No
+    UUID: 5b59e7db-5e49-418a-9adf-e1adfdf571c4
+
+[100 cycles, 100 ns from origin]
+Message iterator inactivity:
+  Clock class:
+    Name: cycle_counter_test
+    Frequency (Hz): 1,000,000,000
+    Precision (cycles): 0
+    Offset (s): 0
+    Offset (cycles): 0
+    Origin is Unix epoch: No
+    UUID: 5b59e7db-5e49-418a-9adf-e1adfdf571c4
+
+[110 cycles, 110 ns from origin]
+{Trace 1, Stream class ID 0, Stream ID 3}
+Packet beginning
+
+[110 cycles, 110 ns from origin]
+{Trace 1, Stream class ID 0, Stream ID 3}
+Event `second_trace_event` (Class ID 0):
+  Payload:
+    value: 123
+
+[111 cycles, 111 ns from origin]
+{Trace 1, Stream class ID 0, Stream ID 3}
+Packet end
+
+[120 cycles, 120 ns from origin]
+{Trace 1, Stream class ID 0, Stream ID 3}
+Packet beginning
+
+[120 cycles, 120 ns from origin]
+{Trace 1, Stream class ID 0, Stream ID 3}
+Event `second_trace_event` (Class ID 0):
+  Payload:
+    value: 123
+
+[120 cycles, 120 ns from origin]
+Message iterator inactivity:
+  Clock class:
+    Name: cycle_counter_test
+    Frequency (Hz): 1,000,000,000
+    Precision (cycles): 0
+    Offset (s): 0
+    Offset (cycles): 0
+    Origin is Unix epoch: No
+    UUID: 5b59e7db-5e49-418a-9adf-e1adfdf571c4
+
+[121 cycles, 121 ns from origin]
+{Trace 1, Stream class ID 0, Stream ID 3}
+Packet end
+
+[Unknown]
+{Trace 1, Stream class ID 0, Stream ID 3}
+Stream end
+
+[200 cycles, 200 ns from origin]
+Message iterator inactivity:
+  Clock class:
+    Name: cycle_counter_test
+    Frequency (Hz): 1,000,000,000
+    Precision (cycles): 0
+    Offset (s): 0
+    Offset (cycles): 0
+    Origin is Unix epoch: No
+    UUID: 5b59e7db-5e49-418a-9adf-e1adfdf571c4
+
+[Unknown]
+{Trace 0, Stream class ID 0, Stream ID 1}
+Stream end
