@@ -341,8 +341,8 @@ BT_PLUGIN_SOURCE_COMPONENT_CLASS_FINALIZE_METHOD_WITH_ID(my_plugin_id,
 @brief
     Defines a plugin module.
 
-In a plugin define C file, you must use this macro before you use any
-other <code>BT_PLUGIN*()</code> macro.
+In a plugin definition C file, you must use this macro before you use
+any other <code>BT_PLUGIN*()</code> macro.
 */
 #define BT_PLUGIN_MODULE() \
 	static struct __bt_plugin_descriptor const * const __bt_plugin_descriptor_dummy __BT_PLUGIN_DESCRIPTOR_ATTRS = NULL; \
