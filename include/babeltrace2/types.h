@@ -61,7 +61,6 @@ typedef struct bt_object bt_object;
 typedef struct bt_packet bt_packet;
 typedef struct bt_plugin bt_plugin;
 typedef struct bt_plugin_set bt_plugin_set;
-typedef struct bt_plugin_so_shared_lib_handle bt_plugin_so_shared_lib_handle;
 typedef struct bt_port bt_port;
 typedef struct bt_port_input bt_port_input;
 typedef struct bt_port_output bt_port_output;
