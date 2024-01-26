@@ -4,7 +4,6 @@
  * Copyright 2017-2018 Philippe Proulx <pproulx@efficios.com>
  */
 
-#include <stdlib.h>
 #include <babeltrace2/babeltrace.h>
 
 #define BT_LOG_TAG "LIB/LOGGING"

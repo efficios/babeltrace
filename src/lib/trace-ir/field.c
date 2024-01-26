@@ -13,7 +13,6 @@
 #include "lib/object.h"
 #include "compat/compiler.h"
 #include "compat/fcntl.h"
-#include "common/align.h"
 #include "common/assert.h"
 #include <inttypes.h>
 #include <stdbool.h>

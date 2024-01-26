@@ -11,8 +11,6 @@
 #include "lib/assert-cond.h"
 #include <babeltrace2/trace-ir/trace-class.h>
 #include <babeltrace2/trace-ir/event-class.h>
-#include "ctf-writer/functor.h"
-#include "ctf-writer/clock.h"
 #include "compat/compiler.h"
 #include <babeltrace2/value.h>
 #include "lib/value.h"
@@ -26,16 +24,9 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include "clock-class.h"
-#include "event-class.h"
-#include "event.h"
-#include "field-class.h"
-#include "field-wrapper.h"
-#include "resolve-field-path.h"
+#include "trace-class.h"
 #include "stream-class.h"
 #include "stream.h"
-#include "trace.h"
-#include "utils.h"
 #include "lib/value.h"
 #include "lib/func-status.h"
 

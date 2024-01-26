@@ -7,7 +7,6 @@
 #define BT_LOG_TAG "LIB/QUERY-EXECUTOR"
 #include "lib/logging.h"
 
-#include "common/assert.h"
 #include "common/common.h"
 #include "lib/assert-cond.h"
 #include <babeltrace2/graph/query-executor.h>

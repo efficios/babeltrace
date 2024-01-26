@@ -21,16 +21,11 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include "attributes.h"
-#include "clock-snapshot.h"
 #include "event-class.h"
 #include "event.h"
 #include "field-class.h"
-#include "field.h"
 #include "resolve-field-path.h"
 #include "stream-class.h"
-#include "trace.h"
-#include "utils.h"
 #include "lib/func-status.h"
 
 #define BT_ASSERT_PRE_DEV_EVENT_CLASS_HOT(_ec)				\

@@ -17,16 +17,12 @@
 #include "compat/endian.h"
 #include "common/assert.h"
 #include "compat/glib.h"
-#include <float.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include "clock-class.h"
 #include "field-class.h"
-#include "field.h"
 #include "field-path.h"
-#include "utils.h"
 #include "lib/func-status.h"
 #include "lib/integer-range-set.h"
 #include "lib/value.h"

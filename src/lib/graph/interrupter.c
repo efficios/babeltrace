@@ -7,8 +7,6 @@
 #define BT_LOG_TAG "LIB/INTERRUPTER"
 #include "lib/logging.h"
 
-#include <stdlib.h>
-#include <stdint.h>
 #include <babeltrace2/babeltrace.h>
 
 #include "interrupter.h"

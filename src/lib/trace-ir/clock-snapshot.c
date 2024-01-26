@@ -8,14 +8,12 @@
 #include "lib/logging.h"
 
 #include "lib/assert-cond.h"
-#include "common/uuid.h"
 #include "clock-class.h"
 #include "clock-snapshot.h"
 #include <babeltrace2/trace-ir/clock-snapshot.h>
 #include "compat/compiler.h"
 #include <babeltrace2/types.h>
 #include "compat/string.h"
-#include <inttypes.h>
 #include "lib/object.h"
 #include "common/assert.h"
 #include "lib/func-status.h"

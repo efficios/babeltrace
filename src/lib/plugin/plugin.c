@@ -24,7 +24,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <inttypes.h>
 #include <sys/stat.h>
 #include <ftw.h>
 #include <pthread.h>

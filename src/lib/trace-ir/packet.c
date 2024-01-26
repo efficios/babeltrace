@@ -14,7 +14,6 @@
 #include <babeltrace2/trace-ir/stream.h>
 #include "lib/object.h"
 #include "common/assert.h"
-#include <inttypes.h>
 #include <stdbool.h>
 
 #include "field.h"
@@ -22,8 +21,6 @@
 #include "packet.h"
 #include "stream-class.h"
 #include "stream.h"
-#include "trace.h"
-#include "lib/func-status.h"
 
 BT_EXPORT
 struct bt_stream *bt_packet_borrow_stream(struct bt_packet *packet)

@@ -11,13 +11,10 @@
 #include "lib/assert-cond.h"
 #include <babeltrace2/trace-ir/field-class.h>
 #include <babeltrace2/trace-ir/field-path.h>
-#include <limits.h>
 #include <stdint.h>
-#include <inttypes.h>
 #include "common/assert.h"
 #include <glib.h>
 
-#include "field-class.h"
 #include "field-path.h"
 
 static

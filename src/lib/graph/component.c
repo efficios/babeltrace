@@ -18,9 +18,7 @@
 #include "compat/compiler.h"
 #include <babeltrace2/types.h>
 #include <babeltrace2/value.h>
-#include "lib/value.h"
 #include <stdint.h>
-#include <inttypes.h>
 
 #include "component.h"
 #include "component-class.h"

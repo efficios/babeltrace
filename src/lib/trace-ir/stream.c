@@ -13,9 +13,7 @@
 #include <babeltrace2/trace-ir/stream-class.h>
 #include <babeltrace2/trace-ir/trace.h>
 #include "compat/compiler.h"
-#include "common/align.h"
 #include "common/assert.h"
-#include "lib/property.h"
 #include <inttypes.h>
 #include <stdbool.h>
 #include <unistd.h>

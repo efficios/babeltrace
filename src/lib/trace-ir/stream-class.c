@@ -11,10 +11,8 @@
 #include "lib/assert-cond.h"
 #include <babeltrace2/trace-ir/trace.h>
 #include "compat/compiler.h"
-#include "common/align.h"
 #include "compat/endian.h"
 #include "common/assert.h"
-#include "lib/property.h"
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -22,12 +20,9 @@
 #include "clock-class.h"
 #include "event-class.h"
 #include "field-class.h"
-#include "field.h"
 #include "field-wrapper.h"
 #include "resolve-field-path.h"
 #include "stream-class.h"
-#include "trace.h"
-#include "utils.h"
 #include "lib/value.h"
 #include "lib/func-status.h"
 

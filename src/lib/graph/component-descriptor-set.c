@@ -19,7 +19,6 @@
 
 #include "component-class.h"
 #include "component-descriptor-set.h"
-#include "component-class-sink-simple.h"
 #include "lib/value.h"
 
 static

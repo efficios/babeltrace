@@ -8,7 +8,6 @@
 #define BT_LOG_TAG "LIB/CONNECTION"
 #include "lib/logging.h"
 
-#include "common/assert.h"
 #include "lib/assert-cond.h"
 #include <babeltrace2/graph/connection.h>
 #include "lib/object.h"

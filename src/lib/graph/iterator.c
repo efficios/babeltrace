@@ -38,8 +38,6 @@
 
 #include "component-class.h"
 #include "component.h"
-#include "component-sink.h"
-#include "component-source.h"
 #include "connection.h"
 #include "graph.h"
 #include "message-iterator-class.h"

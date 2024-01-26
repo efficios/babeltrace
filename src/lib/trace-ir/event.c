@@ -16,7 +16,6 @@
 #include <babeltrace2/trace-ir/trace.h>
 #include "common/assert.h"
 #include "compat/compiler.h"
-#include <inttypes.h>
 #include <stdbool.h>
 
 #include "field.h"
@@ -25,9 +24,7 @@
 #include "stream-class.h"
 #include "stream.h"
 #include "packet.h"
-#include "trace.h"
 #include "packet.h"
-#include "attributes.h"
 #include "event-class.h"
 
 void _bt_event_set_is_frozen(const struct bt_event *event, bool is_frozen)

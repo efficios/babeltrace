@@ -8,9 +8,7 @@
 #define BT_LOG_TAG "LIB/ATTRS"
 #include "lib/logging.h"
 
-#include "common/macros.h"
 #include <babeltrace2/value.h>
-#include "lib/assert-cond.h"
 #include "lib/object.h"
 #include <babeltrace2/value.h>
 #include "lib/value.h"
