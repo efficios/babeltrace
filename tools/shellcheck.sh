@@ -6,12 +6,13 @@
 
 set -eu
 
+shellcheck=${SHELLCHECK:-shellcheck}
 retcode=0
 
 while read -r script_file; do
 	echo "Running ShellCheck on \`$script_file\`"
 	pushd "${script_file%/*}" >/dev/null
-	shellcheck -x "${script_file##*/}" || retcode=$?
+	"$shellcheck" -x "${script_file##*/}" || retcode=$?
 	popd >/dev/null
 done <<< "$(find . -type f -name '*.sh' \
 	! -path './.git/*' \
