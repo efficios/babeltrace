@@ -11,13 +11,11 @@
 
 namespace bt2s {
 
-template <typename CharT, typename TraitsT = std::char_traits<CharT>>
-using basic_string_view = bpstd::basic_string_view<CharT, TraitsT>;
-
-using string_view = bpstd::string_view;
-using wstring_view = bpstd::wstring_view;
-using u16string_view = bpstd::u16string_view;
-using u32string_view = bpstd::u32string_view;
+using bpstd::basic_string_view;
+using bpstd::string_view;
+using bpstd::wstring_view;
+using bpstd::u16string_view;
+using bpstd::u32string_view;
 
 } /* namespace bt2s */
 
