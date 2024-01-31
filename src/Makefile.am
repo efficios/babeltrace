@@ -61,9 +61,11 @@ noinst_HEADERS = \
 	cpp-common/bt2c/vector.hpp \
 	cpp-common/bt2s/make-unique.hpp \
 	cpp-common/bt2s/optional.hpp \
+	cpp-common/bt2s/span.hpp \
 	cpp-common/bt2s/string-view.hpp \
 	cpp-common/vendor/nlohmann/json.hpp \
 	cpp-common/vendor/optional-lite/optional.hpp \
+	cpp-common/vendor/span-lite/span.hpp \
 	cpp-common/vendor/string_view-standalone/string_view.hpp
 
 ## This target generates an include file that contains the git version
@@ -743,4 +745,6 @@ plugins_lttng_utils_babeltrace_plugin_lttng_utils_la_LIBADD += \
 endif # !ENABLE_BUILT_IN_PLUGINS
 endif # ENABLE_DEBUG_INFO
 
-EXTRA_DIST = cpp-common/vendor/optional-lite/optional.hpp.license
+EXTRA_DIST = \
+	cpp-common/vendor/optional-lite/optional.hpp.license \
+	cpp-common/vendor/span-lite/span.hpp.license
