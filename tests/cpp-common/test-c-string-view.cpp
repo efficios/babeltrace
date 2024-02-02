@@ -74,7 +74,7 @@ void testEquality()
     testNe(foo1, bt2c::CStringView {bar});
 }
 
-} // namespace
+} /* namespace */
 
 int main()
 {
