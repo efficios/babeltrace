@@ -344,6 +344,7 @@ void common_write_errno_init(char ** const at, const char * const file_name,
 		const char * const init_msg)
 {
 	BT_ASSERT_DBG(errno != 0);
+
 	const char * const errno_msg = g_strerror(errno);
 
 	common_write_init(at, file_name, func_name, line_no, lvl, tag);
