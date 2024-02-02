@@ -12,6 +12,8 @@
 #include <utility>
 #include <vector>
 
+#include <glib.h>
+
 #include <babeltrace2/babeltrace.h>
 
 #include "common/assert.h"
@@ -256,8 +258,10 @@ private:
     {
         static void write(const char * const fileName, const char * const funcName,
                           const unsigned lineNo, const Level level, const char * const tag,
-                          const void *, unsigned int, const char *, const char * const msg) noexcept
+                          const void *, unsigned int, const char * const initMsg,
+                          const char * const msg) noexcept
         {
+            BT_ASSERT_DBG(initMsg && std::strcmp(initMsg, "") == 0);
             bt_log_write(fileName, funcName, lineNo, static_cast<bt_log_level>(level), tag, msg);
         }
     };
@@ -277,7 +281,7 @@ public:
                     const unsigned int lineNo, const char * const fmt, ArgTs&&...args) const
     {
         this->_logNoThrow<_StdLogWriter, LevelV, AppendCauseV>(
-            fileName, funcName, lineNo, nullptr, 0, nullptr, fmt, std::forward<ArgTs>(args)...);
+            fileName, funcName, lineNo, nullptr, 0, "", fmt, std::forward<ArgTs>(args)...);
     }
 
     /*
@@ -291,7 +295,7 @@ public:
                        const unsigned int lineNo, const char * const msg) const
     {
         this->_logStrNoThrow<_StdLogWriter, LevelV, AppendCauseV>(fileName, funcName, lineNo,
-                                                                  nullptr, 0, nullptr, msg);
+                                                                  nullptr, 0, "", msg);
     }
 
     /*
@@ -348,15 +352,15 @@ public:
     }
 
 private:
-    struct _ErrnoLogWriter final
+    struct _InitMsgLogWriter final
     {
         static void write(const char * const fileName, const char * const funcName,
                           const unsigned lineNo, const Level level, const char * const tag,
                           const void *, unsigned int, const char * const initMsg,
                           const char * const msg) noexcept
         {
-            bt_log_write_errno(funcName, fileName, lineNo, static_cast<bt_log_level>(level), tag,
-                               initMsg, msg);
+            bt_log_write_printf(funcName, fileName, lineNo, static_cast<bt_log_level>(level), tag,
+                                "%s%s", initMsg, msg);
         }
     };
 
@@ -376,8 +380,9 @@ public:
                          const unsigned int lineNo, const char * const initMsg,
                          const char * const fmt, ArgTs&&...args) const
     {
-        this->_logNoThrow<_ErrnoLogWriter, LevelV, AppendCauseV>(
-            fileName, funcName, lineNo, nullptr, 0, initMsg, fmt, std::forward<ArgTs>(args)...);
+        this->_logNoThrow<_InitMsgLogWriter, LevelV, AppendCauseV>(
+            fileName, funcName, lineNo, nullptr, 0, this->_errnoIntroStr(initMsg).c_str(), fmt,
+            std::forward<ArgTs>(args)...);
     }
 
     /*
@@ -394,8 +399,8 @@ public:
                             const unsigned int lineNo, const char * const initMsg,
                             const char * const msg) const
     {
-        this->_logStrNoThrow<_ErrnoLogWriter, LevelV, AppendCauseV>(fileName, funcName, lineNo,
-                                                                    nullptr, 0, initMsg, msg);
+        this->_logStrNoThrow<_InitMsgLogWriter, LevelV, AppendCauseV>(
+            fileName, funcName, lineNo, nullptr, 0, this->_errnoIntroStr(initMsg).c_str(), msg);
     }
 
     /*
@@ -484,7 +489,7 @@ public:
                        const unsigned int memLen, const char * const fmt, ArgTs&&...args) const
     {
         this->_logNoThrow<_MemLogWriter, LevelV, false>(fileName, funcName, lineNo, memData, memLen,
-                                                        nullptr, fmt, std::forward<ArgTs>(args)...);
+                                                        "", fmt, std::forward<ArgTs>(args)...);
     }
 
     /*
@@ -497,13 +502,13 @@ public:
                           const unsigned int memLen, const char * const msg) const
     {
         this->_logStrNoThrow<_MemLogWriter, LevelV, false>(fileName, funcName, lineNo, memData,
-                                                           memLen, nullptr, msg);
+                                                           memLen, "", msg);
     }
 
 private:
     /*
      * Formats a log message with fmt::format() given `fmt` and `args`,
-     * and the forwards everything to _logStrNoThrow().
+     * and then forwards everything to _logStrNoThrow().
      */
     template <typename LogWriterT, Level LevelV, bool AppendCauseV, typename... ArgTs>
     void _logNoThrow(const char * const fileName, const char * const funcName,
@@ -527,12 +532,12 @@ private:
     }
 
     /*
-     * Logs `msg` using the level `LevelV`.
-     *
-     * Calls LogWriterT::write() to write the actual log.
+     * Calls LogWriterT::write() with its arguments to log using the
+     * level `LevelV`.
      *
      * If `AppendCauseV` is true, this method also appends a cause to
-     * the error of the current thread using the same message.
+     * the error of the current thread using the concatenation of
+     * `initMsg` and `msg` as the message.
      */
     template <typename LogWriterT, Level LevelV, bool AppendCauseV>
     void _logStrNoThrow(const char * const fileName, const char * const funcName,
@@ -540,6 +545,10 @@ private:
                         const std::size_t memLen, const char * const initMsg,
                         const char * const msg) const
     {
+        /* Initial message and main message are required */
+        BT_ASSERT(initMsg);
+        BT_ASSERT(msg);
+
         /* Log if needed */
         if (this->wouldLog(LevelV)) {
             LogWriterT::write(fileName, funcName, lineNo, LevelV, _mTag.data(), memData, memLen,
@@ -550,19 +559,25 @@ private:
         if (AppendCauseV) {
             if (_mSelfMsgIter) {
                 bt_current_thread_error_append_cause_from_message_iterator(
-                    _mSelfMsgIter->libObjPtr(), fileName, lineNo, "%s", _mBuf.data());
+                    _mSelfMsgIter->libObjPtr(), fileName, lineNo, "%s%s", initMsg, _mBuf.data());
             } else if (_mSelfComp) {
                 bt_current_thread_error_append_cause_from_component(
-                    _mSelfComp->libObjPtr(), fileName, lineNo, "%s", _mBuf.data());
+                    _mSelfComp->libObjPtr(), fileName, lineNo, "%s%s", initMsg, _mBuf.data());
             } else if (_mSelfCompCls) {
                 bt_current_thread_error_append_cause_from_component_class(
-                    _mSelfCompCls->libObjPtr(), fileName, lineNo, "%s", _mBuf.data());
+                    _mSelfCompCls->libObjPtr(), fileName, lineNo, "%s%s", initMsg, _mBuf.data());
             } else {
-                BT_ASSERT_DBG(_mModuleName);
-                bt_current_thread_error_append_cause_from_unknown(_mModuleName->data(), fileName,
-                                                                  lineNo, "%s", _mBuf.data());
+                BT_ASSERT(_mModuleName);
+                bt_current_thread_error_append_cause_from_unknown(
+                    _mModuleName->data(), fileName, lineNo, "%s%s", initMsg, _mBuf.data());
             }
         }
+    }
+
+    static std::string _errnoIntroStr(const char * const initMsg)
+    {
+        BT_ASSERT(errno != 0);
+        return fmt::format("{}: {}", initMsg, g_strerror(errno));
     }
 
     /* At least one of the following four members has a value */
