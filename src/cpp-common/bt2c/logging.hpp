@@ -559,17 +559,17 @@ private:
         if (AppendCauseV) {
             if (_mSelfMsgIter) {
                 bt_current_thread_error_append_cause_from_message_iterator(
-                    _mSelfMsgIter->libObjPtr(), fileName, lineNo, "%s%s", initMsg, _mBuf.data());
+                    _mSelfMsgIter->libObjPtr(), fileName, lineNo, "%s%s", initMsg, msg);
             } else if (_mSelfComp) {
                 bt_current_thread_error_append_cause_from_component(
-                    _mSelfComp->libObjPtr(), fileName, lineNo, "%s%s", initMsg, _mBuf.data());
+                    _mSelfComp->libObjPtr(), fileName, lineNo, "%s%s", initMsg, msg);
             } else if (_mSelfCompCls) {
                 bt_current_thread_error_append_cause_from_component_class(
-                    _mSelfCompCls->libObjPtr(), fileName, lineNo, "%s%s", initMsg, _mBuf.data());
+                    _mSelfCompCls->libObjPtr(), fileName, lineNo, "%s%s", initMsg, msg);
             } else {
                 BT_ASSERT(_mModuleName);
-                bt_current_thread_error_append_cause_from_unknown(
-                    _mModuleName->data(), fileName, lineNo, "%s%s", initMsg, _mBuf.data());
+                bt_current_thread_error_append_cause_from_unknown(_mModuleName->data(), fileName,
+                                                                  lineNo, "%s%s", initMsg, msg);
             }
         }
     }
