@@ -11,63 +11,6 @@ if ENABLE_PYTHON_BINDINGS
 SUBDIRS += bindings/python/bt2
 endif
 
-noinst_HEADERS = \
-	cpp-common/bt2/borrowed-object-iterator.hpp \
-	cpp-common/bt2/borrowed-object-proxy.hpp \
-	cpp-common/bt2/borrowed-object.hpp \
-	cpp-common/bt2/clock-class.hpp \
-	cpp-common/bt2/clock-snapshot.hpp \
-	cpp-common/bt2/component-port.hpp \
-	cpp-common/bt2/exc.hpp \
-	cpp-common/bt2/field-class.hpp \
-	cpp-common/bt2/field-path.hpp \
-	cpp-common/bt2/field.hpp \
-	cpp-common/bt2/integer-range-set.hpp \
-	cpp-common/bt2/integer-range.hpp \
-	cpp-common/bt2/internal/utils.hpp \
-	cpp-common/bt2/logging.hpp \
-	cpp-common/bt2/message-array.hpp \
-	cpp-common/bt2/message-iterator.hpp \
-	cpp-common/bt2/message.hpp \
-	cpp-common/bt2/optional-borrowed-object.hpp \
-	cpp-common/bt2/plugin-dev.hpp \
-	cpp-common/bt2/plugin.hpp \
-	cpp-common/bt2/private-query-executor.hpp \
-	cpp-common/bt2/raw-value-proxy.hpp \
-	cpp-common/bt2/self-component-class.hpp \
-	cpp-common/bt2/self-component-port.hpp \
-	cpp-common/bt2/self-message-iterator-configuration.hpp \
-	cpp-common/bt2/self-message-iterator.hpp \
-	cpp-common/bt2/shared-object.hpp \
-	cpp-common/bt2/trace-ir.hpp \
-	cpp-common/bt2/type-traits.hpp \
-	cpp-common/bt2/value.hpp \
-	cpp-common/bt2/wrap.hpp \
-	cpp-common/bt2c/align.hpp \
-	cpp-common/bt2c/c-string-view.hpp \
-	cpp-common/bt2c/call.hpp \
-	cpp-common/bt2c/endian.hpp \
-	cpp-common/bt2c/exc.hpp \
-	cpp-common/bt2c/glib-up.hpp \
-	cpp-common/bt2c/lib-str.hpp \
-	cpp-common/bt2c/libc-up.hpp \
-	cpp-common/bt2c/logging.hpp \
-	cpp-common/bt2c/prio-heap.hpp \
-	cpp-common/bt2c/read-fixed-len-int.hpp \
-	cpp-common/bt2c/safe-ops.hpp \
-	cpp-common/bt2c/std-int.hpp \
-	cpp-common/bt2c/type-traits.hpp \
-	cpp-common/bt2c/uuid.hpp \
-	cpp-common/bt2c/vector.hpp \
-	cpp-common/bt2s/make-unique.hpp \
-	cpp-common/bt2s/optional.hpp \
-	cpp-common/bt2s/span.hpp \
-	cpp-common/bt2s/string-view.hpp \
-	cpp-common/vendor/nlohmann/json.hpp \
-	cpp-common/vendor/optional-lite/optional.hpp \
-	cpp-common/vendor/span-lite/span.hpp \
-	cpp-common/vendor/string_view-standalone/string_view.hpp
-
 ## This target generates an include file that contains the git version
 ## string of the current branch, it must be continuously updated when
 ## we build in the git repo and shipped in dist tarballs to reflect the
@@ -110,6 +53,7 @@ noinst_LTLIBRARIES = \
 	autodisc/libautodisc.la \
 	common/libcommon.la \
 	compat/libcompat.la \
+	cpp-common/libcpp-common.la \
 	cpp-common/vendor/fmt/libfmt.la \
 	ctfser/libctfser.la \
 	fd-cache/libfd-cache.la \
@@ -166,6 +110,64 @@ compat_libcompat_la_SOURCES = \
 	compat/time.h \
 	compat/unistd.h \
 	compat/utc.h
+
+cpp_common_libcpp_common_la_SOURCES = \
+	cpp-common/bt2/borrowed-object-iterator.hpp \
+	cpp-common/bt2/borrowed-object-proxy.hpp \
+	cpp-common/bt2/borrowed-object.hpp \
+	cpp-common/bt2/clock-class.hpp \
+	cpp-common/bt2/clock-snapshot.hpp \
+	cpp-common/bt2/component-port.hpp \
+	cpp-common/bt2/exc.hpp \
+	cpp-common/bt2/field-class.hpp \
+	cpp-common/bt2/field-path.hpp \
+	cpp-common/bt2/field.hpp \
+	cpp-common/bt2/integer-range-set.hpp \
+	cpp-common/bt2/integer-range.hpp \
+	cpp-common/bt2/internal/utils.hpp \
+	cpp-common/bt2/logging.hpp \
+	cpp-common/bt2/message-array.hpp \
+	cpp-common/bt2/message-iterator.hpp \
+	cpp-common/bt2/message.hpp \
+	cpp-common/bt2/optional-borrowed-object.hpp \
+	cpp-common/bt2/plugin-dev.hpp \
+	cpp-common/bt2/plugin.hpp \
+	cpp-common/bt2/private-query-executor.hpp \
+	cpp-common/bt2/raw-value-proxy.hpp \
+	cpp-common/bt2/self-component-class.hpp \
+	cpp-common/bt2/self-component-port.hpp \
+	cpp-common/bt2/self-message-iterator-configuration.hpp \
+	cpp-common/bt2/self-message-iterator.hpp \
+	cpp-common/bt2/shared-object.hpp \
+	cpp-common/bt2/trace-ir.hpp \
+	cpp-common/bt2/type-traits.hpp \
+	cpp-common/bt2/value.hpp \
+	cpp-common/bt2/wrap.hpp \
+	cpp-common/bt2c/align.hpp \
+	cpp-common/bt2c/c-string-view.hpp \
+	cpp-common/bt2c/call.hpp \
+	cpp-common/bt2c/dummy.cpp \
+	cpp-common/bt2c/endian.hpp \
+	cpp-common/bt2c/exc.hpp \
+	cpp-common/bt2c/glib-up.hpp \
+	cpp-common/bt2c/lib-str.hpp \
+	cpp-common/bt2c/libc-up.hpp \
+	cpp-common/bt2c/logging.hpp \
+	cpp-common/bt2c/prio-heap.hpp \
+	cpp-common/bt2c/read-fixed-len-int.hpp \
+	cpp-common/bt2c/safe-ops.hpp \
+	cpp-common/bt2c/std-int.hpp \
+	cpp-common/bt2c/type-traits.hpp \
+	cpp-common/bt2c/uuid.hpp \
+	cpp-common/bt2c/vector.hpp \
+	cpp-common/bt2s/make-unique.hpp \
+	cpp-common/bt2s/optional.hpp \
+	cpp-common/bt2s/span.hpp \
+	cpp-common/bt2s/string-view.hpp \
+	cpp-common/vendor/nlohmann/json.hpp \
+	cpp-common/vendor/optional-lite/optional.hpp \
+	cpp-common/vendor/span-lite/span.hpp \
+	cpp-common/vendor/string_view-standalone/string_view.hpp
 
 cpp_common_vendor_fmt_libfmt_la_SOURCES = \
 	cpp-common/vendor/fmt/args.h \
