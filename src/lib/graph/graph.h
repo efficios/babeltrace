@@ -34,14 +34,6 @@
 # error Please include "lib/logging.h" before including this file.
 #endif
 
-/*
- * Protection: this file uses precondition and postcondition assertion
- * macros directly.
- */
-#ifndef BT_ASSERT_COND_SUPPORTED
-# error Please include "lib/assert-cond.h" before including this file.
-#endif
-
 struct bt_component;
 struct bt_port;
 
