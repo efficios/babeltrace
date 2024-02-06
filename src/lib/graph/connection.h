@@ -14,7 +14,7 @@
 #include "common/macros.h"
 #include <stdbool.h>
 
-#include "message/iterator.h"
+#include "iterator.h"
 
 struct bt_graph;
 

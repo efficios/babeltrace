@@ -19,7 +19,7 @@
 #include "component.h"
 #include "connection.h"
 #include "graph.h"
-#include "message/iterator.h"
+#include "iterator.h"
 #include "port.h"
 
 static

@@ -27,7 +27,7 @@
 #include "component-sink.h"
 #include "connection.h"
 #include "graph.h"
-#include "message/iterator.h"
+#include "iterator.h"
 #include "port.h"
 #include "lib/func-status.h"
 

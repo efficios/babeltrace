@@ -378,7 +378,6 @@ lib_libbabeltrace2_la_SOURCES = \
 	lib/graph/message/event.h \
 	lib/graph/message-iterator-class.c \
 	lib/graph/message-iterator-class.h \
-	lib/graph/message/iterator.h \
 	lib/graph/message/message.c \
 	lib/graph/message/message.h \
 	lib/graph/message/message-iterator-inactivity.c \
@@ -408,6 +407,7 @@ lib_libbabeltrace2_la_SOURCES = \
 	lib/graph/interrupter.c \
 	lib/graph/interrupter.h \
 	lib/graph/iterator.c \
+	lib/graph/iterator.h \
 	lib/graph/mip.c \
 	lib/graph/port.c \
 	lib/graph/port.h \

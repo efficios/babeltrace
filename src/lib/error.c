@@ -12,9 +12,9 @@
 #include <babeltrace2/babeltrace.h>
 
 #include "error.h"
-#include "graph/message/iterator.h"
 #include "graph/component.h"
 #include "graph/component-class.h"
+#include "graph/iterator.h"
 #include "common/assert.h"
 #include "lib/assert-cond.h"
 #include "lib/func-status.h"
