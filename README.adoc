@@ -1,17 +1,22 @@
 // Render with Asciidoctor
 
-= Babeltrace
-13 April 2020
+= Babeltrace 2
+5 February 2024
 :btversion: 2.0
 :bt2: Babeltrace{nbsp}2
-
+ifdef::env-github[]
+:toc: macro
+endif::[]
+ifndef::env-github[]
+:toc: left
+endif::[]
 
 Babeltrace /ˈbæbəltreɪs/, an
 https://efficios.com/[EfficiOS] project, is an open-source
 https://en.wikipedia.org/wiki/Tracing_(software)[trace]
 manipulation framework.
 
-https://ci.lttng.org/job/babeltrace_master_build[image:https://img.shields.io/jenkins/s/https/ci.lttng.org/babeltrace_master_build.svg[]]
+https://ci.lttng.org/job/babeltrace_master_linuxbuild[image:https://img.shields.io/jenkins/s/https/ci.lttng.org/babeltrace_master_linuxbuild.svg[]]
 https://scan.coverity.com/projects/babeltrace[image:https://img.shields.io/coverity/scan/babeltrace.svg[]]
 
 The **_{bt2}_** project offers a library with a
@@ -22,34 +27,45 @@ https://babeltrace.org/docs/v{btversion}/man1/babeltrace2.1/[command-line tool]
 (CLI) which makes it very easy for mere mortals to view, convert,
 transform, and analyze traces.
 
-{bt2} is also the reference parser implementation of the
-https://diamon.org/ctf/[Common Trace Format] (CTF), a versatile
-trace format produced by various tracers and tools such as
-https://lttng.org/[LTTng] and
-https://barectf.org/[barectf]. The {bt2} library and its Python bindings
-can read and write CTF traces.
+image::doc/api/libbabeltrace2/images/basic-convert-graph.png[A basic {bt2} conversion graph]
 
-See Babeltrace's https://babeltrace.org[official website], in
+{bt2} is also the reference parser implementation of the
+https://diamon.org/ctf/[Common Trace Format] (CTF), a flexible
+trace format which various tracers and tools such as
+https://lttng.org/[LTTng] and
+https://barectf.org/[barectf] produce natively.
+The {bt2} library and its Python bindings can read and write CTF traces.
+
+See the {bt2} https://babeltrace.org[official website], in
 particular the
 https://babeltrace.org/docs/v{btversion}/man7/babeltrace2-intro.7[`**babeltrace2-intro**(7)`]
 manual page, to learn more about the project.
 
 [NOTE]
+ifdef::env-github[]
+.**Babeltrace{nbsp}1 vs. {bt2}**
+endif::[]
+ifndef::env-github[]
 .Babeltrace{nbsp}1 vs. {bt2}
+endif::[]
 ====
-The Babeltrace project exists since 2010. In 2020, {bt2} was
-released. {bt2} is a complete rewrite of the library, Python
-bindings, and CLI. It is plugin-based and offers much more features and
-potential than Babeltrace{nbsp}1 while showing comparable performance.
+The Babeltrace project exists since 2010.
 
-Because {bt2} is still a young major release, some
-distributions still provide packages for the Babeltrace{nbsp}1 project.
-Both projects can coexist on the same system as there are no common
-files.
+In 2020, {bt2} was released. {bt2} is a complete rewrite of the library,
+Python bindings, and CLI. It's plugin-based and offers much more
+features and potential than Babeltrace{nbsp}1 while delivering
+comparable performance.
 
-This file documents the **{bt2}** project.
+Some Linux distributions still provide packages for the
+Babeltrace{nbsp}1 project. Both projects can coexist on the same system
+as there are no conflicting files.
+
+This README documents the **{bt2}** project.
 ====
 
+ifdef::env-github[]
+toc::[]
+endif::[]
 
 == Build Babeltrace{nbsp}{btversion} from source
 
@@ -106,6 +122,24 @@ _**If you need the `bt2` Python bindings documentation**_::
       Python{nbsp}3
       (Debian/Ubuntu/Fedora: `python3-sphinx`)
 
+[NOTE]
+ifdef::env-github[]
+.**Thanks for the code!**
+endif::[]
+ifndef::env-github[]
+.Thanks for the code!
+endif::[]
+====
+We'd like to thank the authors of the following projects which are
+embedded into the {bt2} source tree:
+
+* https://github.com/fmtlib/fmt[\{fmt}]
+* https://github.com/nlohmann/json[JSON for Modern {cpp}]
+* https://github.com/martinmoene/optional-lite[optional lite]
+* https://github.com/martinmoene/span-lite[span lite]
+* https://github.com/bitwizeshift/string_view-standalone[`string_view` Standalone]
+* https://github.com/wonder-mice/zf_log[zf_log]
+====
 
 === Procedure
 
@@ -133,6 +167,14 @@ The following options can modify the build:
 `--enable-api-doc`::
     Build the {bt2}{nbsp}C{nbsp}API HTML documentation.
 
+`--enable-built-in-plugins`::
+    Statically link the official plugins into the
+    `babeltrace2` executable.
+
+`--enable-built-in-python-plugin-support`::
+    Statically link the Python plugin provider into the
+    `babeltrace2` executable.
+
 `--enable-debug-info`::
     Build the https://lttng.org/[LTTng] debug information filter
     component class
@@ -158,18 +200,18 @@ The following environment variables can modify the build:
 `BABELTRACE_DEBUG_MODE`::
     Set to `1` to enable the debug mode.
 +
-The debug mode enables more run-time assertions to detect bugs in the
-{bt2} project.
+The debug mode enables more run-time assertions to detect bugs while
+developing the {bt2} project.
 
 `BABELTRACE_DEV_MODE`::
     Set to `1` to enable the <<dev-mode,developer mode>>.
 +
 The {bt2} developer mode enables more precondition and postcondition
-assertions to detect programming errors.
+assertions to detect C{nbsp}API usage errors.
 
 `BABELTRACE_MINIMAL_LOG_LEVEL`::
-    Set the build-time, minimal logging level for all the project's
-    modules.
+    Set the build-time, minimal logging level for all the modules
+    of the project.
 +
 Set to `TRACE`, `DEBUG`, or `INFO`.
 
@@ -177,9 +219,9 @@ Set to `TRACE`, `DEBUG`, or `INFO`.
     Installation directory of {bt2} plugin providers.
 
 `BABELTRACE_PLUGINS_DIR`::
-    Installation directory of {bt2} project plugins.
+    Installation directory of {bt2} official plugins.
 
-See `./configure --help` to list all the available options and
+Run `./configure --help` to list all the available options and
 environment variables.
 --
 
@@ -192,28 +234,32 @@ $ make
 
 To install {bt2}:
 
-* Do:
+* Run:
 +
 [role="term"]
 ----
 # make install
 ----
 
-
 [[dev-mode]]
 === Build {bt2} for plugin or application development
 
-If you are developing a {bt2} plugin or an application which uses
-libbabeltrace2, we recommend that:
+If you're developing a {bt2} plugin or an application which uses
+libbabeltrace2, we recommend to:
 
-* You build {bt2} from source in _developer mode_.
+* Build {bt2} from source in _developer mode_.
 +
 The {bt2} developer mode enables more precondition and postcondition
-assertions to detect programming errors.
+assertions to detect C{nbsp}API usage errors.
++
+The
+https://babeltrace.org/docs/v{btversion}/libbabeltrace2[{bt2}{nbsp}C{nbsp}API documentation]
+always lists the precondition and postconditions of
+functions.
 +
 Set `BABELTRACE_DEV_MODE=1` when you <<conf,configure>> the {bt2} build.
 
-* You use _TRACE_ as the minimal logging level at build time to have
+* Use _TRACE_ as the minimal logging level at build time to have
   access to more logging, should you need it to debug your plugin or
   application.
 +
@@ -236,46 +282,48 @@ $ BABELTRACE_DEV_MODE=1 BABELTRACE_MINIMAL_LOG_LEVEL=TRACE ./configure \
 ----
 
 See the
-https://babeltrace.org/docs/v{btversion}/libbabeltrace2[{bt2}{nbsp}C{nbsp}API]
-documentation for more information.
-
+https://babeltrace.org/docs/v{btversion}/libbabeltrace2[{bt2}{nbsp}C{nbsp}API
+documentation] for more information.
 
 == Use Babeltrace{nbsp}{btversion}
 
-See the https://babeltrace.org[Babeltrace website] to learn how
-to use the different parts of the project.
+See the https://babeltrace.org[{bt2} website] to learn how to use the
+different parts of the project.
 
+If you're new to {bt2}, make sure to read the
+https://babeltrace.org/docs/v{btversion}/man7/babeltrace2-intro.7[`**babeltrace2-intro**(7)`]
+manual page to familiarize yourself with the project.
 
 === Run-time requirements
 
-Libraries::
-    * A C library (for example,
-      https://www.gnu.org/software/libc/[GNU{nbsp}C Library],
-      https://www.musl-libc.org/[musl libc])
-    * https://developer.gnome.org/glib/[GLib]{nbsp}≥{nbsp}2.28
-      (Debian/Ubuntu: `libglib2.0-0`; Fedora: `glib2`)
+Libraries:: {empty}
++
+* A C library (for example,
+  https://www.gnu.org/software/libc/[GNU{nbsp}C Library] or
+  https://www.musl-libc.org/[musl libc])
 
-_**If you need the `bt2` Python bindings**_::
-    * https://www.python.org[Python]{nbsp}≥{nbsp}3.4
-      (Debian/Ubuntu/Fedora: `python3`)
+* https://developer.gnome.org/glib/[GLib]{nbsp}≥{nbsp}2.28
+  (Debian/Ubuntu: `libglib2.0-0`; Fedora: `glib2`)
 
-_**If you need the https://lttng.org/[LTTng] debug information filter component class (https://babeltrace.org/docs/v{btversion}/man7/babeltrace2-filter.lttng-utils.debug-info.7/[`filter.lttng-utils.debug-info`])**_::
-    * https://sourceware.org/elfutils/[elfutils]{nbsp}≥{nbsp}0.154
-      (Debian/Ubuntu: `libelf` and `libdw`; Fedora: `elfutils-libs` and
-      `elfutils-libelf`)
+_**If you need the `bt2` Python bindings**_:: {empty}
++
+* https://www.python.org[Python]{nbsp}≥{nbsp}3.4
+  (Debian/Ubuntu/Fedora: `python3`)
 
+_**If you need the https://lttng.org/[LTTng] debug information filter component class (https://babeltrace.org/docs/v{btversion}/man7/babeltrace2-filter.lttng-utils.debug-info.7/[`filter.lttng-utils.debug-info`])**_:: {empty}
++
+* https://sourceware.org/elfutils/[elfutils]{nbsp}≥{nbsp}0.154
+  (Debian/Ubuntu: `libelf` and `libdw`; Fedora: `elfutils-libs` and
+  `elfutils-libelf`)
 
 == Community
 
-[NOTE]
-====
 Babeltrace was born to parse CTF traces produced by LTTng{nbsp}2.0 and
-pretty-print their events.
+to pretty-print their events.
 
-Even though Babeltrace is independent from the LTTng project today,
-their communities remain very close, which is why they share some
-communication channels and services.
-====
+Even though {bt2} is independent from the LTTng project today, their
+communities remain very close, which is why they share some
+communication channels and services:
 
 Mailing list::
     https://lists.lttng.org/cgi-bin/mailman/listinfo/lttng-dev[lttng-dev]
@@ -285,15 +333,15 @@ IRC channel::
     irc://irc.oftc.net/lttng[`#lttng`] on the OFTC network
 
 Bug tracker::
-    https://bugs.lttng.org/projects/babeltrace[Babeltrace bug tracker]
+    https://bugs.lttng.org/projects/babeltrace[{bt2} bug tracker]
 
 GitHub project::
     https://github.com/efficios/babeltrace/[efficios/babeltrace]
 
 Continuous integration::
-    https://ci.lttng.org/job/babeltrace_master_build/[Babeltrace's master build]
-    on LTTng's CI
+    https://ci.lttng.org/view/Babeltrace/[{bt2} jobs]
+    on the LTTng CI
 
 Code review::
-    https://review.lttng.org/q/project:babeltrace[_babeltrace_ project]
-    on LTTng Review
+    https://review.lttng.org/q/project:babeltrace[{bt2} project]
+    on LTTng Review (Gerrit)
