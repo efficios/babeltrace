@@ -11,7 +11,6 @@
 #include <babeltrace2/graph/connection.h>
 #include "lib/object.h"
 #include "common/assert.h"
-#include "common/macros.h"
 #include <stdbool.h>
 
 #include "iterator.h"

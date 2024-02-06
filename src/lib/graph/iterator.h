@@ -13,7 +13,6 @@
 #include <babeltrace2/graph/connection.h>
 #include <babeltrace2/graph/message.h>
 #include <babeltrace2/types.h>
-#include "common/assert.h"
 #include <stdbool.h>
 #include "common/uuid.h"
 

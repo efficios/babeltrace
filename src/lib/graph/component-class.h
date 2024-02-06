@@ -10,7 +10,6 @@
 
 #include <babeltrace2/graph/component-class.h>
 #include <babeltrace2/graph/component.h>
-#include "common/macros.h"
 #include "lib/object.h"
 #include "common/list.h"
 #include <babeltrace2/types.h>

@@ -8,7 +8,6 @@
 #ifndef BABELTRACE_PLUGIN_PLUGIN_INTERNAL_H
 #define BABELTRACE_PLUGIN_PLUGIN_INTERNAL_H
 
-#include "common/macros.h"
 #include "common/common.h"
 #include "lib/graph/component-class.h"
 #include <babeltrace2/plugin/plugin-loading.h>

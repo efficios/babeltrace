@@ -13,7 +13,6 @@
 # error Please include "lib/logging.h" before including this file.
 #endif
 
-#include "common/macros.h"
 #include "lib/object.h"
 #include "common/assert.h"
 #include <babeltrace2/graph/graph.h>

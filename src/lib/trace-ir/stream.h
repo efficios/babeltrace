@@ -11,11 +11,8 @@
 #include <babeltrace2/trace-ir/stream.h>
 #include "lib/object.h"
 #include "lib/object-pool.h"
-#include "common/macros.h"
 #include <glib.h>
 #include <stdbool.h>
-
-#include "utils.h"
 
 struct bt_stream_class;
 struct bt_stream;

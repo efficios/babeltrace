@@ -21,7 +21,6 @@
 #include <babeltrace2/babeltrace.h>
 
 #include "logging.h"
-#include "assert-cond.h"
 #include "value.h"
 #include "integer-range-set.h"
 #include "object-pool.h"

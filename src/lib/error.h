@@ -10,8 +10,6 @@
 #include <stdarg.h>
 #include <glib.h>
 #include <babeltrace2/babeltrace.h>
-#include "lib/object.h"
-#include "common/macros.h"
 
 struct bt_error_cause {
 	enum bt_error_cause_actor_type actor_type;

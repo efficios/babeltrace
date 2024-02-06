@@ -8,9 +8,5 @@
 #define BT_LOG_TAG "LIB/TRACE-IR-UTILS"
 #include "lib/logging.h"
 
-#include <stdlib.h>
 #include <glib.h>
 #include <babeltrace2/trace-ir/clock-class.h>
-#include "common/assert.h"
-
-#include "field-class.h"

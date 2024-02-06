@@ -11,6 +11,7 @@
 #include <stdarg.h>
 #include <glib.h>
 #include "common/assert.h"
+#include "common/common.h"
 #include "assert-cond-base.h"
 
 static

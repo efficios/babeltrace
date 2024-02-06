@@ -15,19 +15,15 @@
 
 #include <babeltrace2/graph/graph.h>
 #include <babeltrace2/graph/message.h>
-#include "common/macros.h"
 #include "lib/object.h"
 #include "lib/object-pool.h"
 #include "common/assert.h"
-#include "common/common.h"
 #include <stdbool.h>
-#include <stdlib.h>
 #include <glib.h>
 
 #include "component.h"
 #include "component-sink.h"
 #include "connection.h"
-#include "lib/func-status.h"
 
 /* Protection: this file uses BT_LIB_LOG*() macros directly */
 #ifndef BT_LIB_LOG_SUPPORTED

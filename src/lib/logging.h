@@ -7,7 +7,6 @@
 #ifndef BABELTRACE_LIB_LOGGING_INTERNAL_H
 #define BABELTRACE_LIB_LOGGING_INTERNAL_H
 
-#include "common/macros.h"
 #include <stdarg.h>
 
 #ifndef BT_LOG_TAG

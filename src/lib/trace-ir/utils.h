@@ -7,7 +7,6 @@
 #ifndef BABELTRACE_TRACE_IR_UTILS_INTERNAL_H
 #define BABELTRACE_TRACE_IR_UTILS_INTERNAL_H
 
-#include "common/macros.h"
 #include <babeltrace2/trace-ir/field-class.h>
 #include <stdbool.h>
 #include <stdint.h>

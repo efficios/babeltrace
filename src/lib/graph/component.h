@@ -8,7 +8,6 @@
 #ifndef BABELTRACE_GRAPH_COMPONENT_INTERNAL_H
 #define BABELTRACE_GRAPH_COMPONENT_INTERNAL_H
 
-#include "common/macros.h"
 #include <babeltrace2/graph/component.h>
 #include <babeltrace2/graph/component-class.h>
 #include "lib/object.h"
@@ -17,7 +16,6 @@
 #include "common/assert.h"
 #include <glib.h>
 #include <stdbool.h>
-#include <stdio.h>
 
 #include "component-class.h"
 #include "port.h"

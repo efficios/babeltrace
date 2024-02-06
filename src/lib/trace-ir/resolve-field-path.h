@@ -10,8 +10,6 @@
 #ifndef BABELTRACE_TRACE_IR_RESOLVE_FIELD_PATH_INTERNAL
 #define BABELTRACE_TRACE_IR_RESOLVE_FIELD_PATH_INTERNAL
 
-#include "common/macros.h"
-#include "lib/object.h"
 #include <babeltrace2/trace-ir/field-class.h>
 #include <babeltrace2/trace-ir/field-path.h>
 #include <glib.h>

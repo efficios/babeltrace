@@ -7,7 +7,6 @@
 #ifndef BABELTRACE_TRACE_IR_CLOCK_SNAPSHOT_INTERNAL_H
 #define BABELTRACE_TRACE_IR_CLOCK_SNAPSHOT_INTERNAL_H
 
-#include "common/macros.h"
 #include "lib/object.h"
 #include <stdbool.h>
 #include <stdint.h>

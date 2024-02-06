@@ -10,17 +10,8 @@
 
 #include <babeltrace2/graph/graph.h>
 #include <babeltrace2/graph/component-descriptor-set.h>
-#include "common/macros.h"
 #include "lib/object.h"
-#include "common/assert.h"
-#include "common/common.h"
-#include <stdlib.h>
 #include <glib.h>
-
-#include "component.h"
-#include "component-sink.h"
-#include "connection.h"
-#include "lib/func-status.h"
 
 /*
  * This structure describes an eventual component instance.

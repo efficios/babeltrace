@@ -8,9 +8,6 @@
 #ifndef BABELTRACE_GRAPH_COMPONENT_SOURCE_INTERNAL_H
 #define BABELTRACE_GRAPH_COMPONENT_SOURCE_INTERNAL_H
 
-#include "common/macros.h"
-
-#include "component-class.h"
 #include "component.h"
 
 struct bt_component_source {

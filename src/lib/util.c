@@ -9,8 +9,6 @@
 
 #include "lib/assert-cond.h"
 #include <stdbool.h>
-#include <stdlib.h>
-#include <string.h>
 #include <inttypes.h>
 #include <babeltrace2/babeltrace.h>
 #include "lib/trace-ir/utils.h"

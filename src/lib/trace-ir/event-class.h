@@ -8,10 +8,8 @@
 #ifndef BABELTRACE_TRACE_IR_EVENT_CLASS_INTERNAL_H
 #define BABELTRACE_TRACE_IR_EVENT_CLASS_INTERNAL_H
 
-#include "lib/assert-cond.h"
 #include <babeltrace2/trace-ir/field-class.h>
 #include <babeltrace2/trace-ir/field.h>
-#include "common/macros.h"
 #include <babeltrace2/value.h>
 #include <babeltrace2/trace-ir/stream-class.h>
 #include <babeltrace2/trace-ir/stream.h>
@@ -22,8 +20,6 @@
 #include "lib/property.h"
 #include <glib.h>
 #include <stdbool.h>
-
-#include "trace.h"
 
 struct bt_event_class {
 	struct bt_object base;

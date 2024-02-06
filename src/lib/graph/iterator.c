@@ -18,6 +18,7 @@
 #include <babeltrace2/trace-ir/packet.h>
 #include "lib/trace-ir/packet.h"
 #include "lib/trace-ir/stream.h"
+#include "lib/trace-ir/stream-class.h"
 #include <babeltrace2/trace-ir/clock-class.h>
 #include <babeltrace2/trace-ir/stream-class.h>
 #include <babeltrace2/trace-ir/stream.h>

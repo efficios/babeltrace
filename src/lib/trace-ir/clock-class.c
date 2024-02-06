@@ -16,7 +16,6 @@
 #include "utils.h"
 #include "compat/compiler.h"
 #include <babeltrace2/types.h>
-#include "compat/string.h"
 #include <inttypes.h>
 #include <stdbool.h>
 #include "lib/object.h"

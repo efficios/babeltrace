@@ -25,6 +25,7 @@
 #include "stream-class.h"
 #include "lib/value.h"
 #include "lib/func-status.h"
+#include "trace-class.h"
 
 #define BT_ASSERT_PRE_DEV_STREAM_CLASS_HOT(_sc)				\
 	BT_ASSERT_PRE_DEV_HOT("stream-class", (_sc), "Stream class",	\

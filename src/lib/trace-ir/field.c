@@ -20,6 +20,7 @@
 #include "field.h"
 #include "field-class.h"
 #include "lib/func-status.h"
+#include "utils.h"
 
 #define BT_ASSERT_PRE_DEV_FIELD_HOT(_field)				\
 	BT_ASSERT_PRE_DEV_HOT("field",					\

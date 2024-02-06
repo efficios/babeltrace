@@ -14,7 +14,6 @@
 #include "lib/value.h"
 #include "attributes.h"
 #include <inttypes.h>
-#include "compat/string.h"
 #include "common/assert.h"
 
 #define BT_ATTR_NAME_INDEX		0

@@ -11,7 +11,6 @@
 #include <babeltrace2/babeltrace.h>
 
 #include "lib/object.h"
-#include "common/macros.h"
 
 struct bt_value {
 	struct bt_object base;

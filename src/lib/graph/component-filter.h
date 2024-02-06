@@ -8,10 +8,8 @@
 #ifndef BABELTRACE_GRAPH_COMPONENT_FILTER_INTERNAL_H
 #define BABELTRACE_GRAPH_COMPONENT_FILTER_INTERNAL_H
 
-#include "common/macros.h"
 #include <babeltrace2/graph/component.h>
 
-#include "component-class.h"
 #include "component.h"
 
 struct bt_component_filter {

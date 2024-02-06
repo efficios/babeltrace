@@ -13,7 +13,6 @@ extern "C" {
 #endif
 
 #include <stdint.h>
-#include "common/macros.h"
 #include <babeltrace2/value.h>
 
 struct bt_value *bt_attributes_create(void);

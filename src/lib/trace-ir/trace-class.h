@@ -8,22 +8,15 @@
 #ifndef BABELTRACE_TRACE_IR_TRACE_CLASS_INTERNAL_H
 #define BABELTRACE_TRACE_IR_TRACE_CLASS_INTERNAL_H
 
-#include "lib/assert-cond.h"
 #include <babeltrace2/trace-ir/trace-class.h>
 #include <babeltrace2/trace-ir/field-class.h>
 #include <babeltrace2/trace-ir/field.h>
 #include "lib/object.h"
-#include "lib/object-pool.h"
-#include "common/macros.h"
 #include <babeltrace2/value.h>
 #include <babeltrace2/types.h>
 #include <glib.h>
 #include <sys/types.h>
 #include <stdbool.h>
-
-#include "stream-class.h"
-#include "attributes.h"
-#include "clock-class.h"
 
 struct bt_trace_class {
 	struct bt_object base;

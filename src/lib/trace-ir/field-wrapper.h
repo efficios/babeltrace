@@ -7,7 +7,6 @@
 #ifndef BABELTRACE_TRACE_IR_FIELD_WRAPPER_INTERNAL_H
 #define BABELTRACE_TRACE_IR_FIELD_WRAPPER_INTERNAL_H
 
-#include "common/macros.h"
 #include "lib/object-pool.h"
 #include "lib/object.h"
 

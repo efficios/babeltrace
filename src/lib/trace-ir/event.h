@@ -14,7 +14,6 @@
 #endif
 
 #include "lib/assert-cond.h"
-#include "common/macros.h"
 #include <babeltrace2/value.h>
 #include <babeltrace2/trace-ir/stream-class.h>
 #include <babeltrace2/trace-ir/stream.h>
@@ -27,7 +26,6 @@
 
 #include "event-class.h"
 #include "field.h"
-#include "field-wrapper.h"
 #include "packet.h"
 #include "stream.h"
 

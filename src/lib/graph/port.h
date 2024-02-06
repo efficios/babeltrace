@@ -9,7 +9,6 @@
 #define BABELTRACE_GRAPH_PORT_INTERNAL_H
 
 #include <babeltrace2/graph/port.h>
-#include "common/macros.h"
 
 struct bt_port {
 	struct bt_object base;

@@ -10,7 +10,6 @@
 
 #include <babeltrace2/graph/message-iterator-class.h>
 #include <babeltrace2/types.h>
-#include "common/macros.h"
 #include "lib/object.h"
 #include <stdbool.h>
 #include <glib.h>

@@ -16,6 +16,7 @@
 #include "graph/component-class.h"
 #include "graph/iterator.h"
 #include "common/assert.h"
+#include "common/common.h"
 #include "lib/assert-cond.h"
 #include "lib/func-status.h"
 

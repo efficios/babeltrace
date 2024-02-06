@@ -8,13 +8,10 @@
 #ifndef BABELTRACE_TRACE_IR_TRACE_INTERNAL_H
 #define BABELTRACE_TRACE_IR_TRACE_INTERNAL_H
 
-#include "lib/assert-cond.h"
 #include <babeltrace2/trace-ir/trace.h>
 #include <babeltrace2/trace-ir/field-class.h>
 #include <babeltrace2/trace-ir/field.h>
 #include "lib/object.h"
-#include "lib/object-pool.h"
-#include "common/macros.h"
 #include <babeltrace2/value.h>
 #include <babeltrace2/types.h>
 #include <glib.h>
@@ -22,8 +19,6 @@
 #include <sys/types.h>
 #include "common/uuid.h"
 
-#include "attributes.h"
-#include "clock-class.h"
 #include "stream-class.h"
 #include "trace-class.h"
 

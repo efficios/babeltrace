@@ -11,7 +11,6 @@
 #include <babeltrace2/babeltrace.h>
 #include <glib.h>
 #include <stdint.h>
-#include <string.h>
 
 struct bt_property {
 	enum bt_property_availability avail;

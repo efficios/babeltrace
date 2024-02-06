@@ -10,12 +10,10 @@
 
 #include <babeltrace2/trace-ir/clock-class.h>
 #include "lib/object.h"
-#include "common/macros.h"
 #include "common/common.h"
 #include "lib/object-pool.h"
 #include "common/uuid.h"
 #include <babeltrace2/types.h>
-#include "lib/property.h"
 #include "common/assert.h"
 #include <stdbool.h>
 #include <stdint.h>

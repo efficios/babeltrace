@@ -8,7 +8,6 @@
 #ifndef BABELTRACE_OBJECT_INTERNAL_H
 #define BABELTRACE_OBJECT_INTERNAL_H
 
-#include "common/macros.h"
 #include "common/assert.h"
 #include <stdbool.h>
 

@@ -17,7 +17,6 @@
 #include <babeltrace2/types.h>
 #include "compat/endian.h"
 #include "common/assert.h"
-#include "compat/glib.h"
 #include <inttypes.h>
 #include <stdint.h>
 #include <string.h>

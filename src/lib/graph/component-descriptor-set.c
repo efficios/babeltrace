@@ -10,6 +10,7 @@
 
 #include "common/assert.h"
 #include "lib/assert-cond.h"
+#include "lib/func-status.h"
 #include "compat/compiler.h"
 #include "common/common.h"
 #include <babeltrace2/types.h>

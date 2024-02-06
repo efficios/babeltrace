@@ -10,11 +10,9 @@
 
 #include <stdbool.h>
 
-#include "common/macros.h"
 #include "compat/compiler.h"
 #include <babeltrace2/graph/component.h>
 
-#include "component-class.h"
 #include "component.h"
 
 struct bt_component_sink {

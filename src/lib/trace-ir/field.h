@@ -8,19 +8,13 @@
 #ifndef BABELTRACE_TRACE_IR_FIELDS_INTERNAL_H
 #define BABELTRACE_TRACE_IR_FIELDS_INTERNAL_H
 
-#include "lib/assert-cond.h"
-#include "common/common.h"
 #include "lib/object.h"
-#include "common/macros.h"
 #include <babeltrace2/types.h>
 #include <stdint.h>
-#include <string.h>
-#include <inttypes.h>
 #include <stdbool.h>
 #include <glib.h>
 
 #include "field-class.h"
-#include "utils.h"
 
 struct bt_field;
 

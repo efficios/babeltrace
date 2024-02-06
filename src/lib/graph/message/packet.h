@@ -11,8 +11,6 @@
 #include "compat/compiler.h"
 #include <babeltrace2/trace-ir/packet.h>
 #include "lib/trace-ir/clock-snapshot.h"
-#include "common/assert.h"
-#include "common/macros.h"
 
 #include "message.h"
 

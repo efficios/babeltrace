@@ -9,17 +9,13 @@
 #define BABELTRACE_TRACE_IR_STREAM_CLASS_INTERNAL_H
 
 #include "common/assert.h"
-#include "common/common.h"
 #include <babeltrace2/trace-ir/stream-class.h>
 #include "lib/object.h"
 #include "lib/object-pool.h"
-#include "common/macros.h"
 #include <glib.h>
-#include <inttypes.h>
 #include <stdbool.h>
 
 #include "field-class.h"
-#include "utils.h"
 
 struct bt_stream_class {
 	struct bt_object base;

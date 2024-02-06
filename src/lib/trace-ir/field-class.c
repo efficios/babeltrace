@@ -16,6 +16,7 @@
 #include "compat/compiler.h"
 #include "compat/endian.h"
 #include "common/assert.h"
+#include "common/common.h"
 #include "compat/glib.h"
 #include <inttypes.h>
 #include <stdbool.h>

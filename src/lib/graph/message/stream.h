@@ -13,7 +13,6 @@
 #include "compat/compiler.h"
 #include "lib/trace-ir/stream.h"
 #include "lib/trace-ir/clock-snapshot.h"
-#include "common/assert.h"
 
 #include "message.h"
 

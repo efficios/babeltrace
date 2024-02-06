@@ -10,6 +10,8 @@
 
 #include "assert-cond-base.h"
 
+#include <inttypes.h>
+
 /*
  * Asserts that a given variable `_obj` named `_obj_name` (capitalized)
  * and having the ID `_obj_id` (within the function's context) is not

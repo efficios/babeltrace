@@ -7,7 +7,6 @@
 #ifndef BABELTRACE_GRAPH_COMPONENT_CLASS_SINK_SIMPLE_H
 #define BABELTRACE_GRAPH_COMPONENT_CLASS_SINK_SIMPLE_H
 
-#include <stdint.h>
 #include <babeltrace2/types.h>
 #include <babeltrace2/graph/message.h>
 
