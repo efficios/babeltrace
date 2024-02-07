@@ -2276,7 +2276,6 @@ const struct argpar_opt_descr convert_options[] = {
 	{ OPT_OUTPUT, 'w', "output", true },
 	{ OPT_OUTPUT_FORMAT, 'o', "output-format", true },
 	{ OPT_PARAMS, 'p', "params", true },
-	{ OPT_PLUGIN_PATH, '\0', "plugin-path", true },
 	{ OPT_RETRY_DURATION, '\0', "retry-duration", true },
 	{ OPT_RUN_ARGS, '\0', "run-args", false },
 	{ OPT_RUN_ARGS_0, '\0', "run-args-0", false },
