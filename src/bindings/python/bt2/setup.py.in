@@ -87,24 +87,24 @@ def get_ldshared():
 
 
 def our_get_config_vars(*args):
-    overridden_config_vars = {
-        "CFLAGS": get_cflags(),
-        "LDSHARED": get_ldshared(),
+    overridden_config_vars_funcs = {
+        "CFLAGS": get_cflags,
+        "LDSHARED": get_ldshared,
     }
 
     if len(args) == 0:
         # Return a dict with all config vars.
         all_config_vars = original_get_config_vars()
-        for name in overridden_config_vars:
-            all_config_vars[name] = overridden_config_vars[name]
+        for name in overridden_config_vars_funcs:
+            all_config_vars[name] = overridden_config_vars_funcs[name]()
 
         return all_config_vars
     else:
         # Return a list with the requested config vars.
         subset_config_vars = []
         for name in args:
-            if name in overridden_config_vars:
-                subset_config_vars.append(overridden_config_vars[name])
+            if name in overridden_config_vars_funcs:
+                subset_config_vars.append(overridden_config_vars_funcs[name]())
             else:
                 subset_config_vars.append(original_get_config_vars(name)[0])
 
