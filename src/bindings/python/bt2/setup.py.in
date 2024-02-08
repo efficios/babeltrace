@@ -93,21 +93,22 @@ def our_get_config_vars(*args):
     }
 
     if len(args) == 0:
+        # Return a dict with all config vars.
         all_config_vars = original_get_config_vars()
         for name in overridden_config_vars:
             all_config_vars[name] = overridden_config_vars[name]
+
         return all_config_vars
+    else:
+        # Return a list with the requested config vars.
+        subset_config_vars = []
+        for name in args:
+            if name in overridden_config_vars:
+                subset_config_vars.append(overridden_config_vars[name])
+            else:
+                subset_config_vars.append(original_get_config_vars(name)[0])
 
-    subset_config_vars = []
-    for name in args:
-        if name not in overridden_config_vars:
-            [var] = original_get_config_vars(name)
-            subset_config_vars.append(var)
-            continue
-
-        subset_config_vars.append(overridden_config_vars[name])
-
-    return subset_config_vars
+        return subset_config_vars
 
 
 sysconfig.get_config_vars = our_get_config_vars
