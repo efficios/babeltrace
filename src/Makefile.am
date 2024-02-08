@@ -150,7 +150,6 @@ cpp_common_libcpp_common_la_SOURCES = \
 	cpp-common/bt2c/endian.hpp \
 	cpp-common/bt2c/exc.hpp \
 	cpp-common/bt2c/glib-up.hpp \
-	cpp-common/bt2c/lib-str.hpp \
 	cpp-common/bt2c/libc-up.hpp \
 	cpp-common/bt2c/logging.hpp \
 	cpp-common/bt2c/prio-heap.hpp \
