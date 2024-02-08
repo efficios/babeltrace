@@ -12,6 +12,7 @@
 
 #include "common/common.h"
 #include "cpp-common/bt2c/call.hpp"
+#include "cpp-common/bt2c/fmt.hpp"
 #include "cpp-common/bt2s/make-unique.hpp"
 #include "cpp-common/vendor/fmt/format.h"
 
@@ -239,11 +240,6 @@ void MsgIter::_seekBeginning()
 
 namespace {
 
-const char *msgTypeStr(const bt2::ConstMessage msg) noexcept
-{
-    return bt_common_message_type_string(static_cast<bt_message_type>(msg.type()));
-}
-
 std::string optLogStr(const char * const str) noexcept
 {
     return str ? fmt::format("\"{}\"", str) : "(none)";
@@ -400,7 +396,7 @@ void MsgIter::_validateMsgClkCls(const bt2::ConstMessage msg)
         return;
     }
 
-    BT_CPPLOGD("Validating the clock class of a message: msg-type={}", msgTypeStr(msg));
+    BT_CPPLOGD("Validating the clock class of a message: msg-type={}", msg.type());
 
     /* Get the clock class, if any, of `msg` */
     const auto clkCls = bt2c::call([msg]() -> bt2::OptionalBorrowedObject<bt2::ConstClockClass> {
@@ -440,8 +436,8 @@ bool MsgIter::_HeapComparator::operator()(
         BT_CPPLOGT("Comparing two messages: "
                    "port-name-a={}, msg-a-type={}, msg-a-ts={}, "
                    "port-name-b={}, msg-b-type={}, msg-b-ts={}",
-                   upstreamMsgIterA->portName(), msgTypeStr(msgA), optMsgTsStr(msgTsA),
-                   upstreamMsgIterB->portName(), msgTypeStr(msgB), optMsgTsStr(msgTsB));
+                   upstreamMsgIterA->portName(), msgA.type(), optMsgTsStr(msgTsA),
+                   upstreamMsgIterB->portName(), msgB.type(), optMsgTsStr(msgTsB));
     }
 
     /*
