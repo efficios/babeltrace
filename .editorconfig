@@ -9,7 +9,7 @@ indent_size = 8
 indent_style = tab
 tab_width = 8
 
-[*.{py,hpp,cpp}]
+[*.{py,py.in,hpp,cpp}]
 indent_style = space
 indent_size = 4
 
