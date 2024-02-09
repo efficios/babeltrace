@@ -16,7 +16,7 @@ while read -r script_file; do
 	popd >/dev/null
 done <<< "$(find . -type f -name '*.sh' \
 	! -path './.git/*' \
-        ! -path ./config/ltmain.sh \
+	! -path ./config/ltmain.sh \
 	! -path ./tests/utils/tap-driver.sh \
 	! -path ./tests/utils/tap/tap.sh)"
 
