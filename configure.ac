@@ -822,10 +822,6 @@ AC_CONFIG_FILES([
   tests/bitfield/Makefile
   tests/ctf-writer/Makefile
   tests/lib/Makefile
-  tests/lib/conds/Makefile
-  tests/lib/test-plugin-init-fail-plugin/Makefile
-  tests/lib/test-plugins-plugins/Makefile
-  tests/lib/utils/Makefile
   tests/Makefile
   tests/param-validation/Makefile
   tests/plugins/Makefile
