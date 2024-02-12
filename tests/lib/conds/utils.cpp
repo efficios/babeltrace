@@ -4,45 +4,43 @@
  * Copyright (C) 2020 Philippe Proulx <pproulx@efficios.com>
  */
 
-#include <iostream>
-
-#include <glib.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <babeltrace2/babeltrace.h>
 
 #include "common/assert.h"
+#include "cpp-common/vendor/fmt/core.h"
 #include "cpp-common/vendor/nlohmann/json.hpp"
 
 #include "../utils/run-in.hpp"
 #include "utils.hpp"
 
-static void run_trigger(const struct cond_trigger *trigger)
+namespace {
+
+void runTrigger(const cond_trigger& trigger) noexcept
 {
-    switch (trigger->func_type) {
+    switch (trigger.func_type) {
     case COND_TRIGGER_FUNC_TYPE_BASIC:
-        trigger->func.basic();
+        trigger.func.basic();
         break;
     case COND_TRIGGER_FUNC_TYPE_RUN_IN_COMP_CLS_INIT:
-        runInCompClsInit(trigger->func.run_in_comp_cls_init);
+        runInCompClsInit(trigger.func.run_in_comp_cls_init);
         break;
     default:
         abort();
     }
 }
 
-static void list_triggers(const struct cond_trigger triggers[], size_t trigger_count)
+void listTriggers(const bt2s::span<const cond_trigger> triggers) noexcept
 {
-    nlohmann::json trigger_array = nlohmann::json::array();
+    auto triggerArray = nlohmann::json::array();
 
-    for (size_t i = 0; i < trigger_count; i++) {
-        nlohmann::json trigger_obj = nlohmann::json::object();
-        const cond_trigger& trigger = triggers[i];
+    for (auto& trigger : triggers) {
+        auto triggerObj = nlohmann::json::object();
 
         /* Condition ID */
-        trigger_obj["cond-id"] = trigger.cond_id;
+        triggerObj["cond-id"] = trigger.cond_id;
 
         /* Name starts with condition ID */
         std::string name = trigger.cond_id;
@@ -52,28 +50,28 @@ static void list_triggers(const struct cond_trigger triggers[], size_t trigger_c
             name += trigger.suffix;
         }
 
-        trigger_obj["name"] = std::move(name);
-        trigger_array.push_back(std::move(trigger_obj));
+        triggerObj["name"] = std::move(name);
+        triggerArray.push_back(std::move(triggerObj));
     }
 
-    auto str = trigger_array.dump();
-    std::cout << str;
-    std::flush(std::cout);
+    fmt::println("{}", triggerArray.dump());
 }
 
-void cond_main(int argc, const char *argv[], const struct cond_trigger triggers[],
-               size_t trigger_count)
+} /* namespace */
+
+void condMain(const int argc, const char ** const argv,
+              const bt2s::span<const cond_trigger> triggers) noexcept
 {
     BT_ASSERT(argc >= 2);
 
     if (strcmp(argv[1], "list") == 0) {
-        list_triggers(triggers, trigger_count);
+        listTriggers(triggers);
     } else if (strcmp(argv[1], "run") == 0) {
         int index;
 
         BT_ASSERT(argc >= 3);
         index = atoi(argv[2]);
-        BT_ASSERT(index >= 0 && index < trigger_count);
-        run_trigger(&triggers[index]);
+        BT_ASSERT(index >= 0 && index < triggers.size());
+        runTrigger(triggers[index]);
     }
 }

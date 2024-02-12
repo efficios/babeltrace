@@ -10,6 +10,7 @@
 #include <babeltrace2/babeltrace.h>
 
 #include "cpp-common/bt2/self-component-port.hpp"
+#include "cpp-common/bt2s/span.hpp"
 
 enum cond_trigger_func_type
 {
@@ -71,7 +72,6 @@ struct cond_trigger
         }                                                                                          \
     }
 
-void cond_main(int argc, const char *argv[], const struct cond_trigger triggers[],
-               size_t trigger_count);
+void condMain(int argc, const char **argv, bt2s::span<const cond_trigger> triggers) noexcept;
 
 #endif /* TESTS_LIB_CONDS_UTILS_H */

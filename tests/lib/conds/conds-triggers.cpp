@@ -50,6 +50,6 @@ const cond_trigger triggers[] = {
 
 int main(int argc, const char *argv[])
 {
-    cond_main(argc, argv, triggers, sizeof(triggers) / sizeof(*triggers));
+    condMain(argc, argv, triggers);
     return 0;
 }
