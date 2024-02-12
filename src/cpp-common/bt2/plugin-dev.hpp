@@ -235,8 +235,8 @@ struct SinkCompClsLibTypes final
 
 template <typename UserCompClsT>
 class SinkCompClsBridge final :
-    CompClsBridge<UserCompClsT, SinkCompClsLibTypes>,
-    CompClsBridgeWithInputPorts<SinkCompClsBridge<UserCompClsT>, SinkCompClsLibTypes>
+    public CompClsBridge<UserCompClsT, SinkCompClsLibTypes>,
+    public CompClsBridgeWithInputPorts<SinkCompClsBridge<UserCompClsT>, SinkCompClsLibTypes>
 {
 private:
     using CompClsBridge<UserCompClsT, SinkCompClsLibTypes>::userCompFromLibSelfCompPtr;
@@ -270,6 +270,7 @@ public:
     {
         try {
             userCompFromLibSelfCompPtr(libSelfCompPtr).graphIsConfigured();
+            return BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_OK;
         } catch (const std::bad_alloc&) {
             return BT_COMPONENT_CLASS_SINK_GRAPH_IS_CONFIGURED_METHOD_STATUS_MEMORY_ERROR;
         } catch (const Error&) {
@@ -561,7 +562,7 @@ public:
     void outputPortConnected(const SelfComponentOutputPort outputPort,
                              const ConstInputPort inputPort)
     {
-        static_cast<UserComponentT&>(*this).outputPortConnected(outputPort, inputPort);
+        static_cast<UserComponentT&>(*this)._outputPortConnected(outputPort, inputPort);
     }
 
 protected:
@@ -585,7 +586,7 @@ protected:
     }
 
     template <typename DataT>
-    _OutputPorts::Port _addOutputPort(const bt2c::CStringView name, DataT * const data)
+    _OutputPorts::Port _addOutputPort(const bt2c::CStringView name, DataT& data)
     {
         return this->_selfComp().addOutputPort(name, data);
     }
@@ -693,7 +694,7 @@ protected:
     }
 
     template <typename DataT>
-    _OutputPorts::Port _addInputPort(const bt2c::CStringView name, DataT * const data)
+    _OutputPorts::Port _addInputPort(const bt2c::CStringView name, DataT& data)
     {
         return this->_selfComp().addInputPort(name, data);
     }
@@ -709,7 +710,7 @@ protected:
     }
 
     template <typename DataT>
-    _OutputPorts::Port _addOutputPort(const bt2c::CStringView name, DataT * const data)
+    _OutputPorts::Port _addOutputPort(const bt2c::CStringView name, DataT& data)
     {
         return this->_selfComp().addOutputPort(name, data);
     }
@@ -822,7 +823,7 @@ protected:
     }
 
     template <typename DataT>
-    _InputPorts::Port _addInputPort(const bt2c::CStringView name, DataT * const data)
+    _InputPorts::Port _addInputPort(const bt2c::CStringView name, DataT& data)
     {
         return this->_selfComp().addInputPort(name, data);
     }
