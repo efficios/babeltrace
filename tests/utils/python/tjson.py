@@ -219,8 +219,10 @@ class ObjVal(Val, Mapping[str, Val]):
 def _check_type(val: Val, expected_type: Type[Val]):
     if not isinstance(val, expected_type):
         raise TypeError(
-            "`{}`: expecting {} value".format(
-                val.path, expected_type._name  # pyright: ignore [reportPrivateUsage]
+            "`{}`: expecting {} value, got {}".format(
+                val.path,
+                expected_type._name,  # pyright: ignore [reportPrivateUsage]
+                type(val)._name,  # pyright: ignore [reportPrivateUsage]
             )
         )
 
