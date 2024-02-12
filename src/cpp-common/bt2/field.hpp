@@ -1008,6 +1008,11 @@ public:
     {
         return bt_field_string_get_value(this->libObjPtr());
     }
+
+    std::uint64_t length() const noexcept
+    {
+        return bt_field_string_get_length(this->libObjPtr());
+    }
 };
 
 using StringField = CommonStringField<bt_field>;
