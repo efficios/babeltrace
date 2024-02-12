@@ -8,7 +8,6 @@
 #define BABELTRACE_CPP_COMMON_BT2_COMPONENT_PORT_HPP
 
 #include <cstdint>
-#include <string>
 
 #include <babeltrace2/babeltrace.h>
 

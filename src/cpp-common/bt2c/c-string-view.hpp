@@ -13,7 +13,7 @@
 
 #include "common/assert.h"
 #include "cpp-common/bt2s/string-view.hpp"
-#include "cpp-common/vendor/fmt/format.h"
+#include "cpp-common/vendor/fmt/format.h" /* IWYU pragma: keep */
 
 #include "type-traits.hpp"
 

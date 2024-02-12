@@ -7,10 +7,6 @@
 #ifndef BABELTRACE_CPP_COMMON_BT2_RAW_VALUE_PROXY_HPP
 #define BABELTRACE_CPP_COMMON_BT2_RAW_VALUE_PROXY_HPP
 
-#include <string>
-
-#include "cpp-common/bt2c/c-string-view.hpp"
-
 namespace bt2 {
 
 template <typename ObjT>

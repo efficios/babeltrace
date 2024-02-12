@@ -8,7 +8,6 @@
 #define BABELTRACE_CPP_COMMON_BT2_CLOCK_CLASS_HPP
 
 #include <cstdint>
-#include <string>
 #include <type_traits>
 
 #include <babeltrace2/babeltrace.h>
