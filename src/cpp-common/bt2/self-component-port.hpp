@@ -104,6 +104,17 @@ public:
     {
         bt_self_component_set_data(this->libObjPtr(), static_cast<void *>(&obj));
     }
+
+    bt2::TraceClass::Shared createTraceClass() const
+    {
+        const auto libObjPtr = bt_trace_class_create(this->libObjPtr());
+
+        if (!libObjPtr) {
+            throw MemoryError {};
+        }
+
+        return bt2::TraceClass::Shared::createWithoutRef(libObjPtr);
+    }
 };
 
 template <typename LibObjT>
