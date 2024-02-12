@@ -539,7 +539,7 @@ public:
     template <typename T>
     T& data() const noexcept
     {
-        *static_cast<T *>(bt_self_component_port_get_data(this->_libSelfCompPortPtr()));
+        return *static_cast<T *>(bt_self_component_port_get_data(this->_libSelfCompPortPtr()));
     }
 
 private:
