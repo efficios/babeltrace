@@ -2,14 +2,17 @@
 #
 # Copyright (c) 2020 Philippe Proulx <pproulx@efficios.com>
 
+# pyright: strict, reportTypeCommentUsage=false, reportMissingTypeStubs=false
+
 import os
 import re
-import json
 import signal
 import os.path
 import unittest
 import functools
 import subprocess
+
+import tjson
 
 # the `conds-triggers` program's full path
 _CONDS_TRIGGERS_PATH = os.environ["BT_TESTS_LIB_CONDS_TRIGGER_BIN"]
@@ -22,7 +25,7 @@ class LibPrePostCondsTestCase(unittest.TestCase):
 
 # a condition trigger descriptor (base)
 class _CondTriggerDescriptor:
-    def __init__(self, index, trigger_name, cond_id):
+    def __init__(self, index: int, trigger_name: str, cond_id: str):
         self._index = index
         self._trigger_name = trigger_name
         self._cond_id = cond_id
@@ -55,7 +58,7 @@ class _PostCondTriggerDescriptor(_CondTriggerDescriptor):
 
 
 # test method template for `LibPrePostCondsTestCase`
-def _test(self, descriptor):
+def _test(self: unittest.TestCase, descriptor: _CondTriggerDescriptor):
     # Execute:
     #
     #     $ conds-triggers run <index>
@@ -88,13 +91,13 @@ def _test(self, descriptor):
 # Condition trigger descriptors from the JSON array returned by
 #
 #     $ conds-triggers list
-def _cond_trigger_descriptors_from_json(json_descr_array):
-    descriptors = []
-    descriptor_names = set()
+def _cond_trigger_descriptors_from_json(json_descr_array: tjson.ArrayVal):
+    descriptors = []  # type: list[_CondTriggerDescriptor]
+    descriptor_names = set()  # type: set[str]
 
-    for index, json_descr in enumerate(json_descr_array):
+    for index, json_descr in enumerate(json_descr_array.iter(tjson.ObjVal)):
         # sanity check: check for duplicate
-        trigger_name = json_descr["name"]
+        trigger_name = json_descr.at("name", tjson.StrVal).val
 
         if trigger_name in descriptor_names:
             raise ValueError(
@@ -102,7 +105,7 @@ def _cond_trigger_descriptors_from_json(json_descr_array):
             )
 
         # condition ID
-        cond_id = json_descr["cond-id"]
+        cond_id = json_descr.at("cond-id", tjson.StrVal).val
 
         if cond_id.startswith("pre"):
             cond_type = _PreCondTriggerDescriptor
@@ -121,8 +124,11 @@ def _cond_trigger_descriptors_from_json(json_descr_array):
 def _create_tests():
     # Execute `conds-triggers list` to get a JSON array of condition
     # trigger descriptors.
-    json_descr_array = json.loads(
-        subprocess.check_output([_CONDS_TRIGGERS_PATH, "list"], universal_newlines=True)
+    json_descr_array = tjson.loads(
+        subprocess.check_output(
+            [_CONDS_TRIGGERS_PATH, "list"], universal_newlines=True
+        ),
+        tjson.ArrayVal,
     )
 
     # get condition trigger descriptor objects from JSON
