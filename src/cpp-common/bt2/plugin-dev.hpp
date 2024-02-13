@@ -117,14 +117,15 @@ public:
     static bt_component_class_query_method_status
     query(typename LibTypesT::SelfCompCls * const libSelfCompClsPtr,
           bt_private_query_executor * const libPrivQueryExecPtr, const char * const object,
-          const bt_value * const libParamsPtr, void *,
+          const bt_value * const libParamsPtr, void * const data,
           const bt_value ** const libResultPtr) noexcept
     {
         const auto privQueryExec = wrap(libPrivQueryExecPtr);
 
         try {
-            auto result = UserCompClsT::query(wrap(libSelfCompClsPtr), privQueryExec, object,
-                                              wrap(libParamsPtr));
+            auto result = UserCompClsT::query(
+                wrap(libSelfCompClsPtr), privQueryExec, object, wrap(libParamsPtr),
+                static_cast<typename UserCompClsT::QueryData *>(data));
 
             *libResultPtr = result.release().libObjPtr();
             return BT_COMPONENT_CLASS_QUERY_METHOD_STATUS_OK;
@@ -460,7 +461,7 @@ class UserMessageIterator;
  * See the specific `bt2::UserSourceComponent`,
  * `bt2::UserFilterComponent`, and `bt2::UserSinkComponent`.
  */
-template <typename SelfCompT, typename InitDataT>
+template <typename SelfCompT, typename InitDataT, typename QueryDataT>
 class UserComponent
 {
     /* Give a related message iterator access to this logger */
@@ -469,6 +470,7 @@ class UserComponent
 
 public:
     using InitData = InitDataT;
+    using QueryData = QueryDataT;
 
 protected:
     explicit UserComponent(const SelfCompT selfComp, const std::string& logTag) :
@@ -517,9 +519,13 @@ private:
  *
  * `UserMessageIteratorT`, the message iterator class to use, must inherit
  * `UserMessageIterator`.
+ *
+ * UserComponentT::_query() receives a query method data pointer of type
+ * `QueryDataT *` as its last parameter.
  */
-template <typename UserComponentT, typename UserMessageIteratorT, typename InitDataT = void>
-class UserSourceComponent : public UserComponent<SelfSourceComponent, InitDataT>
+template <typename UserComponentT, typename UserMessageIteratorT, typename InitDataT = void,
+          typename QueryDataT = void>
+class UserSourceComponent : public UserComponent<SelfSourceComponent, InitDataT, QueryDataT>
 {
     static_assert(std::is_base_of<UserMessageIterator<UserMessageIteratorT, UserComponentT>,
                                   UserMessageIteratorT>::value,
@@ -532,16 +538,17 @@ protected:
     using _OutputPorts = SelfSourceComponent::OutputPorts;
 
     explicit UserSourceComponent(const SelfSourceComponent selfComp, const std::string& logTag) :
-        UserComponent<SelfSourceComponent, InitDataT> {selfComp, logTag}
+        UserComponent<SelfSourceComponent, InitDataT, QueryDataT> {selfComp, logTag}
     {
     }
 
 public:
     static Value::Shared query(const SelfComponentClass selfCompCls,
                                const PrivateQueryExecutor privQueryExec,
-                               const bt2c::CStringView obj, const ConstValue params)
+                               const bt2c::CStringView obj, const ConstValue params,
+                               QueryDataT * const data)
     {
-        return UserComponentT::_query(selfCompCls, privQueryExec, obj, params);
+        return UserComponentT::_query(selfCompCls, privQueryExec, obj, params, data);
     }
 
     static void getSupportedMipVersions(const SelfComponentClass selfCompCls,
@@ -560,7 +567,7 @@ public:
 protected:
     /* Overloadable */
     static Value::Shared _query(SelfComponentClass, PrivateQueryExecutor, bt2c::CStringView,
-                                ConstValue)
+                                ConstValue, QueryDataT *)
     {
         throw UnknownObject {};
     }
@@ -608,9 +615,13 @@ protected:
  *
  * `UserMessageIteratorT`, the message iterator class to use, must inherit
  * `UserMessageIterator`.
+ *
+ * UserComponentT::_query() receives a query method data pointer of type
+ * `QueryDataT *` as its last parameter.
  */
-template <typename UserComponentT, typename UserMessageIteratorT, typename InitDataT = void>
-class UserFilterComponent : public UserComponent<SelfFilterComponent, InitDataT>
+template <typename UserComponentT, typename UserMessageIteratorT, typename InitDataT = void,
+          typename QueryDataT = void>
+class UserFilterComponent : public UserComponent<SelfFilterComponent, InitDataT, QueryDataT>
 {
     static_assert(std::is_base_of<UserMessageIterator<UserMessageIteratorT, UserComponentT>,
                                   UserMessageIteratorT>::value,
@@ -624,16 +635,17 @@ protected:
     using _OutputPorts = SelfFilterComponent::OutputPorts;
 
     explicit UserFilterComponent(const SelfFilterComponent selfComp, const std::string& logTag) :
-        UserComponent<SelfFilterComponent, InitDataT> {selfComp, logTag}
+        UserComponent<SelfFilterComponent, InitDataT, QueryDataT> {selfComp, logTag}
     {
     }
 
 public:
     static Value::Shared query(const SelfComponentClass selfCompCls,
                                const PrivateQueryExecutor privQueryExec,
-                               const bt2c::CStringView obj, const ConstValue params)
+                               const bt2c::CStringView obj, const ConstValue params,
+                               QueryDataT * const data)
     {
-        return UserComponentT::_query(selfCompCls, privQueryExec, obj, params);
+        return UserComponentT::_query(selfCompCls, privQueryExec, obj, params, data);
     }
 
     static void getSupportedMipVersions(const SelfComponentClass selfCompCls,
@@ -658,7 +670,7 @@ public:
 protected:
     /* Overloadable */
     static Value::Shared _query(SelfComponentClass, PrivateQueryExecutor, bt2c::CStringView,
-                                ConstValue)
+                                ConstValue, QueryDataT *)
     {
         throw UnknownObject {};
     }
@@ -731,24 +743,29 @@ protected:
  *
  * This method returns `true` if the sink component still needs to
  * consume, or `false` if it's finished.
+ *
+ * UserComponentT::_query() receives a query method data pointer of type
+ * `QueryDataT *` as its last parameter.
+
  */
-template <typename UserComponentT, typename InitDataT = void>
-class UserSinkComponent : public UserComponent<SelfSinkComponent, InitDataT>
+template <typename UserComponentT, typename InitDataT = void, typename QueryDataT = void>
+class UserSinkComponent : public UserComponent<SelfSinkComponent, InitDataT, QueryDataT>
 {
 protected:
     using _InputPorts = SelfSinkComponent::InputPorts;
 
     explicit UserSinkComponent(const SelfSinkComponent selfComp, const std::string& logTag) :
-        UserComponent<SelfSinkComponent, InitDataT> {selfComp, logTag}
+        UserComponent<SelfSinkComponent, InitDataT, QueryDataT> {selfComp, logTag}
     {
     }
 
 public:
     static Value::Shared query(const SelfComponentClass selfCompCls,
                                const PrivateQueryExecutor privQueryExec,
-                               const bt2c::CStringView obj, const ConstValue params)
+                               const bt2c::CStringView obj, const ConstValue params,
+                               QueryDataT * const data)
     {
-        return UserComponentT::_query(selfCompCls, privQueryExec, obj, params);
+        return UserComponentT::_query(selfCompCls, privQueryExec, obj, params, data);
     }
 
     static void getSupportedMipVersions(const SelfComponentClass selfCompCls,
@@ -777,7 +794,7 @@ public:
 protected:
     /* Overloadable */
     static Value::Shared _query(SelfComponentClass, PrivateQueryExecutor, bt2c::CStringView,
-                                ConstValue)
+                                ConstValue, QueryDataT *)
     {
         throw UnknownObject {};
     }
