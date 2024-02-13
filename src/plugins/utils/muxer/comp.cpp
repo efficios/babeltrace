@@ -11,7 +11,7 @@
 namespace bt2mux {
 
 Comp::Comp(const bt2::SelfFilterComponent selfComp, const bt2::ConstMapValue params) :
-    bt2::UserFilterComponent<Comp> {selfComp, "PLUGIN/FLT.UTILS.MUXER"}
+    bt2::UserFilterComponent<Comp, MsgIter> {selfComp, "PLUGIN/FLT.UTILS.MUXER"}
 {
     BT_CPPLOGI_STR("Initializing component.");
 

@@ -505,10 +505,20 @@ private:
  * `bt2::SelfSourceComponent` parameter, which it needs to forward to
  * bt2::UserSourceComponent::UserSourceComponent(), and a
  * `bt2::ConstValue` parameter (initialization parameters).
+ *
+ * `UserMessageIteratorT`, the message iterator class to use, must inherit
+ * `UserMessageIterator`.
  */
-template <typename UserComponentT>
+template <typename UserComponentT, typename UserMessageIteratorT>
 class UserSourceComponent : public UserComponent<SelfSourceComponent>
 {
+    static_assert(std::is_base_of<UserMessageIterator<UserMessageIteratorT, UserComponentT>,
+                                  UserMessageIteratorT>::value,
+                  "`UserMessageIteratorT` inherits `UserMessageIterator`");
+
+public:
+    using MessageIterator = UserMessageIteratorT;
+
 protected:
     using _OutputPorts = SelfSourceComponent::OutputPorts;
 
@@ -582,10 +592,20 @@ protected:
  * `bt2::SelfFilterComponent` parameter, which it needs to forward to
  * bt2::UserFilterComponent::UserFilterComponent(), and a
  * `bt2::ConstValue` parameter (initialization parameters).
+ *
+ * `UserMessageIteratorT`, the message iterator class to use, must inherit
+ * `UserMessageIterator`.
  */
-template <typename UserComponentT>
+template <typename UserComponentT, typename UserMessageIteratorT>
 class UserFilterComponent : public UserComponent<SelfFilterComponent>
 {
+    static_assert(std::is_base_of<UserMessageIterator<UserMessageIteratorT, UserComponentT>,
+                                  UserMessageIteratorT>::value,
+                  "`UserMessageIteratorT` inherits `UserMessageIterator`");
+
+public:
+    using MessageIterator = UserMessageIteratorT;
+
 protected:
     using _InputPorts = SelfFilterComponent::InputPorts;
     using _OutputPorts = SelfFilterComponent::OutputPorts;
@@ -1006,11 +1026,11 @@ protected:
 
 } /* namespace bt2 */
 
-#define BT_CPP_PLUGIN_SOURCE_COMPONENT_CLASS_WITH_ID(                                              \
-    _pluginId, _componentClassId, _name, _userComponentClass, _userMessageIteratorClass)           \
+#define BT_CPP_PLUGIN_SOURCE_COMPONENT_CLASS_WITH_ID(_pluginId, _componentClassId, _name,          \
+                                                     _userComponentClass)                          \
     BT_PLUGIN_SOURCE_COMPONENT_CLASS_WITH_ID(                                                      \
         _pluginId, _componentClassId, _name,                                                       \
-        bt2::internal::MsgIterClsBridge<_userMessageIteratorClass>::next);                         \
+        bt2::internal::MsgIterClsBridge<_userComponentClass::MessageIterator>::next);              \
     BT_PLUGIN_SOURCE_COMPONENT_CLASS_INITIALIZE_METHOD_WITH_ID(                                    \
         _pluginId, _componentClassId, bt2::internal::SrcCompClsBridge<_userComponentClass>::init); \
     BT_PLUGIN_SOURCE_COMPONENT_CLASS_FINALIZE_METHOD_WITH_ID(                                      \
@@ -1027,24 +1047,25 @@ protected:
         bt2::internal::SrcCompClsBridge<_userComponentClass>::query);                              \
     BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_WITH_ID(             \
         _pluginId, _componentClassId,                                                              \
-        bt2::internal::MsgIterClsBridge<_userMessageIteratorClass>::init);                         \
+        bt2::internal::MsgIterClsBridge<_userComponentClass::MessageIterator>::init);              \
     BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_CLASS_FINALIZE_METHOD_WITH_ID(               \
         _pluginId, _componentClassId,                                                              \
-        bt2::internal::MsgIterClsBridge<_userMessageIteratorClass>::finalize);                     \
+        bt2::internal::MsgIterClsBridge<_userComponentClass::MessageIterator>::finalize);          \
     BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_CLASS_SEEK_BEGINNING_METHODS_WITH_ID(        \
         _pluginId, _componentClassId,                                                              \
-        bt2::internal::MsgIterClsBridge<_userMessageIteratorClass>::seekBeginning,                 \
-        bt2::internal::MsgIterClsBridge<_userMessageIteratorClass>::canSeekBeginning);             \
+        bt2::internal::MsgIterClsBridge<_userComponentClass::MessageIterator>::seekBeginning,      \
+        bt2::internal::MsgIterClsBridge<_userComponentClass::MessageIterator>::canSeekBeginning);  \
     BT_PLUGIN_SOURCE_COMPONENT_CLASS_MESSAGE_ITERATOR_CLASS_SEEK_NS_FROM_ORIGIN_METHODS_WITH_ID(   \
         _pluginId, _componentClassId,                                                              \
-        bt2::internal::MsgIterClsBridge<_userMessageIteratorClass>::seekNsFromOrigin,              \
-        bt2::internal::MsgIterClsBridge<_userMessageIteratorClass>::canSeekNsFromOrigin);
+        bt2::internal::MsgIterClsBridge<_userComponentClass::MessageIterator>::seekNsFromOrigin,   \
+        bt2::internal::MsgIterClsBridge<                                                           \
+            _userComponentClass::MessageIterator>::canSeekNsFromOrigin);
 
-#define BT_CPP_PLUGIN_FILTER_COMPONENT_CLASS_WITH_ID(                                              \
-    _pluginId, _componentClassId, _name, _userComponentClass, _userMessageIteratorClass)           \
+#define BT_CPP_PLUGIN_FILTER_COMPONENT_CLASS_WITH_ID(_pluginId, _componentClassId, _name,          \
+                                                     _userComponentClass)                          \
     BT_PLUGIN_FILTER_COMPONENT_CLASS_WITH_ID(                                                      \
         _pluginId, _componentClassId, _name,                                                       \
-        bt2::internal::MsgIterClsBridge<_userMessageIteratorClass>::next);                         \
+        bt2::internal::MsgIterClsBridge<_userComponentClass::MessageIterator>::next);              \
     BT_PLUGIN_FILTER_COMPONENT_CLASS_INITIALIZE_METHOD_WITH_ID(                                    \
         _pluginId, _componentClassId, bt2::internal::FltCompClsBridge<_userComponentClass>::init); \
     BT_PLUGIN_FILTER_COMPONENT_CLASS_FINALIZE_METHOD_WITH_ID(                                      \
@@ -1064,18 +1085,19 @@ protected:
         bt2::internal::FltCompClsBridge<_userComponentClass>::query);                              \
     BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_WITH_ID(             \
         _pluginId, _componentClassId,                                                              \
-        bt2::internal::MsgIterClsBridge<_userMessageIteratorClass>::init);                         \
+        bt2::internal::MsgIterClsBridge<_userComponentClass::MessageIterator>::init);              \
     BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_CLASS_FINALIZE_METHOD_WITH_ID(               \
         _pluginId, _componentClassId,                                                              \
-        bt2::internal::MsgIterClsBridge<_userMessageIteratorClass>::finalize);                     \
+        bt2::internal::MsgIterClsBridge<_userComponentClass::MessageIterator>::finalize);          \
     BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_CLASS_SEEK_BEGINNING_METHODS_WITH_ID(        \
         _pluginId, _componentClassId,                                                              \
-        bt2::internal::MsgIterClsBridge<_userMessageIteratorClass>::seekBeginning,                 \
-        bt2::internal::MsgIterClsBridge<_userMessageIteratorClass>::canSeekBeginning);             \
+        bt2::internal::MsgIterClsBridge<_userComponentClass::MessageIterator>::seekBeginning,      \
+        bt2::internal::MsgIterClsBridge<_userComponentClass::MessageIterator>::canSeekBeginning);  \
     BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_CLASS_SEEK_NS_FROM_ORIGIN_METHODS_WITH_ID(   \
         _pluginId, _componentClassId,                                                              \
-        bt2::internal::MsgIterClsBridge<_userMessageIteratorClass>::seekNsFromOrigin,              \
-        bt2::internal::MsgIterClsBridge<_userMessageIteratorClass>::canSeekNsFromOrigin);
+        bt2::internal::MsgIterClsBridge<_userComponentClass::MessageIterator>::seekNsFromOrigin,   \
+        bt2::internal::MsgIterClsBridge<                                                           \
+            _userComponentClass::MessageIterator>::canSeekNsFromOrigin);
 
 #define BT_CPP_PLUGIN_SINK_COMPONENT_CLASS_WITH_ID(_pluginId, _componentClassId, _name,            \
                                                    _userComponentClass)                            \
@@ -1101,15 +1123,11 @@ protected:
         _pluginId, _componentClassId,                                                              \
         bt2::internal::SinkCompClsBridge<_userComponentClass>::query);
 
-#define BT_CPP_PLUGIN_SOURCE_COMPONENT_CLASS(_name, _userComponentClass,                           \
-                                             _userMessageIteratorClass)                            \
-    BT_CPP_PLUGIN_SOURCE_COMPONENT_CLASS_WITH_ID(auto, _name, #_name, _userComponentClass,         \
-                                                 _userMessageIteratorClass)
+#define BT_CPP_PLUGIN_SOURCE_COMPONENT_CLASS(_name, _userComponentClass)                           \
+    BT_CPP_PLUGIN_SOURCE_COMPONENT_CLASS_WITH_ID(auto, _name, #_name, _userComponentClass)
 
-#define BT_CPP_PLUGIN_FILTER_COMPONENT_CLASS(_name, _userComponentClass,                           \
-                                             _userMessageIteratorClass)                            \
-    BT_CPP_PLUGIN_FILTER_COMPONENT_CLASS_WITH_ID(auto, _name, #_name, _userComponentClass,         \
-                                                 _userMessageIteratorClass)
+#define BT_CPP_PLUGIN_FILTER_COMPONENT_CLASS(_name, _userComponentClass)                           \
+    BT_CPP_PLUGIN_FILTER_COMPONENT_CLASS_WITH_ID(auto, _name, #_name, _userComponentClass)
 
 #define BT_CPP_PLUGIN_SINK_COMPONENT_CLASS(_name, _userComponentClass)                             \
     BT_CPP_PLUGIN_SINK_COMPONENT_CLASS_WITH_ID(auto, _name, #_name, _userComponentClass)

@@ -54,7 +54,7 @@ BT_PLUGIN_FILTER_COMPONENT_CLASS_MESSAGE_ITERATOR_CLASS_FINALIZE_METHOD(trimmer,
                                                                         trimmer_msg_iter_finalize);
 
 /* flt.utils.muxer */
-BT_CPP_PLUGIN_FILTER_COMPONENT_CLASS(muxer, bt2mux::Comp, bt2mux::MsgIter);
+BT_CPP_PLUGIN_FILTER_COMPONENT_CLASS(muxer, bt2mux::Comp);
 BT_PLUGIN_FILTER_COMPONENT_CLASS_DESCRIPTION(
     muxer, "Sort messages from multiple input ports to a single output port by time.");
 BT_PLUGIN_FILTER_COMPONENT_CLASS_HELP(muxer,

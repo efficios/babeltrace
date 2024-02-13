@@ -10,12 +10,16 @@
 
 #include "cpp-common/bt2/plugin-dev.hpp"
 
+#include "msg-iter.hpp"
+
 namespace bt2mux {
 
-class Comp final : public bt2::UserFilterComponent<Comp>
+class MsgIter;
+
+class Comp final : public bt2::UserFilterComponent<Comp, MsgIter>
 {
     friend class MsgIter;
-    friend bt2::UserFilterComponent<Comp>;
+    friend bt2::UserFilterComponent<Comp, MsgIter>;
 
 public:
     explicit Comp(bt2::SelfFilterComponent selfComp, bt2::ConstMapValue params);
