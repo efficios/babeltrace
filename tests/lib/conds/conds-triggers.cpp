@@ -6,51 +6,47 @@
 
 #include <babeltrace2/babeltrace.h>
 
-#include "common/assert.h"
-
 #include "utils.hpp"
 
-static void trigger_graph_mip_version(void)
+namespace {
+
+void triggerGraphMipVersion() noexcept
 {
     bt_graph_create(292);
 }
 
-static bt_field_class *get_uint_fc(bt_self_component *self_comp)
+bt2::IntegerFieldClass::Shared getUIntFc(const bt2::SelfComponent self) noexcept
 {
-    bt_trace_class *tc = bt_trace_class_create(self_comp);
-    bt_field_class *fc;
-
-    BT_ASSERT(tc);
-    fc = bt_field_class_integer_unsigned_create(tc);
-    BT_ASSERT(fc);
-    return fc;
+    return self.createTraceClass()->createUnsignedIntegerFieldClass();
 }
 
-static void trigger_fc_int_set_field_value_range_n_0(const bt2::SelfComponent self)
+void triggerFcIntSetFieldValueRangeN0(const bt2::SelfComponent self) noexcept
 {
-    bt_field_class_integer_set_field_value_range(get_uint_fc(self.libObjPtr()), 0);
+    getUIntFc(self)->fieldValueRange(0);
 }
 
-static void trigger_fc_int_set_field_value_range_n_gt_64(const bt2::SelfComponent self)
+void triggerFcIntSetFieldValueRangeNGt64(const bt2::SelfComponent self) noexcept
 {
-    bt_field_class_integer_set_field_value_range(get_uint_fc(self.libObjPtr()), 65);
+    getUIntFc(self)->fieldValueRange(65);
 }
 
-static void trigger_fc_int_set_field_value_range_null(bt2::SelfComponent)
+void triggerFcIntSetFieldValueRangeNull(bt2::SelfComponent) noexcept
 {
     bt_field_class_integer_set_field_value_range(NULL, 23);
 }
 
-static const struct cond_trigger triggers[] = {
-    COND_TRIGGER_PRE_BASIC("pre:graph-create:valid-mip-version", NULL, trigger_graph_mip_version),
+const cond_trigger triggers[] = {
+    COND_TRIGGER_PRE_BASIC("pre:graph-create:valid-mip-version", NULL, triggerGraphMipVersion),
     COND_TRIGGER_PRE_RUN_IN_COMP_CLS_INIT("pre:field-class-integer-set-field-value-range:valid-n",
-                                          "0", trigger_fc_int_set_field_value_range_n_0),
+                                          "0", triggerFcIntSetFieldValueRangeN0),
     COND_TRIGGER_PRE_RUN_IN_COMP_CLS_INIT("pre:field-class-integer-set-field-value-range:valid-n",
-                                          "gt-64", trigger_fc_int_set_field_value_range_n_gt_64),
+                                          "gt-64", triggerFcIntSetFieldValueRangeNGt64),
     COND_TRIGGER_PRE_RUN_IN_COMP_CLS_INIT(
         "pre:field-class-integer-set-field-value-range:not-null:field-class", NULL,
-        trigger_fc_int_set_field_value_range_null),
+        triggerFcIntSetFieldValueRangeNull),
 };
+
+} /* namespace */
 
 int main(int argc, const char *argv[])
 {
