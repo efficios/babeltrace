@@ -7,6 +7,7 @@
 #include <utility>
 
 #include "common/assert.h"
+#include "cpp-common/bt2/wrap.hpp"
 
 #include "run-in.hpp"
 
@@ -37,7 +38,7 @@ bt_component_class_initialize_method_status compClsInit(bt_self_component_source
     auto& data = runInDataFromMethodData(initMethodData);
 
     if (data.compCtxFunc) {
-        data.compCtxFunc(bt_self_component_source_as_self_component(selfComp));
+        data.compCtxFunc(bt2::wrap(bt_self_component_source_as_self_component(selfComp)));
     }
 
     return BT_COMPONENT_CLASS_INITIALIZE_METHOD_STATUS_OK;
@@ -51,7 +52,8 @@ compClsQuery(bt_self_component_class_source * const selfCompCls, bt_private_quer
     auto& data = runInDataFromMethodData(methodData);
 
     if (data.compClsCtxFunc) {
-        data.compClsCtxFunc(bt_self_component_class_source_as_self_component_class(selfCompCls));
+        data.compClsCtxFunc(
+            bt2::wrap(bt_self_component_class_source_as_self_component_class(selfCompCls)));
     }
 
     *result = bt_value_null;
@@ -66,7 +68,7 @@ msgIterClsInit(bt_self_message_iterator * const selfMsgIter,
         bt_self_component_port_output_as_self_component_port(port)));
 
     if (data.msgIterCtxFunc) {
-        data.msgIterCtxFunc(selfMsgIter);
+        data.msgIterCtxFunc(bt2::wrap(selfMsgIter));
     }
 
     return BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_OK;

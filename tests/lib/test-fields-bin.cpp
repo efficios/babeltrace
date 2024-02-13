@@ -16,10 +16,10 @@ static const int NR_TESTS = 2;
 
 static void test_string_clear()
 {
-    runInMsgIterClsInit([](bt_self_message_iterator * const self) {
+    runInMsgIterClsInit([](const bt2::SelfMessageIterator self) {
         /* Boilerplate to get a string field */
         const auto traceCls =
-            bt_trace_class_create(bt_self_message_iterator_borrow_component(self));
+            bt_trace_class_create(bt_self_message_iterator_borrow_component(self.libObjPtr()));
         const auto streamCls = bt_stream_class_create(traceCls);
         const auto eventCls = bt_event_class_create(streamCls);
         const auto payloadCls = bt_field_class_structure_create(traceCls);
@@ -39,7 +39,7 @@ static void test_string_clear()
 
         const auto trace = bt_trace_create(traceCls);
         const auto stream = bt_stream_create(streamCls, trace);
-        const auto msg = bt_message_event_create(self, eventCls, stream);
+        const auto msg = bt_message_event_create(self.libObjPtr(), eventCls, stream);
         const auto field = bt_field_structure_borrow_member_field_by_name(
             bt_event_borrow_payload_field(bt_message_event_borrow_event(msg)), "str");
 

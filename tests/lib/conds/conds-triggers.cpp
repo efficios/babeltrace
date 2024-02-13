@@ -26,17 +26,17 @@ static bt_field_class *get_uint_fc(bt_self_component *self_comp)
     return fc;
 }
 
-static void trigger_fc_int_set_field_value_range_n_0(bt_self_component *self_comp)
+static void trigger_fc_int_set_field_value_range_n_0(const bt2::SelfComponent self)
 {
-    bt_field_class_integer_set_field_value_range(get_uint_fc(self_comp), 0);
+    bt_field_class_integer_set_field_value_range(get_uint_fc(self.libObjPtr()), 0);
 }
 
-static void trigger_fc_int_set_field_value_range_n_gt_64(bt_self_component *self_comp)
+static void trigger_fc_int_set_field_value_range_n_gt_64(const bt2::SelfComponent self)
 {
-    bt_field_class_integer_set_field_value_range(get_uint_fc(self_comp), 65);
+    bt_field_class_integer_set_field_value_range(get_uint_fc(self.libObjPtr()), 65);
 }
 
-static void trigger_fc_int_set_field_value_range_null(bt_self_component *)
+static void trigger_fc_int_set_field_value_range_null(bt2::SelfComponent)
 {
     bt_field_class_integer_set_field_value_range(NULL, 23);
 }

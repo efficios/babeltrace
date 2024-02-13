@@ -11,9 +11,13 @@
 
 #include <babeltrace2/babeltrace.h>
 
-using RunInCompClsQueryFunc = std::function<void(bt_self_component_class *)>;
-using RunInCompClsInitFunc = std::function<void(bt_self_component *)>;
-using RunInMsgIterClsInitFunc = std::function<void(bt_self_message_iterator *)>;
+#include "cpp-common/bt2/self-component-class.hpp"
+#include "cpp-common/bt2/self-component-port.hpp"
+#include "cpp-common/bt2/self-message-iterator.hpp"
+
+using RunInCompClsQueryFunc = std::function<void(bt2::SelfComponentClass)>;
+using RunInCompClsInitFunc = std::function<void(bt2::SelfComponent)>;
+using RunInMsgIterClsInitFunc = std::function<void(bt2::SelfMessageIterator)>;
 
 /*
  * Runs:

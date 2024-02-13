@@ -9,6 +9,8 @@
 
 #include <babeltrace2/babeltrace.h>
 
+#include "cpp-common/bt2/self-component-port.hpp"
+
 enum cond_trigger_func_type
 {
     COND_TRIGGER_FUNC_TYPE_BASIC,
@@ -22,7 +24,7 @@ enum cond_trigger_type
 };
 
 typedef void (*cond_trigger_basic_func)(void);
-typedef void (*cond_trigger_run_in_comp_cls_init_func)(bt_self_component *);
+typedef void (*cond_trigger_run_in_comp_cls_init_func)(bt2::SelfComponent);
 
 struct cond_trigger
 {
