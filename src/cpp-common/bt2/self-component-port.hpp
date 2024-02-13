@@ -102,7 +102,8 @@ public:
     template <typename T>
     void data(T& obj) const noexcept
     {
-        bt_self_component_set_data(this->libObjPtr(), static_cast<void *>(&obj));
+        bt_self_component_set_data(this->libObjPtr(),
+                                   const_cast<void *>(static_cast<const void *>(&obj)));
     }
 
     bt2::TraceClass::Shared createTraceClass() const
@@ -148,7 +149,8 @@ protected:
     {
         LibPortT *libPortPtr;
 
-        const auto status = func(this->libObjPtr(), name, static_cast<void *>(data), &libPortPtr);
+        const auto status = func(this->libObjPtr(), name,
+                                 const_cast<void *>(static_cast<const void *>(data)), &libPortPtr);
 
         switch (status) {
         case BT_SELF_COMPONENT_ADD_PORT_STATUS_OK:

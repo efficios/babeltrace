@@ -69,7 +69,8 @@ public:
     template <typename T>
     void data(T& obj) const noexcept
     {
-        bt_self_message_iterator_set_data(this->libObjPtr(), static_cast<void *>(&obj));
+        bt_self_message_iterator_set_data(this->libObjPtr(),
+                                          const_cast<void *>(static_cast<const void *>(&obj)));
     }
 
     bt2::StreamBeginningMessage::Shared
