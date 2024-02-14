@@ -10,6 +10,7 @@
 #include "cpp-common/bt2/component-class-dev.hpp"
 #include "cpp-common/bt2/component-class.hpp"
 #include "cpp-common/bt2/graph.hpp"
+#include "cpp-common/bt2/query-executor.hpp"
 
 #include "run-in.hpp"
 
@@ -113,20 +114,7 @@ void runIn(RunInCompClsQueryFunc compClsCtxFunc, RunInCompClsInitFunc compCtxFun
     const auto srcCompCls = bt2::SourceComponentClass::create<RunInSource>();
 
     /* Execute a query (executes `compClsCtxFunc`) */
-    {
-        const auto queryExec = bt_query_executor_create_with_method_data(
-            bt_component_class_source_as_component_class(srcCompCls->libObjPtr()), "", nullptr,
-            &data);
-
-        BT_ASSERT(queryExec);
-
-        const bt_value *queryRes;
-        const auto status = bt_query_executor_query(queryExec, &queryRes);
-
-        BT_ASSERT(status == BT_QUERY_EXECUTOR_QUERY_STATUS_OK);
-        bt_value_put_ref(queryRes);
-        bt_query_executor_put_ref(queryExec);
-    }
+    bt2::QueryExecutor::create(*srcCompCls, "object-name", data)->query();
 
     /* Create graph */
     const auto graph = bt2::Graph::create(0);
