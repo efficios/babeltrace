@@ -137,6 +137,7 @@ cpp_common_libcpp_common_la_SOURCES = \
 	cpp-common/bt2/plugin-dev.hpp \
 	cpp-common/bt2/plugin.hpp \
 	cpp-common/bt2/private-query-executor.hpp \
+	cpp-common/bt2/query-executor.hpp \
 	cpp-common/bt2/raw-value-proxy.hpp \
 	cpp-common/bt2/self-component-class.hpp \
 	cpp-common/bt2/self-component-port.hpp \
