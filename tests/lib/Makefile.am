@@ -17,7 +17,8 @@ test_bt_values_LDADD = $(COMMON_TEST_LDADD) \
 
 test_fields_bin_SOURCES = test-fields-bin.cpp
 test_fields_bin_LDADD = $(COMMON_TEST_LDADD) \
-	$(top_builddir)/src/lib/libbabeltrace2.la
+	$(top_builddir)/src/lib/libbabeltrace2.la \
+	$(top_builddir)/src/cpp-common/vendor/fmt/libfmt.la
 
 test_bt_uuid_SOURCES = test-bt-uuid.c
 test_bt_uuid_LDADD = $(COMMON_TEST_LDADD)
