@@ -9,6 +9,7 @@
 #include "common/assert.h"
 #include "cpp-common/bt2/component-class-dev.hpp"
 #include "cpp-common/bt2/component-class.hpp"
+#include "cpp-common/bt2/graph.hpp"
 
 #include "run-in.hpp"
 
@@ -128,57 +129,26 @@ void runIn(RunInCompClsQueryFunc compClsCtxFunc, RunInCompClsInitFunc compCtxFun
     }
 
     /* Create graph */
-    const auto graph = bt_graph_create(0);
-
-    BT_ASSERT(graph);
+    const auto graph = bt2::Graph::create(0);
 
     /* Add custom source component (executes `compCtxFunc`) */
-    const bt_component_source *srcComp;
-
-    {
-        const auto status = bt_graph_add_source_component_with_initialize_method_data(
-            graph, srcCompCls->libObjPtr(), "the-source", NULL, &data, BT_LOGGING_LEVEL_NONE,
-            &srcComp);
-
-        BT_ASSERT(status == BT_GRAPH_ADD_COMPONENT_STATUS_OK);
-    }
+    const auto srcComp = graph->addComponent(*srcCompCls, "the-source", data);
 
     /* Add dummy sink component */
-    const bt_component_sink *sinkComp;
-
-    {
-        const auto sinkCompCls = bt2::SinkComponentClass::create<DummySink>();
-        const auto status = bt_graph_add_sink_component_with_initialize_method_data(
-            graph, sinkCompCls->libObjPtr(), "the-sink", nullptr, nullptr, BT_LOGGING_LEVEL_NONE,
-            &sinkComp);
-
-        BT_ASSERT(status == BT_GRAPH_ADD_COMPONENT_STATUS_OK);
-    }
+    const auto sinkComp =
+        graph->addComponent(*bt2::SinkComponentClass::create<DummySink>(), "the-sink");
 
     /* Connect ports */
-    {
-        const auto outPort = bt_component_source_borrow_output_port_by_name_const(srcComp, "out");
+    const auto outPort = srcComp.outputPorts()["out"];
+    BT_ASSERT(outPort);
 
-        BT_ASSERT(outPort);
+    const auto inPort = sinkComp.inputPorts()["in"];
+    BT_ASSERT(inPort);
 
-        const auto inPort = bt_component_sink_borrow_input_port_by_name_const(sinkComp, "in");
-
-        BT_ASSERT(inPort);
-
-        const auto status = bt_graph_connect_ports(graph, outPort, inPort, nullptr);
-
-        BT_ASSERT(status == BT_GRAPH_CONNECT_PORTS_STATUS_OK);
-    }
+    graph->connectPorts(*outPort, *inPort);
 
     /* Run graph (executes `msgIterCtxFunc`) */
-    {
-        const auto status = bt_graph_run(graph);
-
-        BT_ASSERT(status == BT_GRAPH_RUN_STATUS_OK);
-    }
-
-    /* Discard owned objects */
-    bt_graph_put_ref(graph);
+    graph->run();
 }
 
 void runInCompClsQuery(RunInCompClsQueryFunc func)
