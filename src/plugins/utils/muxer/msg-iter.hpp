@@ -12,6 +12,7 @@
 
 #include "cpp-common/bt2/optional-borrowed-object.hpp"
 #include "cpp-common/bt2/plugin-dev.hpp"
+#include "cpp-common/bt2/self-message-iterator-configuration.hpp"
 #include "cpp-common/bt2c/prio-heap.hpp"
 #include "cpp-common/bt2c/uuid.hpp"
 #include "cpp-common/bt2s/optional.hpp"

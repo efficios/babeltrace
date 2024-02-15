@@ -124,6 +124,7 @@ cpp_common_libcpp_common_la_SOURCES = \
 	cpp-common/bt2/field.hpp \
 	cpp-common/bt2/integer-range-set.hpp \
 	cpp-common/bt2/integer-range.hpp \
+	cpp-common/bt2/internal/comp-cls-bridge.hpp \
 	cpp-common/bt2/internal/utils.hpp \
 	cpp-common/bt2/logging.hpp \
 	cpp-common/bt2/message-array.hpp \
