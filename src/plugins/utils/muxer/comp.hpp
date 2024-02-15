@@ -22,7 +22,7 @@ class Comp final : public bt2::UserFilterComponent<Comp, MsgIter>
     friend bt2::UserFilterComponent<Comp, MsgIter>;
 
 public:
-    explicit Comp(bt2::SelfFilterComponent selfComp, bt2::ConstMapValue params);
+    explicit Comp(bt2::SelfFilterComponent selfComp, bt2::ConstMapValue params, void *);
 
 private:
     void _inputPortConnected(bt2::SelfComponentInputPort selfPort, bt2::ConstOutputPort otherPort);

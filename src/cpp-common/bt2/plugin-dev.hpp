@@ -64,12 +64,14 @@ public:
     static bt_component_class_initialize_method_status init(const _LibSelfCompPtr libSelfCompPtr,
                                                             typename LibTypesT::SelfCompCfg *,
                                                             const bt_value * const libParamsPtr,
-                                                            void *) noexcept
+                                                            void * const initData) noexcept
     {
         const auto selfComp = wrap(libSelfCompPtr);
 
         try {
-            const auto comp = new UserCompClsT {selfComp, wrap(libParamsPtr).asMap()};
+            const auto comp =
+                new UserCompClsT {selfComp, wrap(libParamsPtr).asMap(),
+                                  static_cast<typename UserCompClsT::InitData *>(initData)};
 
             selfComp.data(*comp);
         } catch (const std::bad_alloc&) {
@@ -458,12 +460,15 @@ class UserMessageIterator;
  * See the specific `bt2::UserSourceComponent`,
  * `bt2::UserFilterComponent`, and `bt2::UserSinkComponent`.
  */
-template <typename SelfCompT>
+template <typename SelfCompT, typename InitDataT>
 class UserComponent
 {
     /* Give a related message iterator access to this logger */
     template <typename, typename>
     friend class UserMessageIterator;
+
+public:
+    using InitData = InitDataT;
 
 protected:
     explicit UserComponent(const SelfCompT selfComp, const std::string& logTag) :
@@ -501,16 +506,20 @@ private:
 /*
  * Base class of a user source component `UserComponentT` (CRTP).
  *
- * `UserComponentT::UserComponentT()` must accept a
- * `bt2::SelfSourceComponent` parameter, which it needs to forward to
- * bt2::UserSourceComponent::UserSourceComponent(), and a
- * `bt2::ConstValue` parameter (initialization parameters).
+ * UserComponentT::UserComponentT() must accept, in this order:
+ *
+ *  1. A `bt2::SelfSourceComponent` parameter, which it needs to forward
+ *     to bt2::UserSourceComponent::UserSourceComponent().
+ *
+ *  2. A `bt2::ConstValue` parameter (the initialization parameters).
+ *
+ *  3. An `InitDataT *` parameter (the initialization method data).
  *
  * `UserMessageIteratorT`, the message iterator class to use, must inherit
  * `UserMessageIterator`.
  */
-template <typename UserComponentT, typename UserMessageIteratorT>
-class UserSourceComponent : public UserComponent<SelfSourceComponent>
+template <typename UserComponentT, typename UserMessageIteratorT, typename InitDataT = void>
+class UserSourceComponent : public UserComponent<SelfSourceComponent, InitDataT>
 {
     static_assert(std::is_base_of<UserMessageIterator<UserMessageIteratorT, UserComponentT>,
                                   UserMessageIteratorT>::value,
@@ -523,7 +532,7 @@ protected:
     using _OutputPorts = SelfSourceComponent::OutputPorts;
 
     explicit UserSourceComponent(const SelfSourceComponent selfComp, const std::string& logTag) :
-        UserComponent<SelfSourceComponent> {selfComp, logTag}
+        UserComponent<SelfSourceComponent, InitDataT> {selfComp, logTag}
     {
     }
 
@@ -588,16 +597,20 @@ protected:
 /*
  * Base class of a user filter component `UserComponentT` (CRTP).
  *
- * `UserComponentT::UserComponentT()` must accept a
- * `bt2::SelfFilterComponent` parameter, which it needs to forward to
- * bt2::UserFilterComponent::UserFilterComponent(), and a
- * `bt2::ConstValue` parameter (initialization parameters).
+ * UserComponentT::UserComponentT() must accept, in this order:
+ *
+ *  1. A `bt2::SelfFilterComponent` parameter, which it needs to forward
+ *     to bt2::UserFilterComponent::UserFilterComponent().
+ *
+ *  2. A `bt2::ConstValue` parameter (the initialization parameters).
+ *
+ *  3. An `InitDataT *` parameter (the initialization method data).
  *
  * `UserMessageIteratorT`, the message iterator class to use, must inherit
  * `UserMessageIterator`.
  */
-template <typename UserComponentT, typename UserMessageIteratorT>
-class UserFilterComponent : public UserComponent<SelfFilterComponent>
+template <typename UserComponentT, typename UserMessageIteratorT, typename InitDataT = void>
+class UserFilterComponent : public UserComponent<SelfFilterComponent, InitDataT>
 {
     static_assert(std::is_base_of<UserMessageIterator<UserMessageIteratorT, UserComponentT>,
                                   UserMessageIteratorT>::value,
@@ -611,7 +624,7 @@ protected:
     using _OutputPorts = SelfFilterComponent::OutputPorts;
 
     explicit UserFilterComponent(const SelfFilterComponent selfComp, const std::string& logTag) :
-        UserComponent<SelfFilterComponent> {selfComp, logTag}
+        UserComponent<SelfFilterComponent, InitDataT> {selfComp, logTag}
     {
     }
 
@@ -703,10 +716,14 @@ protected:
 /*
  * Base class of a user sink component `UserComponentT` (CRTP).
  *
- * `UserComponentT::UserComponentT()` must accept a
- * `bt2::SelfSinkComponent` parameter, which it needs to forward to
- * bt2::UserSinkComponent::UserSinkComponent(), and a `bt2::ConstValue`
- * parameter (initialization parameters).
+ * UserComponentT::UserComponentT() must accept, in this order:
+ *
+ *  1. A `bt2::SelfSinkComponent` parameter, which it needs to forward
+ *     to bt2::UserSinkComponent::UserSinkComponent().
+ *
+ *  2. A `bt2::ConstValue` parameter (the initialization parameters).
+ *
+ *  3. An `InitDataT *` parameter (the initialization method data).
  *
  * `UserComponentT` must implement:
  *
@@ -715,14 +732,14 @@ protected:
  * This method returns `true` if the sink component still needs to
  * consume, or `false` if it's finished.
  */
-template <typename UserComponentT>
-class UserSinkComponent : public UserComponent<SelfSinkComponent>
+template <typename UserComponentT, typename InitDataT = void>
+class UserSinkComponent : public UserComponent<SelfSinkComponent, InitDataT>
 {
 protected:
     using _InputPorts = SelfSinkComponent::InputPorts;
 
     explicit UserSinkComponent(const SelfSinkComponent selfComp, const std::string& logTag) :
-        UserComponent<SelfSinkComponent> {selfComp, logTag}
+        UserComponent<SelfSinkComponent, InitDataT> {selfComp, logTag}
     {
     }
 
