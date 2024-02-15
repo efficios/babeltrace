@@ -1709,18 +1709,6 @@ void bt_common_custom_vsnprintf(char *buf, size_t buf_size,
 	*buf_ch = '\0';
 }
 
-void bt_common_custom_snprintf(char *buf, size_t buf_size,
-		char intro,
-		bt_common_handle_custom_specifier_func handle_specifier,
-		void *priv_data, const char *fmt, ...)
-{
-	va_list args;
-	va_start(args, fmt);
-	bt_common_custom_vsnprintf(buf, buf_size, intro, handle_specifier,
-		priv_data, fmt, &args);
-	va_end(args);
-}
-
 void bt_common_sep_digits(char *str, unsigned int digits_per_group, char sep)
 {
 	const char *rd;

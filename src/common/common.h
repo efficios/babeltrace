@@ -319,14 +319,6 @@ void bt_common_custom_vsnprintf(char *buf, size_t buf_size,
 		void *priv_data, const char *fmt, va_list *args);
 
 /*
- * Variadic form of bt_common_custom_vsnprintf().
- */
-void bt_common_custom_snprintf(char *buf, size_t buf_size,
-		char intro,
-		bt_common_handle_custom_specifier_func handle_specifier,
-		void *priv_data, const char *fmt, ...);
-
-/*
  * Returns the system page size.
  */
 size_t bt_common_get_page_size(int log_level);
@@ -377,65 +369,6 @@ int bt_common_get_term_size(unsigned int *width, unsigned int *height);
 int bt_common_append_file_content_to_g_string(GString *str, FILE *fp);
 
 void bt_common_abort(void) __attribute__((noreturn));
-
-#if (!defined(BT_LOG_WRITE_CUR_LVL) && !defined(BT_LOG_WRITE_ERRNO_CUR_LVL))
-#define BT_LOG_LEVEL_UNUSED_ATTR __attribute__((unused))
-#else
-#define BT_LOG_LEVEL_UNUSED_ATTR
-#endif
-
-/*
- * Wraps read() function to handle EINTR and partial reads.
- * On success, it returns `count` received as parameter. On error, it returns a
- * value smaller than the requested `count`.
- */
-static inline
-ssize_t bt_common_read(int fd, void *buf, size_t count,
-		int log_level BT_LOG_LEVEL_UNUSED_ATTR)
-{
-	size_t i = 0;
-	ssize_t ret;
-
-	BT_ASSERT_DBG(buf);
-
-	/* Never return an overflow value. */
-	BT_ASSERT_DBG(count <= SSIZE_MAX);
-
-	do {
-		ret = read(fd, ((char *) buf) + i, count - i);
-		if (ret < 0) {
-			if (errno == EINTR) {
-#ifdef BT_LOG_WRITE_CUR_LVL
-				BT_LOG_WRITE_CUR_LVL(BT_LOG_DEBUG, log_level,
-					BT_LOG_TAG,
-					"read() call interrupted; retrying...");
-#endif
-				/* retry operation */
-				continue;
-			} else {
-#ifdef BT_LOG_WRITE_ERRNO_PRINTF_CUR_LVL
-				BT_LOG_WRITE_ERRNO_PRINTF_CUR_LVL(BT_LOG_ERROR,
-					log_level, BT_LOG_TAG,
-					"Error while reading", ": fd=%d", fd);
-#endif
-				goto end;
-			}
-		}
-		i += ret;
-		BT_ASSERT_DBG(i <= count);
-	} while (count - i > 0 && ret > 0);
-
-end:
-	if (ret >= 0) {
-		if (i == 0) {
-			ret = -1;
-		} else {
-			ret = i;
-		}
-	}
-
-	return ret;
-}
 
 static inline
 const char *bt_common_field_class_type_string(enum bt_field_class_type class_type)
@@ -610,44 +543,6 @@ const char *bt_common_value_type_string(enum bt_value_type type)
 
 	bt_common_abort();
 };
-
-static inline
-GString *bt_common_field_path_string(struct bt_field_path *path)
-{
-	GString *str = g_string_new(NULL);
-	uint64_t i;
-
-	BT_ASSERT_DBG(path);
-
-	if (!str) {
-		goto end;
-	}
-
-	g_string_append_printf(str, "[%s", bt_common_scope_string(
-		bt_field_path_get_root_scope(path)));
-
-	for (i = 0; i < bt_field_path_get_item_count(path); i++) {
-		const struct bt_field_path_item *fp_item =
-			bt_field_path_borrow_item_by_index_const(path, i);
-
-		switch (bt_field_path_item_get_type(fp_item)) {
-		case BT_FIELD_PATH_ITEM_TYPE_INDEX:
-			g_string_append_printf(str, ", %" PRIu64,
-				bt_field_path_item_index_get_index(fp_item));
-			break;
-		case BT_FIELD_PATH_ITEM_TYPE_CURRENT_ARRAY_ELEMENT:
-			g_string_append(str, ", <CUR>");
-			break;
-		default:
-			bt_common_abort();
-		}
-	}
-
-	g_string_append(str, "]");
-
-end:
-	return str;
-}
 
 static inline
 const char *bt_common_logging_level_string(
