@@ -231,10 +231,9 @@ class SinkCompClsBridge final :
     public CompClsBridge<UserCompClsT, SinkCompClsLibTypes>,
     public CompClsBridgeWithInputPorts<SinkCompClsBridge<UserCompClsT>, SinkCompClsLibTypes>
 {
-private:
+public:
     using CompClsBridge<UserCompClsT, SinkCompClsLibTypes>::userCompFromLibSelfCompPtr;
 
-public:
     static bt_component_class_sink_consume_method_status
     consume(bt_self_component_sink * const libSelfCompPtr) noexcept
     {
