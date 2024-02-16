@@ -14,8 +14,29 @@
 
 #include "exc.hpp"
 #include "plugin-set.hpp"
+#include "plugin.hpp"
 
 namespace bt2 {
+
+inline ConstPlugin::Shared
+findPlugin(const bt2c::CStringView name, const bool findInStdEnvVar = true,
+           const bool findInUserDir = true, const bool findInSysDir = true,
+           const bool findInStatic = true, const bool failOnLoadError = false)
+{
+    const bt_plugin *plugin;
+    const auto status = bt_plugin_find(name, findInStdEnvVar, findInUserDir, findInSysDir,
+                                       findInStatic, failOnLoadError, &plugin);
+
+    if (status == BT_PLUGIN_FIND_STATUS_MEMORY_ERROR) {
+        throw MemoryError {};
+    } else if (status == BT_PLUGIN_FIND_STATUS_ERROR) {
+        throw Error {};
+    } else if (status == BT_PLUGIN_FIND_STATUS_NOT_FOUND) {
+        return ConstPlugin::Shared {};
+    }
+
+    return ConstPlugin::Shared::createWithoutRef(plugin);
+}
 
 inline ConstPluginSet::Shared findAllPluginsFromDir(const bt2c::CStringView path,
                                                     const bool recurse, const bool failOnLoadError)
