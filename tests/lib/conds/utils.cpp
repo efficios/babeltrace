@@ -4,6 +4,7 @@
  * Copyright (C) 2020 Philippe Proulx <pproulx@efficios.com>
  */
 
+#include <glib.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -57,6 +58,14 @@ void condMain(const int argc, const char ** const argv, const CondTriggers condT
     if (strcmp(argv[1], "list") == 0) {
         listCondTriggers(condTriggers);
     } else if (strcmp(argv[1], "run") == 0) {
+        /*
+         * It's expected that calling `*condTriggers[index]` below
+         * aborts (calls bt_common_abort()). In this testing context, we
+         * don't want any custom abortion command to run.
+         */
+        g_unsetenv("BABELTRACE_EXEC_ON_ABORT");
+
+        /* Call the trigger */
         BT_ASSERT(argc >= 3);
 
         const auto index = atoi(argv[2]);
