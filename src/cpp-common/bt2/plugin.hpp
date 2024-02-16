@@ -10,44 +10,12 @@
 #include <babeltrace2/babeltrace.h>
 
 #include "common/common.h"
-#include "cpp-common/bt2/borrowed-object.hpp"
-#include "cpp-common/bt2/exc.hpp"
-#include "cpp-common/bt2/shared-object.hpp"
 #include "cpp-common/bt2c/c-string-view.hpp"
 
+#include "exc.hpp"
+#include "plugin-set.hpp"
+
 namespace bt2 {
-namespace internal {
-
-struct PluginSetRefFuncs
-{
-    static void get(const bt_plugin_set * const libObjPtr) noexcept
-    {
-        bt_plugin_set_get_ref(libObjPtr);
-    }
-
-    static void put(const bt_plugin_set * const libObjPtr) noexcept
-    {
-        bt_plugin_set_put_ref(libObjPtr);
-    }
-};
-
-} /* namespace internal */
-
-class ConstPluginSet final : public BorrowedObject<const bt_plugin_set>
-{
-public:
-    using Shared = SharedObject<ConstPluginSet, const bt_plugin_set, internal::PluginSetRefFuncs>;
-
-    explicit ConstPluginSet(const bt_plugin_set * const plugin_set) :
-        _ThisBorrowedObject {plugin_set}
-    {
-    }
-
-    std::uint64_t length() const noexcept
-    {
-        return bt_plugin_set_get_plugin_count(this->libObjPtr());
-    }
-};
 
 inline ConstPluginSet::Shared findAllPluginsFromDir(const bt2c::CStringView path,
                                                     const bool recurse, const bool failOnLoadError)

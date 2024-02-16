@@ -4,13 +4,13 @@
  * Copyright (C) 2024 EfficiOS, Inc.
  */
 
-#include <cpp-common/bt2/plugin.hpp>
-
-#include <cpp-common/vendor/fmt/format.h>
-
 #include <babeltrace2/babeltrace.h>
 
+#include "common/common.h"
+#include "cpp-common/bt2/exc.hpp"
+#include "cpp-common/bt2/plugin.hpp"
 #include "cpp-common/bt2c/c-string-view.hpp"
+#include "cpp-common/vendor/fmt/core.h"
 
 #include "tap/tap.h"
 

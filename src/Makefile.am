@@ -135,6 +135,7 @@ cpp_common_libcpp_common_la_SOURCES = \
 	cpp-common/bt2/message.hpp \
 	cpp-common/bt2/optional-borrowed-object.hpp \
 	cpp-common/bt2/plugin-dev.hpp \
+	cpp-common/bt2/plugin-set.hpp \
 	cpp-common/bt2/plugin.hpp \
 	cpp-common/bt2/private-query-executor.hpp \
 	cpp-common/bt2/query-executor.hpp \
