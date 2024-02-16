@@ -4,8 +4,6 @@
  * Copyright (C) 2020-2023 EfficiOS, inc.
  */
 
-#include <utility>
-
 #include "common/assert.h"
 #include "cpp-common/bt2/component-class-dev.hpp"
 #include "cpp-common/bt2/component-class.hpp"
@@ -17,14 +15,19 @@
 
 #include "run-in.hpp"
 
-namespace {
-
-struct RunInData final
+void RunIn::onQuery(bt2::SelfComponentClass)
 {
-    RunInCompClsQueryFunc compClsCtxFunc;
-    RunInCompClsInitFunc compCtxFunc;
-    RunInMsgIterClsInitFunc msgIterCtxFunc;
-};
+}
+
+void RunIn::onCompInit(bt2::SelfComponent)
+{
+}
+
+void RunIn::onMsgIterInit(bt2::SelfMessageIterator)
+{
+}
+
+namespace {
 
 class RunInSource;
 
@@ -36,11 +39,7 @@ public:
                                 const bt2::SelfComponentOutputPort port) :
         bt2::UserMessageIterator<RunInSourceMsgIter, RunInSource> {self, "RUN-IN-SRC-MSG-ITER"}
     {
-        const auto& data = port.data<const RunInData>();
-
-        if (data.msgIterCtxFunc) {
-            data.msgIterCtxFunc(self);
-        }
+        port.data<RunIn>().onMsgIterInit(self);
     }
 
     void _next(bt2::ConstMessageArray&)
@@ -49,56 +48,46 @@ public:
 };
 
 class RunInSource final :
-    public bt2::UserSourceComponent<RunInSource, RunInSourceMsgIter, const RunInData,
-                                    const RunInData>
+    public bt2::UserSourceComponent<RunInSource, RunInSourceMsgIter, RunIn, RunIn>
 {
 public:
     static constexpr auto name = "run-in-src";
 
     explicit RunInSource(const bt2::SelfSourceComponent self, bt2::ConstMapValue,
-                         const RunInData * const runInData) :
-        bt2::UserSourceComponent<RunInSource, RunInSourceMsgIter, const RunInData,
-                                 const RunInData> {self, "RUN-IN-SRC"},
-        _mRunInData {runInData}
+                         RunIn * const runIn) :
+        bt2::UserSourceComponent<RunInSource, RunInSourceMsgIter, RunIn, RunIn> {self,
+                                                                                 "RUN-IN-SRC"},
+        _mRunIn {runIn}
     {
-        this->_addOutputPort("out", *runInData);
-
-        if (_mRunInData->compCtxFunc) {
-            _mRunInData->compCtxFunc(self);
-        }
+        this->_addOutputPort("out", *runIn);
+        _mRunIn->onCompInit(self);
     }
 
     static bt2::Value::Shared _query(const bt2::SelfComponentClass self, bt2::PrivateQueryExecutor,
-                                     bt2c::CStringView, bt2::ConstValue,
-                                     const RunInData * const data)
+                                     bt2c::CStringView, bt2::ConstValue, RunIn *data)
     {
-        if (data->compClsCtxFunc) {
-            data->compClsCtxFunc(self);
-        }
-
+        data->onQuery(self);
         return bt2::NullValue {}.shared();
     }
 
 private:
-    const RunInData *_mRunInData;
+    RunIn *_mRunIn;
 };
 
 } /* namespace */
 
-void runIn(RunInCompClsQueryFunc compClsCtxFunc, RunInCompClsInitFunc compCtxFunc,
-           RunInMsgIterClsInitFunc msgIterCtxFunc)
+void runIn(RunIn& runIn)
 {
-    RunInData data {std::move(compClsCtxFunc), std::move(compCtxFunc), std::move(msgIterCtxFunc)};
     const auto srcCompCls = bt2::SourceComponentClass::create<RunInSource>();
 
-    /* Execute a query (executes `compClsCtxFunc`) */
-    bt2::QueryExecutor::create(*srcCompCls, "object-name", data)->query();
+    /* Execute a query */
+    bt2::QueryExecutor::create(*srcCompCls, "object-name", runIn)->query();
 
     /* Create graph */
     const auto graph = bt2::Graph::create(0);
 
     /* Add custom source component (executes `compCtxFunc`) */
-    const auto srcComp = graph->addComponent(*srcCompCls, "the-source", data);
+    const auto srcComp = graph->addComponent(*srcCompCls, "the-source", runIn);
 
     /* Add dummy sink component */
     const auto sinkComp = bt2c::call([&] {
@@ -124,19 +113,4 @@ void runIn(RunInCompClsQueryFunc compClsCtxFunc, RunInCompClsInitFunc compCtxFun
 
     /* Run graph (executes `msgIterCtxFunc`) */
     graph->run();
-}
-
-void runInCompClsQuery(RunInCompClsQueryFunc func)
-{
-    runIn(std::move(func), nullptr, nullptr);
-}
-
-void runInCompClsInit(RunInCompClsInitFunc func)
-{
-    runIn(nullptr, std::move(func), nullptr);
-}
-
-void runInMsgIterClsInit(RunInMsgIterClsInitFunc func)
-{
-    runIn(nullptr, nullptr, std::move(func));
 }

@@ -7,46 +7,43 @@
 #ifndef TESTS_LIB_UTILS_H
 #define TESTS_LIB_UTILS_H
 
-#include <functional>
-
 #include <babeltrace2/babeltrace.h>
 
 #include "cpp-common/bt2/self-component-class.hpp"
 #include "cpp-common/bt2/self-component-port.hpp"
 #include "cpp-common/bt2/self-message-iterator.hpp"
 
-using RunInCompClsQueryFunc = std::function<void(bt2::SelfComponentClass)>;
-using RunInCompClsInitFunc = std::function<void(bt2::SelfComponent)>;
-using RunInMsgIterClsInitFunc = std::function<void(bt2::SelfMessageIterator)>;
-
 /*
- * Runs:
+ * Base class from which to inherit to call runIn().
  *
- * • `compClsCtxFunc` in the context of a component class method,
- *   if not `nullptr`.
- *
- * • `compCtxFunc` in the context of a component method, if not
- *   `nullptr`.
- *
- * • `msgIterCtxFunc` in the context of a message iterator method, if
- *   not `nullptr`.
+ * Override any of the on*() methods to get your statements executed in
+ * a specific context.
  */
-void runIn(RunInCompClsQueryFunc compClsCtxFunc, RunInCompClsInitFunc compCtxFunc,
-           RunInMsgIterClsInitFunc msgIterCtxFunc);
+class RunIn
+{
+public:
+    virtual ~RunIn() = default;
+
+    /*
+     * Called when querying the component class `self`.
+     */
+    virtual void onQuery(bt2::SelfComponentClass self);
+
+    /*
+     * Called when initializing the component `self`.
+     */
+    virtual void onCompInit(bt2::SelfComponent self);
+
+    /*
+     * Called when initializing the message iterator `self`.
+     */
+    virtual void onMsgIterInit(bt2::SelfMessageIterator self);
+};
 
 /*
- * Runs `func` in the context of a component class method.
+ * Runs a simple graph (one source and one sink component), calling the
+ * `on*()` methods of `runIn` along the way.
  */
-void runInCompClsQuery(RunInCompClsQueryFunc func);
-
-/*
- * Runs `func` in the context of a component method.
- */
-void runInCompClsInit(RunInCompClsInitFunc func);
-
-/*
- * Runs `func` in the context of a message iterator method.
- */
-void runInMsgIterClsInit(RunInMsgIterClsInitFunc func);
+void runIn(RunIn& runIn);
 
 #endif /* TESTS_LIB_UTILS_H */

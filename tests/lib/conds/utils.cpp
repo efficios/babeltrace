@@ -13,65 +13,55 @@
 #include "cpp-common/vendor/fmt/core.h"
 #include "cpp-common/vendor/nlohmann/json.hpp"
 
-#include "../utils/run-in.hpp"
 #include "utils.hpp"
+
+CondTrigger::CondTrigger(const Type type, const std::string& condId,
+                         const bt2s::optional<std::string>& nameSuffix) noexcept :
+    _mType {type},
+    _mCondId {fmt::format("{}:{}", type == Type::PRE ? "pre" : "post", condId)},
+    _mName {
+        fmt::format("{}{}{}", condId, nameSuffix ? "-" : "", nameSuffix ? nameSuffix->data() : "")}
+{
+}
+
+SimpleCondTrigger::SimpleCondTrigger(std::function<void()> func, const Type type,
+                                     const std::string& condId,
+                                     const bt2s::optional<std::string>& nameSuffix) :
+    CondTrigger {type, condId, nameSuffix},
+    _mFunc {std::move(func)}
+{
+}
 
 namespace {
 
-void runTrigger(const cond_trigger& trigger) noexcept
+void listCondTriggers(const CondTriggers condTriggers) noexcept
 {
-    switch (trigger.func_type) {
-    case COND_TRIGGER_FUNC_TYPE_BASIC:
-        trigger.func.basic();
-        break;
-    case COND_TRIGGER_FUNC_TYPE_RUN_IN_COMP_CLS_INIT:
-        runInCompClsInit(trigger.func.run_in_comp_cls_init);
-        break;
-    default:
-        abort();
-    }
-}
+    auto condTriggerArray = nlohmann::json::array();
 
-void listTriggers(const bt2s::span<const cond_trigger> triggers) noexcept
-{
-    auto triggerArray = nlohmann::json::array();
-
-    for (auto& trigger : triggers) {
-        auto triggerObj = nlohmann::json::object();
-
-        /* Condition ID */
-        triggerObj["cond-id"] = trigger.cond_id;
-
-        /* Name starts with condition ID */
-        std::string name = trigger.cond_id;
-
-        if (trigger.suffix) {
-            name += '-';
-            name += trigger.suffix;
-        }
-
-        triggerObj["name"] = std::move(name);
-        triggerArray.push_back(std::move(triggerObj));
+    for (const auto condTrigger : condTriggers) {
+        condTriggerArray.push_back(nlohmann::json {
+            {"cond-id", condTrigger->condId()},
+            {"name", condTrigger->name()},
+        });
     }
 
-    fmt::println("{}", triggerArray.dump());
+    fmt::println("{}", condTriggerArray.dump());
 }
 
 } /* namespace */
 
-void condMain(const int argc, const char ** const argv,
-              const bt2s::span<const cond_trigger> triggers) noexcept
+void condMain(const int argc, const char ** const argv, const CondTriggers condTriggers) noexcept
 {
     BT_ASSERT(argc >= 2);
 
     if (strcmp(argv[1], "list") == 0) {
-        listTriggers(triggers);
+        listCondTriggers(condTriggers);
     } else if (strcmp(argv[1], "run") == 0) {
-        int index;
-
         BT_ASSERT(argc >= 3);
-        index = atoi(argv[2]);
-        BT_ASSERT(index >= 0 && index < triggers.size());
-        runTrigger(triggers[index]);
+
+        const auto index = atoi(argv[2]);
+
+        BT_ASSERT(index >= 0 && index < condTriggers.size());
+        (*condTriggers[index])();
     }
 }

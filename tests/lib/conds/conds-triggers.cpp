@@ -4,52 +4,105 @@
  * Copyright (C) 2020 Philippe Proulx <pproulx@efficios.com>
  */
 
+#include <utility>
+
 #include <babeltrace2/babeltrace.h>
+
+#include "cpp-common/bt2/graph.hpp"
 
 #include "utils.hpp"
 
 namespace {
 
-void triggerGraphMipVersion() noexcept
+/*
+ * Creates a simple condition trigger, calling `func`.
+ */
+template <typename FuncT>
+CondTrigger *makeSimpleTrigger(FuncT&& func, const CondTrigger::Type type,
+                               const std::string& condId,
+                               const bt2s::optional<std::string>& nameSuffix = bt2s::nullopt)
 {
-    bt_graph_create(292);
+    return new SimpleCondTrigger {std::forward<FuncT>(func), type, condId, nameSuffix};
 }
 
-bt2::IntegerFieldClass::Shared getUIntFc(const bt2::SelfComponent self) noexcept
+using OnCompInitFunc = std::function<void(bt2::SelfComponent)>;
+
+/*
+ * A "run in" class that delegates the execution to stored callables.
+ *
+ * Use the makeRunIn*Trigger() helpers below.
+ */
+class RunInDelegator final : public RunIn
+{
+public:
+    static RunInDelegator makeOnCompInit(OnCompInitFunc func)
+    {
+        return RunInDelegator {std::move(func)};
+    }
+
+    void onCompInit(const bt2::SelfComponent self) override
+    {
+        if (_mOnCompInitFunc) {
+            _mOnCompInitFunc(self);
+        }
+    }
+
+private:
+    explicit RunInDelegator(OnCompInitFunc onCompInitFunc) :
+        _mOnCompInitFunc {std::move(onCompInitFunc)}
+    {
+    }
+
+    OnCompInitFunc _mOnCompInitFunc;
+};
+
+/*
+ * Creates a condition trigger, calling `func` in a component
+ * initialization context.
+ */
+CondTrigger *makeRunInCompInitTrigger(OnCompInitFunc func, const CondTrigger::Type type,
+                                      const std::string& condId,
+                                      const bt2s::optional<std::string>& nameSuffix = bt2s::nullopt)
+{
+    return new RunInCondTrigger<RunInDelegator> {RunInDelegator::makeOnCompInit(std::move(func)),
+                                                 type, condId, nameSuffix};
+}
+
+bt2::IntegerFieldClass::Shared createUIntFc(const bt2::SelfComponent self)
 {
     return self.createTraceClass()->createUnsignedIntegerFieldClass();
 }
 
-void triggerFcIntSetFieldValueRangeN0(const bt2::SelfComponent self) noexcept
-{
-    getUIntFc(self)->fieldValueRange(0);
-}
+/* Our condition triggers */
+CondTrigger * const triggers[] = {
+    makeSimpleTrigger(
+        [] {
+            bt2::Graph::create(292);
+        },
+        CondTrigger::Type::PRE, "graph-create:valid-mip-version"),
 
-void triggerFcIntSetFieldValueRangeNGt64(const bt2::SelfComponent self) noexcept
-{
-    getUIntFc(self)->fieldValueRange(65);
-}
+    makeRunInCompInitTrigger(
+        [](const bt2::SelfComponent self) {
+            createUIntFc(self)->fieldValueRange(0);
+        },
+        CondTrigger::Type::PRE, "field-class-integer-set-field-value-range:valid-n", "0"),
 
-void triggerFcIntSetFieldValueRangeNull(bt2::SelfComponent) noexcept
-{
-    bt_field_class_integer_set_field_value_range(NULL, 23);
-}
+    makeRunInCompInitTrigger(
+        [](const bt2::SelfComponent self) {
+            createUIntFc(self)->fieldValueRange(65);
+        },
+        CondTrigger::Type::PRE, "field-class-integer-set-field-value-range:valid-n", "gt-64"),
 
-const cond_trigger triggers[] = {
-    COND_TRIGGER_PRE_BASIC("pre:graph-create:valid-mip-version", NULL, triggerGraphMipVersion),
-    COND_TRIGGER_PRE_RUN_IN_COMP_CLS_INIT("pre:field-class-integer-set-field-value-range:valid-n",
-                                          "0", triggerFcIntSetFieldValueRangeN0),
-    COND_TRIGGER_PRE_RUN_IN_COMP_CLS_INIT("pre:field-class-integer-set-field-value-range:valid-n",
-                                          "gt-64", triggerFcIntSetFieldValueRangeNGt64),
-    COND_TRIGGER_PRE_RUN_IN_COMP_CLS_INIT(
-        "pre:field-class-integer-set-field-value-range:not-null:field-class", NULL,
-        triggerFcIntSetFieldValueRangeNull),
+    makeSimpleTrigger(
+        [] {
+            bt_field_class_integer_set_field_value_range(nullptr, 23);
+        },
+        CondTrigger::Type::PRE, "field-class-integer-set-field-value-range:not-null:field-class"),
 };
 
 } /* namespace */
 
-int main(int argc, const char *argv[])
+int main(const int argc, const char ** const argv)
 {
     condMain(argc, argv, triggers);
-    return 0;
 }

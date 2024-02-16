@@ -14,9 +14,11 @@ namespace {
 
 constexpr int NR_TESTS = 2;
 
-void testStringClear() noexcept
+class TestStringClear final : public RunIn
 {
-    runInMsgIterClsInit([](const bt2::SelfMessageIterator self) {
+public:
+    void onMsgIterInit(const bt2::SelfMessageIterator self) override
+    {
         /* Boilerplate to get a string field */
         const auto traceCls = self.component().createTraceClass();
         const auto streamCls = traceCls->createStreamClass();
@@ -39,8 +41,8 @@ void testStringClear() noexcept
         field.clear();
         ok(field.value() == "", "string field is empty");
         ok(field.length() == 0, "string field length is 0");
-    });
-}
+    }
+};
 
 } /* namespace */
 
@@ -48,7 +50,8 @@ int main()
 {
     plan_tests(NR_TESTS);
 
-    testStringClear();
+    TestStringClear testStringClear;
+    runIn(testStringClear);
 
     return exit_status();
 }

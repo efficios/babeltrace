@@ -7,71 +7,173 @@
 #ifndef TESTS_LIB_CONDS_UTILS_H
 #define TESTS_LIB_CONDS_UTILS_H
 
+#include <functional>
+#include <string>
+#include <utility>
+
 #include <babeltrace2/babeltrace.h>
 
-#include "cpp-common/bt2/self-component-port.hpp"
+#include "cpp-common/bt2s/optional.hpp"
 #include "cpp-common/bt2s/span.hpp"
 
-enum cond_trigger_func_type
-{
-    COND_TRIGGER_FUNC_TYPE_BASIC,
-    COND_TRIGGER_FUNC_TYPE_RUN_IN_COMP_CLS_INIT,
-};
+#include "../utils/run-in.hpp"
 
-enum cond_trigger_type
+/*
+ * Abstract condition trigger class.
+ *
+ * A derived class must provide operator()() which triggers a condition
+ * of which the specific type (precondition or postcondition) and ID are
+ * provided at construction time.
+ */
+class CondTrigger
 {
-    COND_TRIGGER_TYPE_PRE,
-    COND_TRIGGER_TYPE_POST,
-};
-
-typedef void (*cond_trigger_basic_func)(void);
-typedef void (*cond_trigger_run_in_comp_cls_init_func)(bt2::SelfComponent);
-
-struct cond_trigger
-{
-    enum cond_trigger_type type;
-    enum cond_trigger_func_type func_type;
-    const char *cond_id;
-    const char *suffix;
-    union
+public:
+    /*
+     * Condition type.
+     */
+    enum class Type
     {
-        cond_trigger_basic_func basic;
-        cond_trigger_run_in_comp_cls_init_func run_in_comp_cls_init;
-    } func;
+        PRE,
+        POST,
+    };
+
+protected:
+    /*
+     * Builds a condition trigger having the type `type`, the condition
+     * ID `condId` (_without_ any `pre:` or `post:` prefix), and the
+     * optional name suffix `nameSuffix`.
+     *
+     * The concatenation of `condId` and, if it's set, `-` and
+     * `*nameSuffix`, forms the name of the condition trigger. Get the
+     * name of the created condition trigger with name().
+     */
+    explicit CondTrigger(Type type, const std::string& condId,
+                         const bt2s::optional<std::string>& nameSuffix) noexcept;
+
+public:
+    virtual ~CondTrigger() = default;
+    virtual void operator()() noexcept = 0;
+
+    Type type() const noexcept
+    {
+        return _mType;
+    }
+
+    /*
+     * Condition ID, including any `pre:` or `post:` prefix.
+     */
+    const std::string& condId() const noexcept
+    {
+        return _mCondId;
+    }
+
+    const std::string& name() const noexcept
+    {
+        return _mName;
+    }
+
+private:
+    Type _mType;
+    std::string _mCondId;
+    std::string _mName;
 };
 
-#define COND_TRIGGER_PRE_BASIC(_cond_id, _suffix, _func)                                           \
-    {                                                                                              \
-        .type = COND_TRIGGER_TYPE_PRE, .func_type = COND_TRIGGER_FUNC_TYPE_BASIC,                  \
-        .cond_id = _cond_id, .suffix = _suffix, .func = {                                          \
-            .basic = _func,                                                                        \
-        }                                                                                          \
+/*
+ * Simple condition trigger.
+ *
+ * Implements a condition trigger where a function provided at
+ * construction time triggers a condition.
+ */
+class SimpleCondTrigger : public CondTrigger
+{
+public:
+    explicit SimpleCondTrigger(std::function<void()> func, Type type, const std::string& condId,
+                               const bt2s::optional<std::string>& nameSuffix = bt2s::nullopt);
+
+    void operator()() noexcept override
+    {
+        _mFunc();
     }
 
-#define COND_TRIGGER_POST_BASIC(_cond_id, _suffix, _func)                                          \
-    {                                                                                              \
-        .type = COND_TRIGGER_TYPE_POST, .func_type = COND_TRIGGER_FUNC_TYPE_BASIC,                 \
-        .cond_id = _cond_id, .suffix = _suffix, .func = {                                          \
-            .basic = _func,                                                                        \
-        }                                                                                          \
+private:
+    std::function<void()> _mFunc;
+};
+
+/*
+ * Run-in condition trigger.
+ *
+ * Implements a condition trigger of which the triggering function
+ * happens in a graph or component class query context using the
+ * runIn() API.
+ */
+template <typename RunInT>
+class RunInCondTrigger : public CondTrigger
+{
+public:
+    explicit RunInCondTrigger(RunInT runIn, const Type type, const std::string& condId,
+                              const bt2s::optional<std::string>& nameSuffix = bt2s::nullopt) :
+        CondTrigger {type, condId, nameSuffix},
+        _mRunIn {std::move(runIn)}
+    {
     }
 
-#define COND_TRIGGER_PRE_RUN_IN_COMP_CLS_INIT(_cond_id, _suffix, _func)                            \
-    {                                                                                              \
-        .type = COND_TRIGGER_TYPE_PRE, .func_type = COND_TRIGGER_FUNC_TYPE_RUN_IN_COMP_CLS_INIT,   \
-        .cond_id = _cond_id, .suffix = _suffix, .func = {                                          \
-            .run_in_comp_cls_init = _func,                                                         \
-        }                                                                                          \
+    explicit RunInCondTrigger(const Type type, const std::string& condId,
+                              const bt2s::optional<std::string>& nameSuffix = bt2s::nullopt) :
+        RunInCondTrigger {RunInT {}, type, condId, nameSuffix}
+    {
     }
 
-#define COND_TRIGGER_POST_RUN_IN_COMP_CLS_INIT(_cond_id, _suffix, _func)                           \
-    {                                                                                              \
-        .type = COND_TRIGGER_TYPE_POST, .func_type = COND_TRIGGER_FUNC_TYPE_RUN_IN_COMP_CLS_INIT,  \
-        .cond_id = _cond_id, .suffix = _suffix, .func = {                                          \
-            .run_in_comp_cls_init = _func,                                                         \
-        }                                                                                          \
+    void operator()() noexcept override
+    {
+        runIn(_mRunIn);
     }
 
-void condMain(int argc, const char **argv, bt2s::span<const cond_trigger> triggers) noexcept;
+private:
+    RunInT _mRunIn;
+};
+
+/*
+ * List of condition triggers.
+ */
+using CondTriggers = bt2s::span<CondTrigger * const>;
+
+/*
+ * The entry point of a condition trigger program.
+ *
+ * Call this from your own main() with your list of condition triggers
+ * `triggers`.
+ *
+ * Each condition trigger of `triggers` must have a unique name, as
+ * returned by CondTrigger::name().
+ *
+ * This function uses `argc` and `argv` to respond to one of the
+ * following commands:
+ *
+ * `list`:
+ *     Prints a list of condition triggers as a JSON array of objects.
+ *
+ *     Each JSON object has:
+ *
+ *     `cond-id`:
+ *         The condition ID of the trigger, as returned by
+ *         CondTrigger:condId().
+ *
+ *     `name`:
+ *         The condition ID name, as returned by CondTrigger::name().
+ *
+ * `run`:
+ *     Runs the triggering function of the condition trigger at the
+ *     index specified by the next command-line argument.
+ *
+ *     For example,
+ *
+ *         $ my-cond-trigger-program run 45
+ *
+ *     would run the function of the condition trigger `triggers[45]`.
+ *
+ *     The program is expected to abort through a libbabeltrace2
+ *     condition failure.
+ */
+void condMain(int argc, const char **argv, CondTriggers triggers) noexcept;
 
 #endif /* TESTS_LIB_CONDS_UTILS_H */
