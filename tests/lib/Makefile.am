@@ -20,6 +20,16 @@ test_fields_bin_LDADD = $(COMMON_TEST_LDADD) \
 	$(top_builddir)/src/lib/libbabeltrace2.la \
 	$(top_builddir)/src/cpp-common/vendor/fmt/libfmt.la
 
+if ENABLE_BUILT_IN_PLUGINS
+
+include $(top_srcdir)/src/Makefile.common.inc
+
+test_fields_bin_LDFLAGS = $(call pluginarchive,utils)
+test_fields_bin_LDADD += \
+	$(top_builddir)/src/plugins/common/param-validation/libparam-validation.la
+
+endif # ENABLE_BUILT_IN_PLUGINS
+
 test_bt_uuid_SOURCES = test-bt-uuid.c
 test_bt_uuid_LDADD = $(COMMON_TEST_LDADD)
 

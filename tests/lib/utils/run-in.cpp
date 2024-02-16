@@ -10,7 +10,10 @@
 #include "cpp-common/bt2/component-class-dev.hpp"
 #include "cpp-common/bt2/component-class.hpp"
 #include "cpp-common/bt2/graph.hpp"
+#include "cpp-common/bt2/plugin-load.hpp"
+#include "cpp-common/bt2/plugin.hpp"
 #include "cpp-common/bt2/query-executor.hpp"
+#include "cpp-common/bt2c/call.hpp"
 
 #include "run-in.hpp"
 
@@ -80,31 +83,6 @@ private:
     const RunInData *_mRunInData;
 };
 
-class DummySink : public bt2::UserSinkComponent<DummySink>
-{
-public:
-    static constexpr auto name = "dummy";
-
-    explicit DummySink(const bt2::SelfSinkComponent self, bt2::ConstMapValue, void *) :
-        bt2::UserSinkComponent<DummySink>(self, "DUMMY-SINK")
-    {
-        this->_addInputPort("in");
-    }
-
-    void _graphIsConfigured()
-    {
-        _mMsgIter = this->_createMessageIterator(this->_inputPorts()["in"]);
-    }
-
-    bool _consume()
-    {
-        return _mMsgIter->next().has_value();
-    }
-
-private:
-    bt2::MessageIterator::Shared _mMsgIter;
-};
-
 } /* namespace */
 
 void runIn(RunInCompClsQueryFunc compClsCtxFunc, RunInCompClsInitFunc compCtxFunc,
@@ -123,8 +101,17 @@ void runIn(RunInCompClsQueryFunc compClsCtxFunc, RunInCompClsInitFunc compCtxFun
     const auto srcComp = graph->addComponent(*srcCompCls, "the-source", data);
 
     /* Add dummy sink component */
-    const auto sinkComp =
-        graph->addComponent(*bt2::SinkComponentClass::create<DummySink>(), "the-sink");
+    const auto sinkComp = bt2c::call([&] {
+        const auto utilsPlugin = bt2::findPlugin("utils");
+
+        BT_ASSERT(utilsPlugin);
+
+        const auto dummySinkCompCls = utilsPlugin->sinkComponentClasses()["dummy"];
+
+        BT_ASSERT(dummySinkCompCls);
+
+        return graph->addComponent(*dummySinkCompCls, "the-sink");
+    });
 
     /* Connect ports */
     const auto outPort = srcComp.outputPorts()["out"];
