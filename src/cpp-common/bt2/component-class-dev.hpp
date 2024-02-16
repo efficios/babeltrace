@@ -16,6 +16,7 @@
 #include "cpp-common/vendor/fmt/core.h"
 
 #include "exc.hpp"
+#include "internal/comp-cls-bridge.hpp"
 #include "private-query-executor.hpp"
 #include "self-component-port.hpp"
 
@@ -40,6 +41,9 @@ class UserComponent
 public:
     using InitData = InitDataT;
     using QueryData = QueryDataT;
+
+    static constexpr auto description = nullptr;
+    static constexpr auto help = nullptr;
 
 protected:
     explicit UserComponent(const SelfCompT selfComp, const std::string& logTag) :
@@ -76,6 +80,13 @@ private:
 
 /*
  * Base class of a user source component `UserComponentT` (CRTP).
+ *
+ * `UserComponentT` must define a static member `name` of type
+ * `const char *` to provide the name of the component class.
+ *
+ * `UserComponentT` may define the static members `description` and/or
+ * `help` of type `const char *` to provide the description and/or help
+ * of the component class.
  *
  * UserComponentT::UserComponentT() must accept, in this order:
  *
@@ -172,6 +183,13 @@ protected:
 
 /*
  * Base class of a user filter component `UserComponentT` (CRTP).
+ *
+ * `UserComponentT` must define a static member `name` of type
+ * `const char *` to provide the name of the component class.
+ *
+ * `UserComponentT` may define the static members `description` and/or
+ * `help` of type `const char *` to provide the description and/or help
+ * of the component class.
  *
  * UserComponentT::UserComponentT() must accept, in this order:
  *
@@ -296,6 +314,13 @@ protected:
 
 /*
  * Base class of a user sink component `UserComponentT` (CRTP).
+ *
+ * `UserComponentT` must define a static member `name` of type
+ * `const char *` to provide the name of the component class.
+ *
+ * `UserComponentT` may define the static members `description` and/or
+ * `help` of type `const char *` to provide the description and/or help
+ * of the component class.
  *
  * UserComponentT::UserComponentT() must accept, in this order:
  *
@@ -627,6 +652,217 @@ protected:
     bt2c::Logger _mLogger;
 };
 
+namespace internal {
+
+template <typename UserComponentT, typename CompClsBridgeT, typename LibSpecCompClsPtrT,
+          typename AsCompClsFuncT, typename SetInitMethodFuncT, typename SetFinalizeMethodFuncT,
+          typename SetGetSupportedMipVersionsMethodFuncT, typename SetQueryMethodFuncT>
+void setCompClsCommonProps(
+    LibSpecCompClsPtrT * const libSpecCompClsPtr, AsCompClsFuncT&& asCompClsFunc,
+    SetInitMethodFuncT&& setInitMethodFunc, SetFinalizeMethodFuncT&& setFinalizeMethodFunc,
+    SetGetSupportedMipVersionsMethodFuncT&& setGetSupportedMipVersionsMethodFunc,
+    SetQueryMethodFuncT&& setQueryMethodFunc)
+{
+    const auto libCompClsPtr = asCompClsFunc(libSpecCompClsPtr);
+
+    if (UserComponentT::description != nullptr) {
+        const auto status =
+            bt_component_class_set_description(libCompClsPtr, UserComponentT::description);
+
+        if (status == BT_COMPONENT_CLASS_SET_DESCRIPTION_STATUS_MEMORY_ERROR) {
+            throw MemoryError {};
+        }
+    }
+
+    if (UserComponentT::help != nullptr) {
+        const auto status = bt_component_class_set_help(libCompClsPtr, UserComponentT::help);
+
+        if (status == BT_COMPONENT_CLASS_SET_HELP_STATUS_MEMORY_ERROR) {
+            throw MemoryError {};
+        }
+    }
+
+    {
+        const auto status = setInitMethodFunc(libSpecCompClsPtr, CompClsBridgeT::init);
+
+        BT_ASSERT(status == BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK);
+    }
+
+    {
+        const auto status = setFinalizeMethodFunc(libSpecCompClsPtr, CompClsBridgeT::finalize);
+
+        BT_ASSERT(status == BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK);
+    }
+
+    {
+        const auto status = setGetSupportedMipVersionsMethodFunc(
+            libSpecCompClsPtr, CompClsBridgeT::getSupportedMipVersions);
+
+        BT_ASSERT(status == BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK);
+    }
+
+    {
+        const auto status = setQueryMethodFunc(libSpecCompClsPtr, CompClsBridgeT::query);
+
+        BT_ASSERT(status == BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK);
+    }
+}
+
+template <typename MsgIterClsBridgeT>
+bt_message_iterator_class *createLibMsgIterCls()
+{
+    const auto libMsgIterClsPtr = bt_message_iterator_class_create(MsgIterClsBridgeT::next);
+
+    if (!libMsgIterClsPtr) {
+        throw MemoryError {};
+    }
+
+    {
+        const auto status = bt_message_iterator_class_set_initialize_method(
+            libMsgIterClsPtr, MsgIterClsBridgeT::init);
+
+        BT_ASSERT(status == BT_MESSAGE_ITERATOR_CLASS_SET_METHOD_STATUS_OK);
+    }
+
+    {
+        const auto status = bt_message_iterator_class_set_finalize_method(
+            libMsgIterClsPtr, MsgIterClsBridgeT::finalize);
+
+        BT_ASSERT(status == BT_MESSAGE_ITERATOR_CLASS_SET_METHOD_STATUS_OK);
+    }
+
+    return libMsgIterClsPtr;
+}
+
+template <typename UserComponentT>
+bt_component_class_source *createSourceCompCls()
+{
+    static_assert(
+        std::is_base_of<UserSourceComponent<
+                            UserComponentT, typename UserComponentT::MessageIterator,
+                            typename UserComponentT::InitData, typename UserComponentT::QueryData>,
+                        UserComponentT>::value,
+        "`UserComponentT` inherits `UserSourceComponent`");
+
+    using CompClsBridge = internal::SrcCompClsBridge<UserComponentT>;
+    using MsgIterClsBridge = internal::MsgIterClsBridge<typename UserComponentT::MessageIterator>;
+
+    const auto libMsgIterClsPtr = createLibMsgIterCls<MsgIterClsBridge>();
+    const auto libCompClsPtr =
+        bt_component_class_source_create(UserComponentT::name, libMsgIterClsPtr);
+
+    bt_message_iterator_class_put_ref(libMsgIterClsPtr);
+
+    if (!libCompClsPtr) {
+        throw MemoryError {};
+    }
+
+    setCompClsCommonProps<UserComponentT, CompClsBridge>(
+        libCompClsPtr, bt_component_class_source_as_component_class,
+        bt_component_class_source_set_initialize_method,
+        bt_component_class_source_set_finalize_method,
+        bt_component_class_source_set_get_supported_mip_versions_method,
+        bt_component_class_source_set_query_method);
+
+    {
+        const auto status = bt_component_class_source_set_output_port_connected_method(
+            libCompClsPtr, CompClsBridge::outputPortConnected);
+
+        BT_ASSERT(status == BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK);
+    }
+
+    return libCompClsPtr;
+}
+
+template <typename UserComponentT>
+bt_component_class_filter *createFilterCompCls()
+{
+    static_assert(
+        std::is_base_of<UserFilterComponent<
+                            UserComponentT, typename UserComponentT::MessageIterator,
+                            typename UserComponentT::InitData, typename UserComponentT::QueryData>,
+                        UserComponentT>::value,
+        "`UserComponentT` inherits `UserFilterComponent`");
+
+    using CompClsBridge = internal::FltCompClsBridge<UserComponentT>;
+    using MsgIterClsBridge = internal::MsgIterClsBridge<typename UserComponentT::MessageIterator>;
+
+    const auto libMsgIterClsPtr = createLibMsgIterCls<MsgIterClsBridge>();
+    const auto libCompClsPtr =
+        bt_component_class_filter_create(UserComponentT::name, libMsgIterClsPtr);
+
+    bt_message_iterator_class_put_ref(libMsgIterClsPtr);
+
+    if (!libCompClsPtr) {
+        throw MemoryError {};
+    }
+
+    setCompClsCommonProps<UserComponentT, CompClsBridge>(
+        libCompClsPtr, bt_component_class_filter_as_component_class,
+        bt_component_class_filter_set_initialize_method,
+        bt_component_class_filter_set_finalize_method,
+        bt_component_class_filter_set_get_supported_mip_versions_method,
+        bt_component_class_filter_set_query_method);
+
+    {
+        const auto status = bt_component_class_filter_set_input_port_connected_method(
+            libCompClsPtr, CompClsBridge::inputPortConnected);
+
+        BT_ASSERT(status == BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK);
+    }
+
+    {
+        const auto status = bt_component_class_filter_set_output_port_connected_method(
+            libCompClsPtr, CompClsBridge::outputPortConnected);
+
+        BT_ASSERT(status == BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK);
+    }
+
+    return libCompClsPtr;
+}
+
+template <typename UserComponentT>
+bt_component_class_sink *createSinkCompCls()
+{
+    static_assert(
+        std::is_base_of<UserSinkComponent<UserComponentT, typename UserComponentT::InitData,
+                                          typename UserComponentT::QueryData>,
+                        UserComponentT>::value,
+        "`UserComponentT` inherits `UserSinkComponent`");
+
+    using CompClsBridge = internal::SinkCompClsBridge<UserComponentT>;
+
+    const auto libCompClsPtr =
+        bt_component_class_sink_create(UserComponentT::name, CompClsBridge::consume);
+
+    if (!libCompClsPtr) {
+        throw MemoryError {};
+    }
+
+    setCompClsCommonProps<UserComponentT, CompClsBridge>(
+        libCompClsPtr, bt_component_class_sink_as_component_class,
+        bt_component_class_sink_set_initialize_method, bt_component_class_sink_set_finalize_method,
+        bt_component_class_sink_set_get_supported_mip_versions_method,
+        bt_component_class_sink_set_query_method);
+
+    {
+        const auto status = bt_component_class_sink_set_graph_is_configured_method(
+            libCompClsPtr, CompClsBridge::graphIsConfigured);
+
+        BT_ASSERT(status == BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK);
+    }
+
+    {
+        const auto status = bt_component_class_sink_set_input_port_connected_method(
+            libCompClsPtr, CompClsBridge::inputPortConnected);
+
+        BT_ASSERT(status == BT_COMPONENT_CLASS_SET_METHOD_STATUS_OK);
+    }
+
+    return libCompClsPtr;
+}
+
+} /* namespace internal */
 } /* namespace bt2 */
 
 #endif /* BABELTRACE_CPP_COMMON_BT2_COMPONENT_CLASS_DEV_HPP */

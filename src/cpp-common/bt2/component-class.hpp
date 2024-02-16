@@ -12,6 +12,7 @@
 #include "cpp-common/bt2c/c-string-view.hpp"
 
 #include "borrowed-object.hpp"
+#include "component-class-dev.hpp"
 #include "shared-object.hpp"
 
 namespace bt2 {
@@ -175,6 +176,13 @@ public:
         return *this;
     }
 
+    template <typename UserComponentT>
+    static CommonSourceComponentClass<LibObjT>::Shared create()
+    {
+        return CommonSourceComponentClass::Shared::createWithoutRef(
+            internal::createSourceCompCls<UserComponentT>());
+    }
+
     bt2c::CStringView name() const noexcept
     {
         return this->_constComponentClass().name();
@@ -279,6 +287,13 @@ public:
         return *this;
     }
 
+    template <typename UserComponentT>
+    static CommonFilterComponentClass<LibObjT>::Shared create()
+    {
+        return CommonFilterComponentClass::Shared::createWithoutRef(
+            internal::createFilterCompCls<UserComponentT>());
+    }
+
     bt2c::CStringView name() const noexcept
     {
         return this->_constComponentClass().name();
@@ -381,6 +396,13 @@ public:
     {
         _ThisBorrowedObject::operator=(compCls);
         return *this;
+    }
+
+    template <typename UserComponentT>
+    static CommonSinkComponentClass<LibObjT>::Shared create()
+    {
+        return CommonSinkComponentClass::Shared::createWithoutRef(
+            internal::createSinkCompCls<UserComponentT>());
     }
 
     bt2c::CStringView name() const noexcept
