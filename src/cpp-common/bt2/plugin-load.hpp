@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-#ifndef BABELTRACE_CPP_COMMON_BT2_PLUGIN_HPP
-#define BABELTRACE_CPP_COMMON_BT2_PLUGIN_HPP
+#ifndef BABELTRACE_CPP_COMMON_BT2_PLUGIN_LOAD_HPP
+#define BABELTRACE_CPP_COMMON_BT2_PLUGIN_LOAD_HPP
 
 #include <babeltrace2/babeltrace.h>
 
@@ -38,4 +38,4 @@ inline ConstPluginSet::Shared findAllPluginsFromDir(const bt2c::CStringView path
 
 } /* namespace bt2 */
 
-#endif /* BABELTRACE_CPP_COMMON_BT2_PLUGIN_HPP */
+#endif /* BABELTRACE_CPP_COMMON_BT2_PLUGIN_LOAD_HPP */
