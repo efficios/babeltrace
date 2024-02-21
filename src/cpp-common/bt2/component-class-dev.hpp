@@ -599,6 +599,100 @@ protected:
         return _mSelfMsgIter.createMessageIterator(port);
     }
 
+    StreamBeginningMessage::Shared _createStreamBeginningMessage(const ConstStream stream) const
+    {
+        return _mSelfMsgIter.createStreamBeginningMessage(stream);
+    }
+
+    StreamEndMessage::Shared _createStreamEndMessage(const ConstStream stream) const
+    {
+        return _mSelfMsgIter.createStreamEndMessage(stream);
+    }
+
+    EventMessage::Shared _createEventMessage(const ConstEventClass eventCls,
+                                             const ConstStream stream) const
+    {
+        return _mSelfMsgIter.createEventMessage(eventCls, stream);
+    }
+
+    EventMessage::Shared _createEventMessage(const ConstEventClass eventCls,
+                                             const ConstStream stream,
+                                             const std::uint64_t clockSnapshotValue) const
+    {
+        return _mSelfMsgIter.createEventMessage(eventCls, stream, clockSnapshotValue);
+    }
+
+    EventMessage::Shared _createEventMessage(const ConstEventClass eventCls,
+                                             const ConstPacket packet) const
+    {
+        return _mSelfMsgIter.createEventMessage(eventCls, packet);
+    }
+
+    EventMessage::Shared _createEventMessage(const ConstEventClass eventCls,
+                                             const ConstPacket packet,
+                                             const std::uint64_t clockSnapshotValue) const
+    {
+        return _mSelfMsgIter.createEventMessage(eventCls, packet, clockSnapshotValue);
+    }
+
+    PacketBeginningMessage::Shared _createPacketBeginningMessage(const ConstPacket packet) const
+    {
+        return _mSelfMsgIter.createPacketBeginningMessage(packet);
+    }
+
+    PacketBeginningMessage::Shared
+    _createPacketBeginningMessage(const ConstPacket packet,
+                                  const std::uint64_t clockSnapshotValue) const
+    {
+        return _mSelfMsgIter.createPacketBeginningMessage(packet, clockSnapshotValue);
+    }
+
+    PacketEndMessage::Shared _createPacketEndMessage(const ConstPacket packet) const
+    {
+        return _mSelfMsgIter.createPacketEndMessage(packet);
+    }
+
+    PacketEndMessage::Shared _createPacketEndMessage(const ConstPacket packet,
+                                                     const std::uint64_t clockSnapshotValue) const
+    {
+        return _mSelfMsgIter.createPacketEndMessage(packet, clockSnapshotValue);
+    }
+
+    DiscardedEventsMessage::Shared _createDiscardedEventsMessage(const ConstStream stream)
+    {
+        return _mSelfMsgIter.createDiscardedEventsMessage(stream);
+    }
+
+    DiscardedEventsMessage::Shared
+    _createDiscardedEventsMessage(const ConstStream stream,
+                                  const std::uint64_t beginningClockSnapshotValue,
+                                  const std::uint64_t endClockSnapshotValue)
+    {
+        return _mSelfMsgIter.createDiscardedEventsMessage(stream, beginningClockSnapshotValue,
+                                                          endClockSnapshotValue);
+    }
+
+    DiscardedPacketsMessage::Shared _createDiscardedPacketsMessage(const ConstStream stream)
+    {
+        return _mSelfMsgIter.createDiscardedPacketsMessage(stream);
+    }
+
+    DiscardedPacketsMessage::Shared
+    _createDiscardedPacketsMessage(const ConstStream stream,
+                                   const std::uint64_t beginningClockSnapshotValue,
+                                   const std::uint64_t endClockSnapshotValue)
+    {
+        return _mSelfMsgIter.createDiscardedPacketsMessage(stream, beginningClockSnapshotValue,
+                                                           endClockSnapshotValue);
+    }
+
+    MessageIteratorInactivityMessage::Shared
+    _createMessageIteratorInactivityMessage(const ConstClockClass clockClass,
+                                            const std::uint64_t clockSnapshotValue)
+    {
+        return _mSelfMsgIter.createMessageIteratorInactivityMessage(clockClass, clockSnapshotValue);
+    }
+
     UserComponentT& _component() noexcept
     {
         return _mSelfMsgIter.component().template data<UserComponentT>();

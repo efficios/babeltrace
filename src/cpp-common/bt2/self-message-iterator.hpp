@@ -216,7 +216,7 @@ public:
     bt2::DiscardedEventsMessage::Shared
     createDiscardedEventsMessage(const bt2::ConstStream stream,
                                  const std::uint64_t beginningClockSnapshotValue,
-                                 const std::uint64_t endClockSnapshotValue)
+                                 const std::uint64_t endClockSnapshotValue) const
     {
         const auto libObjPtr = bt_message_discarded_events_create_with_default_clock_snapshots(
             this->libObjPtr(), stream.libObjPtr(), beginningClockSnapshotValue,
@@ -230,7 +230,7 @@ public:
     }
 
     bt2::DiscardedPacketsMessage::Shared
-    createDiscardedPacketsMessage(const bt2::ConstStream stream)
+    createDiscardedPacketsMessage(const bt2::ConstStream stream) const
     {
         const auto libObjPtr =
             bt_message_discarded_packets_create(this->libObjPtr(), stream.libObjPtr());
@@ -245,7 +245,7 @@ public:
     bt2::DiscardedPacketsMessage::Shared
     createDiscardedPacketsMessage(const bt2::ConstStream stream,
                                   const std::uint64_t beginningClockSnapshotValue,
-                                  const std::uint64_t endClockSnapshotValue)
+                                  const std::uint64_t endClockSnapshotValue) const
     {
         const auto libObjPtr = bt_message_discarded_packets_create_with_default_clock_snapshots(
             this->libObjPtr(), stream.libObjPtr(), beginningClockSnapshotValue,
@@ -260,7 +260,7 @@ public:
 
     bt2::MessageIteratorInactivityMessage::Shared
     createMessageIteratorInactivityMessage(const bt2::ConstClockClass clockClass,
-                                           const std::uint64_t clockSnapshotValue)
+                                           const std::uint64_t clockSnapshotValue) const
     {
         const auto libObjPtr = bt_message_message_iterator_inactivity_create(
             this->libObjPtr(), clockClass.libObjPtr(), clockSnapshotValue);
