@@ -51,7 +51,6 @@ protected:
     {
     }
 
-protected:
     bt2c::CStringView _name() const noexcept
     {
         return _mSelfComp.name();
