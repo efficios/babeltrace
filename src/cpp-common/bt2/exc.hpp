@@ -22,9 +22,7 @@ using TryAgain = bt2c::TryAgain;
 class UnknownObject : public std::exception
 {
 public:
-    explicit UnknownObject() noexcept : std::exception {}
-    {
-    }
+    explicit UnknownObject() noexcept = default;
 };
 
 } /* namespace bt2 */
