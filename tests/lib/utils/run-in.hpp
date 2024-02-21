@@ -38,6 +38,12 @@ public:
      * Called when initializing the message iterator `self`.
      */
     virtual void onMsgIterInit(bt2::SelfMessageIterator self);
+
+    /*
+     * Called within the "next" method of `self` to return the messages
+     * `msgs`.
+     */
+    virtual void onMsgIterNext(bt2::SelfMessageIterator self, bt2::ConstMessageArray& msgs);
 };
 
 /*

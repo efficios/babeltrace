@@ -27,6 +27,10 @@ void RunIn::onMsgIterInit(bt2::SelfMessageIterator)
 {
 }
 
+void RunIn::onMsgIterNext(bt2::SelfMessageIterator, bt2::ConstMessageArray&)
+{
+}
+
 namespace {
 
 class RunInSource;
@@ -37,14 +41,20 @@ public:
     explicit RunInSourceMsgIter(const bt2::SelfMessageIterator self,
                                 bt2::SelfMessageIteratorConfiguration,
                                 const bt2::SelfComponentOutputPort port) :
-        bt2::UserMessageIterator<RunInSourceMsgIter, RunInSource> {self, "RUN-IN-SRC-MSG-ITER"}
+        bt2::UserMessageIterator<RunInSourceMsgIter, RunInSource> {self, "RUN-IN-SRC-MSG-ITER"},
+        _mRunIn {&port.data<RunIn>()}, _mSelf {self}
     {
-        port.data<RunIn>().onMsgIterInit(self);
+        _mRunIn->onMsgIterInit(self);
     }
 
-    void _next(bt2::ConstMessageArray&)
+    void _next(bt2::ConstMessageArray& msgs)
     {
+        _mRunIn->onMsgIterNext(_mSelf, msgs);
     }
+
+private:
+    RunIn *_mRunIn;
+    bt2::SelfMessageIterator _mSelf;
 };
 
 class RunInSource final :
