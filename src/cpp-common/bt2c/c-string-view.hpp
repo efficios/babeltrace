@@ -180,7 +180,7 @@ private:
     const char *_mStr = nullptr;
 };
 
-static inline const char *format_as(const CStringView& str)
+inline const char *format_as(const CStringView& str)
 {
     return str ? *str : "(null)";
 }
