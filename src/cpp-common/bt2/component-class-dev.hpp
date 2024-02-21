@@ -487,18 +487,13 @@ protected:
     }
 
 public:
-    ~UserMessageIterator()
-    {
-        this->_resetError();
-    }
-
     void next(bt2::ConstMessageArray& messages)
     {
         /* Any saved error? Now is the time to throw */
         if (G_UNLIKELY(_mExcToThrowType != _ExcToThrowType::NONE)) {
             /* Move `_mSavedLibError`, if any, as current thread error */
             if (_mSavedLibError) {
-                BT_CURRENT_THREAD_MOVE_ERROR_AND_RESET(_mSavedLibError);
+                bt_current_thread_move_error(_mSavedLibError.release());
             }
 
             /* Throw the corresponding exception */
@@ -549,7 +544,7 @@ public:
                 "An error occurred, but there are {} messages to return: delaying the error reporting.",
                 messages.length());
             BT_ASSERT(!_mSavedLibError);
-            _mSavedLibError = bt_current_thread_take_error();
+            _mSavedLibError.reset(bt_current_thread_take_error());
         }
     }
 
@@ -629,10 +624,7 @@ private:
     void _resetError() noexcept
     {
         _mExcToThrowType = _ExcToThrowType::NONE;
-
-        if (_mSavedLibError) {
-            bt_error_release(_mSavedLibError);
-        }
+        _mSavedLibError.reset();
     }
 
     SelfMessageIterator _mSelfMsgIter;
@@ -646,7 +638,16 @@ private:
      * It also saves the type of the exception to throw the next time.
      */
     _ExcToThrowType _mExcToThrowType = _ExcToThrowType::NONE;
-    const bt_error *_mSavedLibError = nullptr;
+
+    struct LibErrorDeleter final
+    {
+        void operator()(const bt_error * const error) const noexcept
+        {
+            bt_error_release(error);
+        }
+    };
+
+    std::unique_ptr<const bt_error, LibErrorDeleter> _mSavedLibError;
 
 protected:
     bt2c::Logger _mLogger;
