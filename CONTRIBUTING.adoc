@@ -2,7 +2,7 @@
 
 = Babeltrace{nbsp}2 contributor's guide
 Jérémie Galarneau, Philippe Proulx
-1 December 2020
+22 February 2024
 :toc: left
 :toclevels: 3
 :icons: font
@@ -10,6 +10,7 @@ Jérémie Galarneau, Philippe Proulx
 :bt2: Babeltrace{nbsp}2
 :c-cpp: C/{cpp}
 :cpp11: {cpp}11
+:fmt: pass:[{fmt}]
 
 This is a partial contributor's guide for the
 https://babeltrace.org[{bt2}] project. If you have any
@@ -1609,7 +1610,8 @@ $ ./tests/utils/run-in-py-env.sh python3 ./tests/utils/python/testrunner.py \
 
 == {cpp} usage
 
-Some parts of {bt2} are written in {cpp}.
+A significant part and, in general, all the new code of {bt2} is written
+in {cpp}.
 
 This section shows what's important to know about {cpp} to contribute
 to {bt2}.
@@ -1622,12 +1624,202 @@ In other words, libbabeltrace2 _must_ expose a pure C99 API to preserve
 ABI compatibility over time.
 ====
 
-=== Standard and dependencies
+=== Standard
 
 The {bt2} project is configured to use the {cpp11} standard.
 
 {cpp11} makes it possible to build {bt2} with a broad range of
 compilers, from GCC{nbsp}4.8 and Clang{nbsp}3.3.
+
+=== Common {cpp} code
+
+Many parts of the project need common {cpp} code. You'll find all of it
+under `src/cpp-common`.
+
+In general, anything under a namespace named `internal` is internal to
+the API containing it. For example, everything under the `bt2::internal`
+namespace is internal to the `bt2` namespace and therefore isn't meant
+to be used outside the `src/cpp-common/bt2` directory.
+
+==== `bt2`: libbabeltrace2 {cpp} bindings
+
+`src/cpp-common/bt2` contains our internal {cpp} bindings of
+the libbabeltrace2 C{nbsp}API, under the `bt2` namespace.
+
+Those bindings are designed to have, as much as possible, no performance
+impact. Anything which inherits `bt2::BorrowedObject` contains a single
+libbabeltrace2 object pointer.
+
+Pass and return borrowed objects _by value_ (copy).
+
+In general, the following holds:
+
+[options="header,autowidth",cols="2"]
+|===
+|{cpp} expression
+|Equivalent C{nbsp}expression
+
+|`bt2::Xyz`
+|`bt_xyz *`
+
+|`const bt2::Xyz`
+|`bt_xyz * const`
+
+|`bt2::ConstXyz`
+|`const bt_xyz *`
+
+|`const bt2::ConstXyz`
+|`const bt_xyz * const`
+|===
+
+==== `bt2c`: general common {cpp} code
+
+Similar to the role of `src/common` for C code.
+
+In general, everything in here is under the `bt2c` namespace.
+
+Notable files are:
+
+`align.hpp`::
+    The `bt2c::align()` function template: a wrapper of
+    `src/common/align.h`.
+
+`c-string-view.hpp`::
+    The `bt2c::CStringView` class: a view on a constant null-terminated
+    C{nbsp}string.
++
+We have this because `bt2s::string_view` doesn't imply null termination,
+only a beginning and a length.
++
+A `bt2c::CStringView` instance is convertible to `const char *` and may
+be empty (the underlying pointer is null).
+
+`call.hpp`::
+    The `bt2c::call()` function template: a partial implementation of
+    https://en.cppreference.com/w/cpp/utility/functional[INVOKE].
++
+We use this mostly to assign the result of calling an immediately
+invoked function expression (lambda) to an `auto` variable without
+risking to assign the lambda itself, should we forget the calling
+parentheses:
++
+[source,cpp]
+----
+const auto res = bt2c::call([&] {
+    /* Complex initialization */
+});
+----
+
+`endian.hpp`::
+    Typed wrappers of `src/compat/endian.h`.
+
+`exc.hpp`::
+    Common exception classes.
+
+`fmt.hpp`::
+    Common https://fmt.dev/[{fmt}] formatters.
+
+`logging.hpp`::
+    The `bt2c::Logger` class and helper `BT_CPPLOG*()` macros for any
+    {cpp} logging.
++
+When possible, prefer using this over the C{nbsp}logging API.
++
+One important benefit is that this API uses {fmt} to format the logging
+message instead of `vsnprintf()`.
+
+`prio-heap.hpp`::
+    The `bt2c::PrioHeap` class template: an efficient heap data
+    structure.
+
+`read-fixed-len-int.hpp`::
+    The function templates `bt2c::readFixedLenInt()`,
+    `bt2c::readFixedLenIntLe()`, and `bt2c::readFixedLenIntBe()`: read a
+    fixed-length integer from a byte buffer.
+
+`safe-ops.hpp`::
+    The `bt2c::safe*()` function templates: arithmetic operations which
+    assert that there's no possible overflow.
+
+`std-int.hpp`::
+    The `bt2c::StdIntT` type alias template: becomes one of the
+    `std::*int*_t` types depending on its parameters.
++
+For example, `bt2c::StdIntT<32, true>` is `std::int32_t`.
+
+`type-traits.hpp`::
+    Common type traits.
+
+`uuid.hpp`::
+    The following classes:
+
+`bt2c::Uuid`:::
+    Container of a 16-byte
+    https://en.wikipedia.org/wiki/Universally_unique_identifier[UUID].
++
+Provides the static `generate()` method as well as conversion to
+`bt2c::UuidView`.
+
+`bt2c::UuidView`:::
+    View on a UUID (not a container).
++
+Provides byte access, comparison, as well as string conversion methods.
++
+Also provides conversion to `bt2c::Uuid`.
+
+`vector.hpp`::
+    The `bt2c::vectorFastRemove()` function template: remove an element
+    from an `std::vector` instance quickly when the order isn't
+    important.
+
+==== `bt2s`: drop-in replacements of {cpp}14 to {cpp}20 STL features
+
+Everything under the `bt2s` namespace has its equivalent under the `std`
+namespace, but in {cpp} versions we don't yet have access to, namely:
+
+`make_unique.hpp`::
+    `bt2s::make_unique()`, a drop-in replacement of `std::make_unique()`
+    ({cpp}14).
+
+`optional.hpp`::
+    Drop-in replacement of the `std::optional` API ({cpp}17).
+
+`span.hpp`::
+    Drop-in replacement of the `std::span` API ({cpp}20).
+
+`string-view.hpp`::
+    Drop-in replacement of the `std::string_view` API ({cpp}17).
+
+==== `vendor`: copies of {cpp} dependencies
+
+This directory contains copies of the source code of {cpp} dependencies
+to avoid packaging issues.
+
+They are:
+
+`fmt`::
+    https://fmt.dev/[{fmt}].
+
+`nlohmann`::
+    https://json.nlohmann.me/[JSON for Modern C++].
+
+`optional-lite`::
+    https://github.com/martinmoene/optional-lite[optional lite].
++
+IMPORTANT: Use the symbols of `src/cpp-common/bt2s/optional.hpp`, under
+the `bt2s` namespace, instead of using this directly.
+
+`span-lite`::
+    https://github.com/martinmoene/span-lite[span lite].
++
+IMPORTANT: Use the symbols of `src/cpp-common/bt2s/span.hpp`, under the
+`bt2s` namespace, instead of using this directly.
+
+`string_view-standalone`::
+    https://github.com/bitwizeshift/string_view-standalone[`string_view` Standalone].
++
+IMPORTANT: Use the symbols of `src/cpp-common/bt2s/string-view.hpp`,
+under the `bt2s` namespace, instead of using this directly.
 
 === Automake/Libtool requirements
 
@@ -1683,7 +1875,7 @@ To automatically format all the project's {cpp} files, run:
 $ ./tools/format-cpp.sh
 ----
 
-Pass a directory path to only format the {cpp} files it contains:
+To only format the {cpp} files of a given directory:
 
 ----
 $ ./tools/format-cpp.sh ./src/cli
@@ -1712,18 +1904,19 @@ $ FORMATTER='my-clang-format-15 -i' ./tools/format-cpp.sh
 
 * Use only lowercase letters and digits for namespaces: `mylib`, `bt2`.
 
-* Use the suffix `T` for type template parameters:
+* Use the `T` suffix for type template parameters and the `V` suffix for
+  non-type template parameters:
 +
 [source,cpp]
 ----
-template <typename NameT, typename ItemT>
+template <typename NameT, typename ItemT, unsigned int SizeV = 0>
 ----
 
-* Name a template parameter pack `Args`.
+* Name a template parameter pack `ArgTs`.
 +
 [source,cpp]
 ----
-template <typename NameT, typename... Args>
+template <typename NameT, typename... ArgTs>
 ----
 
 * Use an underscore prefix for private and protected methods and member
@@ -1731,12 +1924,17 @@ template <typename NameT, typename... Args>
 
 * Use the prefix `_m` for private and protected member variable names:
   `_mLogger`, `_mSize`, `_mFieldClass`.
++
+This is to avoid name clashes with private/protected getters/setters.
 
-* Name setters and getters like the property name, without `set` and
+* Name setters and getters like the property name, without the `set` and
   `get` prefixes.
 
 * Use the `is` or `has` prefix, if possible, to name the functions which
   return `bool`.
++
+However, try to keep the name readable. For example, prefer
+`colorIsBlue()` over `isColorBlue()`.
 
 === Coding convention
 
@@ -1758,25 +1956,145 @@ Here are a few important reminders:
 For a class named `MyClass`, name the corresponding files `my-class.hpp`
 and `my-class.cpp`.
 
-* When defining a class, put constructors as the first methods, whatever
-  their access (public/protected/private), then the destructor, and then
-  the rest.
+* Use the `inline` keyword, not `static inline`, for header-only
+  functions that are not templates.
 
-* Declare variables as close to where they are used as possible.
+* When defining a class, use this order:
++
+--
+. Friends (without any preceding access specifier).
+
+. Public types and type aliases.
++
+Private/protected types may be here too if they can't be lower.
+
+. Constructors, whatever their access.
+
+. Destructor (always public).
+
+. Copy-assignment and move-assignment operators.
+
+. Public methods.
+
+. Protected types and type aliases.
+
+. Protected methods.
+
+. Private types and type aliases.
+
+. Private methods.
+
+. Protected data members.
+
+. Private data members.
+--
+
+* Declare variables as close to where they're used as possible.
+
+* In general, try to avoid variables if it doesn't lead to more lines.
++
+For example, given:
++
+[source,cpp]
+----
+const auto size = getSize(myObj, 23);
+auto& obj = this->_objForSize(size);
+
+abc::sendObj(obj, SendOpts::WAIT);
+----
++
+Prefer this:
++
+[source,cpp]
+----
+abc::sendObj(this->_objForSize(getSize(myObj, 23)), SendOpts::WAIT);
+----
+
+* If you really need variables, then scope them to avoid "`leaking`"
+  them:
++
+[source,cpp]
+----
+doSomeStuff(123, &obj);
+
+{
+    const auto status = tryChange(obj);
+
+    BT_CPPLOGD("New status: {}.", status);
+    BT_ASSERT(status == Status::CONTINUE);
+}
+
+doMoreStuff(&obj);
+----
++
+This also means to either use a dedicated, named method/function or to
+use `bt2c::call()` with an immediately invoked function expression
+(lambda) to perform complex initialization of an ideally `const`
+variable:
++
+[source,cpp]
+----
+const auto size = bt2c::call([this] {
+    auto& sender = this->_curSender();
+
+    if (sender.strategy() == Strategy::ACK) {
+        return sender.strategySize();
+    } else if (sender.strategy() == Strategy::NACK) {
+        return 0;
+    }
+
+    return _mDefSize;
+});
+----
+
+* Always use `bt2c::call()` to call an immediately invoked function
+  expression (see the previous point).
+
+* If possible, initialize object members without a default value with
+  the initializer list of a constructor, not in the constructor body.
++
+If the initialization is complex, either use a dedicated, named
+method/function or `bt2c::call()` with an immediately invoked function
+expression (lambda):
++
+[source,cpp]
+----
+MyObj::MyObj(const std::size_t size) :
+    _mSize {size},
+    _mOtherObj {bt2c::call([size] {
+        /* Complex initialization here */
+    })}
+{
+}
+----
 
 * Use `auto` when possible.
++
+Use `auto&` instead of `const auto&` when you know that the type is
+`const` anyway.
++
+Don't use `auto *`.
 
-* Use `const` as much as possible, even for pointer
-  (`+const char* const+`) and numeric values (`const unsigned int`)
+* Use `const` as much as possible, even for pointers
+  (`+const char * const+`) and numeric values (`const unsigned int`)
   which never need to change.
 
+* Prefer the `pass:[MyObj myObj {...}]` initialization form over
+  `pass:[auto myObj = MyObj {...}]`.
+
 * Implement simple setters, getters, and one-liners in header files and
-  everything else that's not a template in source files.
+  everything else that's not a template in source files, including
+  constructors.
 
 * Make methods `const noexcept` or `const` as much as possible.
 
 * Make constructors `explicit` unless you really need an implicit
-  constructor (which is rare).
+  constructor (which is rare), including default constructors:
++
+[source,cpp]
+----
+explicit Meow();
+----
 
 * Use `std::unique_ptr` to manage memory when possible.
 +
@@ -1816,7 +2134,11 @@ If the value is optional:::
 
 * Use type aliases (`using`), not type definitions (`typedef`).
 
-* Use anonymous namespaces for local functions instead of `static`.
+* In a `.cpp` file, use anonymous namespaces for local symbols instead
+  of `static` or `inline`.
+
+* Prefer a function in an anonymous namespace in a `.cpp` file over a
+  private static method if it doesn't need private access to an object.
 
 * Don't pollute the global namespace:
 ** Don't use `using namespace xyz` anywhere.
@@ -1861,7 +2183,7 @@ Example:
 void Obj::doSomething(std::string str)
 {
     _mName = std::move(str);
-    // ...
+    /* ... */
 }
 ----
 
@@ -1873,9 +2195,8 @@ convention.
 [source,cpp]
 ----
 /*
+ * SPDX-FileCopyrightText: 2020 Harry Burnett <hburnett@reese.choco>
  * SPDX-License-Identifier: MIT
- *
- * Copyright 2020 Harry Burnett <hburnett@reese.choco>
  */
 
 #ifndef BABELTRACE_BABY_HPP
@@ -1894,6 +2215,8 @@ class Toy;
  */
 class Baby : public Human
 {
+    friend class Parent;
+
 public:
     using Toys = std::unordered_set<Toy>;
 
@@ -1901,20 +2224,22 @@ public:
     {
         MALE,
         FEMALE,
-        UNKNOWN,
+        OTHER,
     };
 
-    Baby() = default;
+    explicit Baby() = default;
     explicit Baby(const Toys& toys);
     Baby(const Baby&) = delete;
     Baby(Baby&&) = delete;
+
+protected:
+    explicit Baby(Gender initialGender = Gender::OTHER);
+
+public:
+    ~Baby();
     Baby& operator=(const Baby&) = delete;
     Baby& operator=(Baby&&) = delete;
 
-protected:
-    explicit Baby(Gender initialGender = Gender::UNKNOWN);
-
-public:
     /*
      * Eats `weight` grams of food.
      */
@@ -1950,9 +2275,9 @@ private:
     Toys _mToys;
 };
 
-} // namespace life
+} /* namespace life */
 
-#endif // BABELTRACE_BABY_HPP
+#endif /* BABELTRACE_BABY_HPP */
 ----
 ====
 
