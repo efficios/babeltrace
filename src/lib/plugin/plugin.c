@@ -50,20 +50,125 @@
 #include "plugin-so.h"
 #include "lib/func-status.h"
 
+#define PYTHON_PLUGIN_PROVIDER_NAME	"Python"
 #define PYTHON_PLUGIN_PROVIDER_FILENAME	"babeltrace2-python-plugin-provider." G_MODULE_SUFFIX
 #define PYTHON_PLUGIN_PROVIDER_DIR	BABELTRACE_PLUGIN_PROVIDERS_DIR
 #define PYTHON_PLUGIN_PROVIDER_SYM_NAME	bt_plugin_python_create_all_from_file
 #define PYTHON_PLUGIN_PROVIDER_SYM_NAME_STR	G_STRINGIFY(PYTHON_PLUGIN_PROVIDER_SYM_NAME)
 
+#define RUBY_PLUGIN_PROVIDER_NAME	"Ruby"
+#define RUBY_PLUGIN_PROVIDER_FILENAME	"babeltrace2-ruby-plugin-provider." G_MODULE_SUFFIX
+#define RUBY_PLUGIN_PROVIDER_DIR	BABELTRACE_PLUGIN_PROVIDERS_DIR
+#define RUBY_PLUGIN_PROVIDER_SYM_NAME	bt_plugin_ruby_create_all_from_file
+#define RUBY_PLUGIN_PROVIDER_SYM_NAME_STR	G_STRINGIFY(RUBY_PLUGIN_PROVIDER_SYM_NAME)
+
 #define APPEND_ALL_FROM_DIR_NFDOPEN_MAX	8
 
-/* Declare here to make sure definition in both ifdef branches are in sync. */
-static
-int init_python_plugin_provider(void);
 typedef int (*create_all_from_file_sym_type)(
 		const char *path,
 		bool fail_on_load_error,
 		struct bt_plugin_set **plugin_set_out);
+
+typedef int (*init_plugin_provider_type)(void);
+
+static inline
+int init_plugin_provider(
+		create_all_from_file_sym_type *create_all_from_file_sym,
+		GModule **plugin_provider_module,
+		const char *name,
+		const char *file_name,
+		const char *dir_name,
+		const char *sym_name)
+{
+	int status = BT_FUNC_STATUS_OK;
+	const char *provider_dir_envvar;
+	static const char * const provider_dir_envvar_name = "LIBBABELTRACE2_PLUGIN_PROVIDER_DIR";
+	char *provider_path = NULL;
+
+	if (*create_all_from_file_sym) {
+		goto end;
+	}
+
+	BT_LOGI("Loading %s plugin provider module.", name);
+
+	provider_dir_envvar = getenv(provider_dir_envvar_name);
+	if (provider_dir_envvar) {
+		provider_path = g_build_filename(provider_dir_envvar, file_name, NULL);
+		BT_LOGI("Using `%s` environment variable to find the %s "
+			"plugin provider: path=\"%s\"", name, provider_dir_envvar_name,
+			provider_path);
+	} else {
+		provider_path = g_build_filename(dir_name, file_name, NULL);
+		BT_LOGI("Using default path (`%s` environment variable is not "
+			"set) to find the %s plugin provider: path=\"%s\"",
+			provider_dir_envvar_name, name, provider_path);
+	}
+
+	*plugin_provider_module = g_module_open(provider_path, 0);
+	if (!*plugin_provider_module) {
+		/*
+		 * This is not an error. The whole point of having
+		 * external plugin providers is that they can be
+		 * missing and the Babeltrace library still works.
+		 */
+		BT_LOGI("Cannot open `%s`: %s: continuing without %s plugin support.",
+			provider_path, g_module_error(), name);
+		goto end;
+	}
+
+	if (!g_module_symbol(*plugin_provider_module, sym_name,
+			(gpointer) create_all_from_file_sym)) {
+		/*
+		 * This is an error because, since we found the
+		 * plugin provider shared object, we expect this symbol
+		 * to exist.
+		 */
+		BT_LIB_LOGE_APPEND_CAUSE(
+			"Cannot find the %s plugin provider loading symbol: "
+			"%s: continuing without %s plugin support: "
+			"file=\"%s\", symbol=\"%s\"",
+			name,
+			g_module_error(),
+			name,
+			provider_path,
+			sym_name);
+		status = BT_FUNC_STATUS_ERROR;
+		goto end;
+	}
+
+	BT_LOGI("Loaded %s plugin provider module: addr=%p",
+		name, *plugin_provider_module);
+
+end:
+	g_free(provider_path);
+
+	return status;
+}
+
+static inline
+void fini_plugin_provider(
+		GModule **plugin_provider_module,
+		const char *name)
+{
+	if (*plugin_provider_module) {
+		BT_LOGI("Unloading %s plugin provider module.", name);
+
+		if (!g_module_close(*plugin_provider_module)) {
+			/*
+			 * This occurs when the library is finalized: do
+			 * NOT append an error cause.
+			 */
+			BT_LOGE("Failed to close the %s plugin provider module: %s.",
+				name, g_module_error());
+		}
+
+		*plugin_provider_module = NULL;
+	}
+}
+
+/* Declare here to make sure definition in both ifdef branches are in sync. */
+static
+int init_python_plugin_provider(void);
 
 #ifdef BT_BUILT_IN_PYTHON_PLUGIN_SUPPORT
 #include <plugin/python-plugin-provider.h>
@@ -85,88 +190,61 @@ create_all_from_file_sym_type bt_plugin_python_create_all_from_file_sym;
 
 static
 int init_python_plugin_provider(void) {
-	int status = BT_FUNC_STATUS_OK;
-	const char *provider_dir_envvar;
-	static const char * const provider_dir_envvar_name = "LIBBABELTRACE2_PLUGIN_PROVIDER_DIR";
-	char *provider_path = NULL;
-
-	if (bt_plugin_python_create_all_from_file_sym) {
-		goto end;
-	}
-
-	BT_LOGI_STR("Loading Python plugin provider module.");
-
-	provider_dir_envvar = getenv(provider_dir_envvar_name);
-	if (provider_dir_envvar) {
-		provider_path = g_build_filename(provider_dir_envvar,
-			PYTHON_PLUGIN_PROVIDER_FILENAME, NULL);
-		BT_LOGI("Using `%s` environment variable to find the Python "
-			"plugin provider: path=\"%s\"", provider_dir_envvar_name,
-			provider_path);
-	} else {
-		provider_path = g_build_filename(PYTHON_PLUGIN_PROVIDER_DIR,
-			PYTHON_PLUGIN_PROVIDER_FILENAME, NULL);
-		BT_LOGI("Using default path (`%s` environment variable is not "
-			"set) to find the Python plugin provider: path=\"%s\"",
-			provider_dir_envvar_name, provider_path);
-	}
-
-	python_plugin_provider_module = g_module_open(provider_path, 0);
-	if (!python_plugin_provider_module) {
-		/*
-		 * This is not an error. The whole point of having an
-		 * external Python plugin provider is that it can be
-		 * missing and the Babeltrace library still works.
-		 */
-		BT_LOGI("Cannot open `%s`: %s: continuing without Python plugin support.",
-			provider_path, g_module_error());
-		goto end;
-	}
-
-	if (!g_module_symbol(python_plugin_provider_module,
-			PYTHON_PLUGIN_PROVIDER_SYM_NAME_STR,
-			(gpointer) &bt_plugin_python_create_all_from_file_sym)) {
-		/*
-		 * This is an error because, since we found the Python
-		 * plugin provider shared object, we expect this symbol
-		 * to exist.
-		 */
-		BT_LIB_LOGE_APPEND_CAUSE(
-			"Cannot find the Python plugin provider loading symbol: "
-			"%s: continuing without Python plugin support: "
-			"file=\"%s\", symbol=\"%s\"",
-			g_module_error(),
-			provider_path,
-			PYTHON_PLUGIN_PROVIDER_SYM_NAME_STR);
-		status = BT_FUNC_STATUS_ERROR;
-		goto end;
-	}
-
-	BT_LOGI("Loaded Python plugin provider module: addr=%p",
-		python_plugin_provider_module);
-
-end:
-	g_free(provider_path);
-
-	return status;
+	return init_plugin_provider(
+		&bt_plugin_python_create_all_from_file_sym,
+		&python_plugin_provider_module,
+		PYTHON_PLUGIN_PROVIDER_NAME,
+		PYTHON_PLUGIN_PROVIDER_FILENAME,
+		PYTHON_PLUGIN_PROVIDER_DIR,
+		PYTHON_PLUGIN_PROVIDER_SYM_NAME_STR);
 }
 
 __attribute__((destructor)) static
 void fini_python_plugin_provider(void) {
-	if (python_plugin_provider_module) {
-		BT_LOGI("Unloading Python plugin provider module.");
+	fini_plugin_provider(
+		&python_plugin_provider_module,
+		PYTHON_PLUGIN_PROVIDER_NAME);
+}
+#endif
 
-		if (!g_module_close(python_plugin_provider_module)) {
-			/*
-			 * This occurs when the library is finalized: do
-			 * NOT append an error cause.
-			 */
-			BT_LOGE("Failed to close the Python plugin provider module: %s.",
-				g_module_error());
-		}
+/* Declare here to make sure definition in both ifdef branches are in sync. */
+static
+int init_ruby_plugin_provider(void);
 
-		python_plugin_provider_module = NULL;
-	}
+#ifdef BT_BUILT_IN_RUBY_PLUGIN_SUPPORT
+#include <plugin/ruby-plugin-provider.h>
+
+static
+create_all_from_file_sym_type
+	bt_plugin_ruby_create_all_from_file_sym =
+			bt_plugin_ruby_create_all_from_file;
+
+static
+int init_ruby_plugin_provider(void)
+{
+}
+#else /* BT_BUILT_IN_RUBY_PLUGIN_SUPPORT */
+static GModule *ruby_plugin_provider_module;
+
+static
+create_all_from_file_sym_type bt_plugin_ruby_create_all_from_file_sym;
+
+static
+int init_ruby_plugin_provider(void) {
+	return init_plugin_provider(
+		&bt_plugin_ruby_create_all_from_file_sym,
+		&ruby_plugin_provider_module,
+		RUBY_PLUGIN_PROVIDER_NAME,
+		RUBY_PLUGIN_PROVIDER_FILENAME,
+		RUBY_PLUGIN_PROVIDER_DIR,
+		RUBY_PLUGIN_PROVIDER_SYM_NAME_STR);
+}
+
+__attribute__((destructor)) static
+void fini_ruby_plugin_provider(void) {
+	fini_plugin_provider(
+		&ruby_plugin_provider_module,
+		RUBY_PLUGIN_PROVIDER_NAME);
 }
 #endif
 
@@ -193,6 +271,45 @@ enum bt_plugin_find_all_from_static_status bt_plugin_find_all_from_static(
 	/* bt_plugin_so_create_all_from_static() logs errors */
 	return bt_plugin_so_create_all_from_static(fail_on_load_error,
 		(void *) plugin_set_out);
+}
+
+static inline
+int plugin_provider_find_all_from_file(
+		init_plugin_provider_type init,
+		create_all_from_file_sym_type *create_all_from_file_sym,
+		const char *path, bt_bool fail_on_load_error,
+		const struct bt_plugin_set **plugin_set_out)
+{
+	int status = BT_FUNC_STATUS_NOT_FOUND;
+	BT_ASSERT(!*plugin_set_out);
+
+	status = init();
+	if (status < 0) {
+		/* init() logs errors */
+		goto end;
+	}
+	BT_ASSERT(status == BT_FUNC_STATUS_OK);
+	status = BT_FUNC_STATUS_NOT_FOUND;
+	if (*create_all_from_file_sym) {
+		/* plugin provider exists */
+		status = (*create_all_from_file_sym)(path,
+			fail_on_load_error, (void *) plugin_set_out);
+		if (status == BT_FUNC_STATUS_OK) {
+			BT_ASSERT(*plugin_set_out);
+			BT_ASSERT((*plugin_set_out)->plugins->len > 0);
+			goto end;
+		} else if (status < 0) {
+			/*
+			 * create_all_from_file_sym()
+			 * handles `fail_on_load_error` itself, so this
+			 * is a "real" error.
+			 */
+			BT_ASSERT(!*plugin_set_out);
+			goto end;
+		}
+	}
+end:
+	return status;
 }
 
 enum bt_plugin_find_all_from_file_status bt_plugin_find_all_from_file(
@@ -222,36 +339,34 @@ enum bt_plugin_find_all_from_file_status bt_plugin_find_all_from_file(
 	BT_ASSERT(!*plugin_set_out);
 
 	/* Try Python plugins if support is available */
-	status = init_python_plugin_provider();
-	if (status < 0) {
-		/* init_python_plugin_provider() logs errors */
+	status = plugin_provider_find_all_from_file(
+		init_python_plugin_provider,
+		&bt_plugin_python_create_all_from_file_sym,
+		path, fail_on_load_error, plugin_set_out);
+	if (status == BT_FUNC_STATUS_OK) {
+		/* Found Python plugin */
+		goto end;
+	} else if (status <0) {
 		goto end;
 	}
 
-	BT_ASSERT(status == BT_FUNC_STATUS_OK);
-	status = BT_FUNC_STATUS_NOT_FOUND;
+	BT_ASSERT(status == BT_FUNC_STATUS_NOT_FOUND);
+	BT_ASSERT(!*plugin_set_out);
 
-	if (bt_plugin_python_create_all_from_file_sym) {
-		/* Python plugin provider exists */
-		status = bt_plugin_python_create_all_from_file_sym(path,
-			fail_on_load_error, (void *) plugin_set_out);
-		if (status == BT_FUNC_STATUS_OK) {
-			BT_ASSERT(*plugin_set_out);
-			BT_ASSERT((*plugin_set_out)->plugins->len > 0);
-			goto end;
-		} else if (status < 0) {
-			/*
-			 * bt_plugin_python_create_all_from_file_sym()
-			 * handles `fail_on_load_error` itself, so this
-			 * is a "real" error.
-			 */
-			BT_ASSERT(!*plugin_set_out);
-			goto end;
-		}
-
-		BT_ASSERT(status == BT_FUNC_STATUS_NOT_FOUND);
-		BT_ASSERT(!*plugin_set_out);
+	/* Try Ruby plugins if support is available */
+	status = plugin_provider_find_all_from_file(
+		init_ruby_plugin_provider,
+		&bt_plugin_ruby_create_all_from_file_sym,
+		path, fail_on_load_error, plugin_set_out);
+	if (status == BT_FUNC_STATUS_OK) {
+		/* Found Ruby plugin */
+		goto end;
+	} else if (status <0) {
+		goto end;
 	}
+
+	BT_ASSERT(status == BT_FUNC_STATUS_NOT_FOUND);
+	BT_ASSERT(!*plugin_set_out);
 
 end:
 	if (status == BT_FUNC_STATUS_OK) {

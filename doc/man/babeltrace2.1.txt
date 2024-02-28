@@ -80,6 +80,9 @@ You can override the log level of the CLI with the
 You can override the log level of the Babeltrace~2 Python bindings
 with the `BABELTRACE_PYTHON_BT2_LOG_LEVEL` environment variable.
 +
+You can override the log level of the Babeltrace~2 Ruby bindings
+with the `BABELTRACE_RUBY_BT2_LOG_LEVEL` environment variable.
++
 The available values for 'LVL' are:
 +
 --
