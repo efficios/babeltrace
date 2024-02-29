@@ -215,6 +215,8 @@ public:
 
     CommonClockClass uuid(const bt2c::UuidView uuid) const noexcept
     {
+        static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstClockClass`.");
+
         bt_clock_class_set_uuid(this->libObjPtr(), uuid.data());
         return *this;
     }
