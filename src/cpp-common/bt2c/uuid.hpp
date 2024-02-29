@@ -15,6 +15,7 @@
 
 #include "common/assert.h"
 #include "common/uuid.h"
+#include "cpp-common/bt2c/c-string-view.hpp"
 
 namespace bt2c {
 
@@ -134,14 +135,10 @@ public:
         this->_setFromPtr(uuid);
     }
 
-    explicit Uuid(const char * const str) noexcept
+    explicit Uuid(const bt2c::CStringView str) noexcept
     {
-        const auto ret = bt_uuid_from_str(str, _mUuid.data());
+        const auto ret = bt_uuid_from_str(str.data(), _mUuid.data());
         BT_ASSERT(ret == 0);
-    }
-
-    explicit Uuid(const std::string& str) noexcept : Uuid {str.c_str()}
-    {
     }
 
     explicit Uuid(const UuidView& view) noexcept : Uuid {view.data()}
