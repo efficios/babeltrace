@@ -93,13 +93,13 @@ public:
         }
     }
 
-    void seekBeginning() const
+    MessageIterator seekBeginning() const
     {
         const auto status = bt_message_iterator_seek_beginning(this->libObjPtr());
 
         switch (status) {
         case BT_MESSAGE_ITERATOR_SEEK_BEGINNING_STATUS_OK:
-            return;
+            break;
         case BT_MESSAGE_ITERATOR_SEEK_BEGINNING_STATUS_AGAIN:
             throw TryAgain {};
         case BT_MESSAGE_ITERATOR_SEEK_BEGINNING_STATUS_MEMORY_ERROR:
@@ -109,6 +109,8 @@ public:
         default:
             bt_common_abort();
         }
+
+        return *this;
     }
 
     bool canSeekNsFromOrigin(const std::int64_t nsFromOrigin) const
@@ -132,14 +134,14 @@ public:
         }
     }
 
-    void seekNsFromOrigin(const std::int64_t nsFromOrigin) const
+    MessageIterator seekNsFromOrigin(const std::int64_t nsFromOrigin) const
     {
         const auto status =
             bt_message_iterator_seek_ns_from_origin(this->libObjPtr(), nsFromOrigin);
 
         switch (status) {
         case BT_MESSAGE_ITERATOR_SEEK_NS_FROM_ORIGIN_STATUS_OK:
-            return;
+            break;
         case BT_MESSAGE_ITERATOR_SEEK_NS_FROM_ORIGIN_STATUS_AGAIN:
             throw TryAgain {};
         case BT_MESSAGE_ITERATOR_SEEK_NS_FROM_ORIGIN_STATUS_MEMORY_ERROR:
@@ -149,6 +151,8 @@ public:
         default:
             bt_common_abort();
         }
+
+        return *this;
     }
 
     bool canSeekForward() const noexcept

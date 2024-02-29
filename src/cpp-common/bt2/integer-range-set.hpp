@@ -195,7 +195,7 @@ public:
         return !(*this == other);
     }
 
-    void addRange(const Value lower, const Value upper) const
+    CommonIntegerRangeSet addRange(const Value lower, const Value upper) const
     {
         static_assert(
             !std::is_const<LibObjT>::value,
@@ -206,6 +206,8 @@ public:
         if (status == BT_INTEGER_RANGE_SET_ADD_RANGE_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
+
+        return *this;
     }
 
     std::uint64_t length() const noexcept

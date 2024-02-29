@@ -218,13 +218,14 @@ public:
         return _mLen == _mCap;
     }
 
-    void append(ConstMessage::Shared message) noexcept
+    ConstMessageArray& append(ConstMessage::Shared message) noexcept
     {
         BT_ASSERT_DBG(!this->isFull());
 
         /* Move reference to underlying array */
         _mLibArrayPtr[_mLen] = message.release().libObjPtr();
         ++_mLen;
+        return *this;
     }
 
     /*

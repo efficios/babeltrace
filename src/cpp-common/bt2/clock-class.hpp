@@ -119,11 +119,12 @@ public:
         return CommonClockClass<const bt_clock_class> {*this};
     }
 
-    void frequency(const std::uint64_t frequency) const noexcept
+    CommonClockClass frequency(const std::uint64_t frequency) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstClockClass`.");
 
         bt_clock_class_set_frequency(this->libObjPtr(), frequency);
+        return *this;
     }
 
     std::uint64_t frequency() const noexcept
@@ -131,12 +132,13 @@ public:
         return bt_clock_class_get_frequency(this->libObjPtr());
     }
 
-    void offsetFromOrigin(const ClockOffset& offsetFromOrigin) const noexcept
+    CommonClockClass offsetFromOrigin(const ClockOffset& offsetFromOrigin) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstClockClass`.");
 
         bt_clock_class_set_offset(this->libObjPtr(), offsetFromOrigin.seconds(),
                                   offsetFromOrigin.cycles());
+        return *this;
     }
 
     ClockOffset offsetFromOrigin() const noexcept
@@ -148,11 +150,12 @@ public:
         return ClockOffset {seconds, cycles};
     }
 
-    void precision(const std::uint64_t precision) const noexcept
+    CommonClockClass precision(const std::uint64_t precision) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstClockClass`.");
 
         bt_clock_class_set_precision(this->libObjPtr(), precision);
+        return *this;
     }
 
     std::uint64_t precision() const noexcept
@@ -160,12 +163,13 @@ public:
         return bt_clock_class_get_precision(this->libObjPtr());
     }
 
-    void originIsUnixEpoch(const bool originIsUnixEpoch) const noexcept
+    CommonClockClass originIsUnixEpoch(const bool originIsUnixEpoch) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstClockClass`.");
 
         bt_clock_class_set_origin_is_unix_epoch(this->libObjPtr(),
                                                 static_cast<bt_bool>(originIsUnixEpoch));
+        return *this;
     }
 
     bool originIsUnixEpoch() const noexcept
@@ -173,7 +177,7 @@ public:
         return static_cast<bool>(bt_clock_class_origin_is_unix_epoch(this->libObjPtr()));
     }
 
-    void name(const bt2c::CStringView name) const
+    CommonClockClass name(const bt2c::CStringView name) const
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstClockClass`.");
 
@@ -182,6 +186,8 @@ public:
         if (status == BT_CLOCK_CLASS_SET_NAME_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
+
+        return *this;
     }
 
     bt2c::CStringView name() const noexcept
@@ -189,7 +195,7 @@ public:
         return bt_clock_class_get_name(this->libObjPtr());
     }
 
-    void description(const bt2c::CStringView description) const
+    CommonClockClass description(const bt2c::CStringView description) const
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstClockClass`.");
 
@@ -198,6 +204,8 @@ public:
         if (status == BT_CLOCK_CLASS_SET_DESCRIPTION_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
+
+        return *this;
     }
 
     bt2c::CStringView description() const noexcept
@@ -205,9 +213,10 @@ public:
         return bt_clock_class_get_description(this->libObjPtr());
     }
 
-    void uuid(const std::uint8_t * const uuid) const noexcept
+    CommonClockClass uuid(const std::uint8_t * const uuid) const noexcept
     {
         bt_clock_class_set_uuid(this->libObjPtr(), uuid);
+        return *this;
     }
 
     bt2s::optional<bt2c::UuidView> uuid() const noexcept
@@ -222,11 +231,12 @@ public:
     }
 
     template <typename LibValT>
-    void userAttributes(const CommonMapValue<LibValT> userAttrs) const noexcept
+    CommonClockClass userAttributes(const CommonMapValue<LibValT> userAttrs) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstClockClass`.");
 
         bt_clock_class_set_user_attributes(this->libObjPtr(), userAttrs.libObjPtr());
+        return *this;
     }
 
     UserAttributes userAttributes() const noexcept

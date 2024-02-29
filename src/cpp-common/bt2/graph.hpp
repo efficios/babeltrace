@@ -117,7 +117,7 @@ public:
             bt_graph_add_sink_component_with_initialize_method_data);
     }
 
-    void connectPorts(const ConstOutputPort outputPort, const ConstInputPort inputPort) const
+    Graph connectPorts(const ConstOutputPort outputPort, const ConstInputPort inputPort) const
     {
         const auto status = bt_graph_connect_ports(this->libObjPtr(), outputPort.libObjPtr(),
                                                    inputPort.libObjPtr(), nullptr);
@@ -127,9 +127,11 @@ public:
         } else if (status == BT_GRAPH_CONNECT_PORTS_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
+
+        return *this;
     }
 
-    void runOnce() const
+    Graph runOnce() const
     {
         const auto status = bt_graph_run_once(this->libObjPtr());
 
@@ -140,9 +142,11 @@ public:
         } else if (status == BT_GRAPH_RUN_ONCE_STATUS_AGAIN) {
             throw TryAgain {};
         }
+
+        return *this;
     }
 
-    void run() const
+    Graph run() const
     {
         const auto status = bt_graph_run(this->libObjPtr());
 
@@ -153,6 +157,8 @@ public:
         } else if (status == BT_GRAPH_RUN_STATUS_AGAIN) {
             throw TryAgain {};
         }
+
+        return *this;
     }
 
 private:

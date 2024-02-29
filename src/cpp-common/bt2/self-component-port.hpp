@@ -99,10 +99,11 @@ public:
     }
 
     template <typename T>
-    void data(T& obj) const noexcept
+    SelfComponent data(T& obj) const noexcept
     {
         bt_self_component_set_data(this->libObjPtr(),
                                    const_cast<void *>(static_cast<const void *>(&obj)));
+        return *this;
     }
 
     bt2::TraceClass::Shared createTraceClass() const
@@ -187,13 +188,7 @@ public:
         return this->_selfComponent().template data<T>();
     }
 
-    template <typename T>
-    void data(T& obj) const noexcept
-    {
-        this->_selfComponent().data(obj);
-    }
-
-private:
+protected:
     SelfComponent _selfComponent() const noexcept
     {
         return SelfComponent {this->libObjPtr()};
@@ -328,6 +323,8 @@ public:
 
 class SelfSourceComponent final : public internal::SelfSpecificComponent<bt_self_component_source>
 {
+    using _ThisSelfSpecificComponent = internal::SelfSpecificComponent<bt_self_component_source>;
+
 public:
     using OutputPorts = SelfComponentPorts<bt_self_component_source, bt_self_component_port_output,
                                            const bt_port_output>;
@@ -341,6 +338,15 @@ public:
     {
         return ConstSourceComponent {
             bt_self_component_source_as_component_source(this->libObjPtr())};
+    }
+
+    using _ThisSelfSpecificComponent::data;
+
+    template <typename T>
+    SelfSourceComponent data(T& obj) const noexcept
+    {
+        this->_selfComponent().data(obj);
+        return *this;
     }
 
     template <typename DataT>
@@ -357,6 +363,8 @@ private:
 
 class SelfFilterComponent final : public internal::SelfSpecificComponent<bt_self_component_filter>
 {
+    using _ThisSelfSpecificComponent = internal::SelfSpecificComponent<bt_self_component_filter>;
+
 public:
     using InputPorts = SelfComponentPorts<bt_self_component_filter, bt_self_component_port_input,
                                           const bt_port_input>;
@@ -372,6 +380,15 @@ public:
     {
         return ConstFilterComponent {
             bt_self_component_filter_as_component_filter(this->libObjPtr())};
+    }
+
+    using _ThisSelfSpecificComponent::data;
+
+    template <typename T>
+    SelfFilterComponent data(T& obj) const noexcept
+    {
+        this->_selfComponent().data(obj);
+        return *this;
     }
 
     template <typename DataT>
@@ -398,6 +415,8 @@ private:
 
 class SelfSinkComponent final : public internal::SelfSpecificComponent<bt_self_component_sink>
 {
+    using _ThisSelfSpecificComponent = internal::SelfSpecificComponent<bt_self_component_sink>;
+
 public:
     using InputPorts = SelfComponentPorts<bt_self_component_sink, bt_self_component_port_input,
                                           const bt_port_input>;
@@ -410,6 +429,15 @@ public:
     ConstSinkComponent asConstComponent() const noexcept
     {
         return ConstSinkComponent {bt_self_component_sink_as_component_sink(this->libObjPtr())};
+    }
+
+    using _ThisSelfSpecificComponent::data;
+
+    template <typename T>
+    SelfSinkComponent data(T& obj) const noexcept
+    {
+        this->_selfComponent().data(obj);
+        return *this;
     }
 
     MessageIterator::Shared createMessageIterator(InputPorts::Port port) const;

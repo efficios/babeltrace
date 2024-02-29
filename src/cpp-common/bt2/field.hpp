@@ -288,11 +288,12 @@ public:
         return RawValueProxy<CommonBoolField> {*this};
     }
 
-    void value(const Value val) const noexcept
+    CommonBoolField value(const Value val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstBoolField`.");
 
         bt_field_bool_set_value(this->libObjPtr(), static_cast<bt_bool>(val));
+        return *this;
     }
 
     Value value() const noexcept
@@ -368,12 +369,13 @@ public:
         return Class {internal::CommonFieldSpec<LibObjT>::cls(this->libObjPtr())};
     }
 
-    void valueAsInteger(const std::uint64_t bits) const noexcept
+    CommonBitArrayField valueAsInteger(const std::uint64_t bits) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstBitArrayField`.");
 
         bt_field_bit_array_set_value_as_integer(this->libObjPtr(), bits);
+        return *this;
     }
 
     std::uint64_t valueAsInteger() const noexcept
@@ -460,12 +462,13 @@ public:
         return RawValueProxy<CommonUnsignedIntegerField> {*this};
     }
 
-    void value(const Value val) const noexcept
+    CommonUnsignedIntegerField value(const Value val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstUnsignedIntegerField`.");
 
         bt_field_integer_unsigned_set_value(this->libObjPtr(), val);
+        return *this;
     }
 
     Value value() const noexcept
@@ -546,12 +549,13 @@ public:
         return RawValueProxy<CommonSignedIntegerField> {*this};
     }
 
-    void value(const Value val) const noexcept
+    CommonSignedIntegerField value(const Value val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstSignedIntegerField`.");
 
         bt_field_integer_signed_set_value(this->libObjPtr(), val);
+        return *this;
     }
 
     Value value() const noexcept
@@ -810,12 +814,13 @@ public:
         return RawValueProxy<CommonSinglePrecisionRealField> {*this};
     }
 
-    void value(const Value val) const noexcept
+    CommonSinglePrecisionRealField value(const Value val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstSinglePrecisionRealField`.");
 
         bt_field_real_single_precision_set_value(this->libObjPtr(), val);
+        return *this;
     }
 
     Value value() const noexcept
@@ -888,12 +893,13 @@ public:
         return RawValueProxy<CommonDoublePrecisionRealField> {*this};
     }
 
-    void value(const Value val) const noexcept
+    CommonDoublePrecisionRealField value(const Value val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstDoublePrecisionRealField`.");
 
         bt_field_real_double_precision_set_value(this->libObjPtr(), val);
+        return *this;
     }
 
     Value value() const noexcept
@@ -962,7 +968,7 @@ public:
         return RawValueProxy<CommonStringField> {*this};
     }
 
-    void value(const Value val) const
+    CommonStringField value(const Value val) const
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstStringField`.");
@@ -972,9 +978,11 @@ public:
         if (status == BT_FIELD_STRING_SET_VALUE_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
+
+        return *this;
     }
 
-    void append(const bt2c::CStringView begin, const std::uint64_t len) const
+    CommonStringField append(const bt2c::CStringView begin, const std::uint64_t len) const
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstStringField`.");
@@ -984,24 +992,27 @@ public:
         if (status == BT_FIELD_STRING_APPEND_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
+
+        return *this;
     }
 
-    void append(const bt2c::CStringView val) const
+    CommonStringField append(const bt2c::CStringView val) const
     {
-        this->append(val, std::strlen(val));
+        return this->append(val, std::strlen(val));
     }
 
-    void append(const std::string& val) const
+    CommonStringField append(const std::string& val) const
     {
-        this->append(val.data(), val.size());
+        return this->append(val.data(), val.size());
     }
 
-    void clear() const noexcept
+    CommonStringField clear() const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstStringField`.");
 
         bt_field_string_clear(this->libObjPtr());
+        return *this;
     }
 
     Value value() const noexcept
@@ -1292,7 +1303,7 @@ public:
         return _ThisCommonArrayField::length();
     }
 
-    void length(const std::uint64_t length) const
+    CommonDynamicArrayField length(const std::uint64_t length) const
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstDynamicArrayField`.");
@@ -1302,6 +1313,8 @@ public:
         if (status == BT_FIELD_DYNAMIC_ARRAY_SET_LENGTH_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
+
+        return *this;
     }
 };
 
@@ -1389,12 +1402,13 @@ public:
         return Class {internal::CommonFieldSpec<LibObjT>::cls(this->libObjPtr())};
     }
 
-    void hasField(const bool hasField) const noexcept
+    CommonOptionField hasField(const bool hasField) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstOptionField`.");
 
         bt_field_option_set_has_field(this->libObjPtr(), static_cast<bt_bool>(hasField));
+        return *this;
     }
 
     bool hasField() const noexcept
@@ -1492,7 +1506,7 @@ public:
         return Class {internal::CommonFieldSpec<LibObjT>::cls(this->libObjPtr())};
     }
 
-    void selectOption(const std::uint64_t index) const noexcept
+    CommonVariantField selectOption(const std::uint64_t index) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstVariantField`.");
@@ -1500,6 +1514,7 @@ public:
         const auto status = bt_field_variant_select_option_by_index(this->libObjPtr(), index);
 
         BT_ASSERT_DBG(status == BT_FIELD_VARIANT_SELECT_OPTION_STATUS_OK);
+        return *this;
     }
 
     CommonField<LibObjT> selectedOptionField() const noexcept

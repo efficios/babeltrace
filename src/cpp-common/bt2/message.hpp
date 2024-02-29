@@ -268,12 +268,13 @@ public:
             internal::CommonStreamBeginningMessageSpec<LibObjT>::stream(this->libObjPtr())};
     }
 
-    void defaultClockSnapshot(const std::uint64_t val) const noexcept
+    CommonStreamBeginningMessage defaultClockSnapshot(const std::uint64_t val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstStreamBeginningMessage`.");
 
         bt_message_stream_beginning_set_default_clock_snapshot(this->libObjPtr(), val);
+        return *this;
     }
 
     OptionalBorrowedObject<ConstClockSnapshot> defaultClockSnapshot() const noexcept
@@ -382,12 +383,13 @@ public:
         return _Stream {internal::CommonStreamEndMessageSpec<LibObjT>::stream(this->libObjPtr())};
     }
 
-    void defaultClockSnapshot(const std::uint64_t val) const noexcept
+    CommonStreamEndMessage defaultClockSnapshot(const std::uint64_t val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstStreamEndMessage`.");
 
         bt_message_stream_end_set_default_clock_snapshot(this->libObjPtr(), val);
+        return *this;
     }
 
     OptionalBorrowedObject<ConstClockSnapshot> defaultClockSnapshot() const noexcept
@@ -497,12 +499,13 @@ public:
             internal::CommonPacketBeginningMessageSpec<LibObjT>::packet(this->libObjPtr())};
     }
 
-    void defaultClockSnapshot(const std::uint64_t val) const noexcept
+    CommonPacketBeginningMessage defaultClockSnapshot(const std::uint64_t val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstPacketBeginningMessage`.");
 
         bt_message_packet_beginning_set_default_clock_snapshot(this->libObjPtr(), val);
+        return *this;
     }
 
     ConstClockSnapshot defaultClockSnapshot() const noexcept
@@ -606,12 +609,13 @@ public:
         return _Packet {internal::CommonPacketEndMessageSpec<LibObjT>::packet(this->libObjPtr())};
     }
 
-    void defaultClockSnapshot(const std::uint64_t val) const noexcept
+    CommonPacketEndMessage defaultClockSnapshot(const std::uint64_t val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstPacketEndMessage`.");
 
         bt_message_packet_end_set_default_clock_snapshot(this->libObjPtr(), val);
+        return *this;
     }
 
     ConstClockSnapshot defaultClockSnapshot() const noexcept
@@ -837,12 +841,13 @@ public:
         return ConstClockSnapshot {libObjPtr};
     }
 
-    void count(const std::uint64_t count) const noexcept
+    CommonDiscardedEventsMessage count(const std::uint64_t count) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstDiscardedEventsMessage`.");
 
         bt_message_discarded_events_set_count(this->libObjPtr(), count);
+        return *this;
     }
 
     bt2s::optional<std::uint64_t> count() const noexcept
@@ -967,12 +972,13 @@ public:
         return ConstClockSnapshot {libObjPtr};
     }
 
-    void count(const std::uint64_t count) const noexcept
+    CommonDiscardedPacketsMessage count(const std::uint64_t count) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstDiscardedPacketsMessage`.");
 
         bt_message_discarded_packets_set_count(this->libObjPtr(), count);
+        return *this;
     }
 
     bt2s::optional<std::uint64_t> count() const noexcept

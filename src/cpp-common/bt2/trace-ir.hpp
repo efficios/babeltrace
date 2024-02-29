@@ -445,7 +445,7 @@ public:
         return bt_stream_get_id(this->libObjPtr());
     }
 
-    void name(const bt2c::CStringView name) const
+    CommonStream name(const bt2c::CStringView name) const
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstStream`.");
 
@@ -454,6 +454,8 @@ public:
         if (status == BT_STREAM_SET_NAME_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
+
+        return *this;
     }
 
     bt2c::CStringView name() const noexcept
@@ -462,11 +464,12 @@ public:
     }
 
     template <typename LibValT>
-    void userAttributes(const CommonMapValue<LibValT> userAttrs) const noexcept
+    CommonStream userAttributes(const CommonMapValue<LibValT> userAttrs) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstStream`.");
 
         bt_stream_set_user_attributes(this->libObjPtr(), userAttrs.libObjPtr());
+        return *this;
     }
 
     UserAttributes userAttributes() const noexcept
@@ -632,7 +635,7 @@ public:
 
     Class cls() const noexcept;
 
-    void name(const bt2c::CStringView name) const
+    CommonTrace name(const bt2c::CStringView name) const
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTrace`.");
 
@@ -641,6 +644,8 @@ public:
         if (status == BT_TRACE_SET_NAME_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
+
+        return *this;
     }
 
     bt2c::CStringView name() const noexcept
@@ -648,9 +653,10 @@ public:
         return bt_trace_get_name(this->libObjPtr());
     }
 
-    void uuid(const bt2c::UuidView& uuid) const noexcept
+    CommonTrace uuid(const bt2c::UuidView& uuid) const noexcept
     {
         bt_trace_set_uuid(this->libObjPtr(), uuid.begin());
+        return *this;
     }
 
     bt2s::optional<bt2c::UuidView> uuid() const noexcept
@@ -679,7 +685,7 @@ public:
         return _Spec::streamById(this->libObjPtr(), id);
     }
 
-    void environmentEntry(const bt2c::CStringView name, const std::int64_t val) const
+    CommonTrace environmentEntry(const bt2c::CStringView name, const std::int64_t val) const
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTrace`.");
 
@@ -688,9 +694,11 @@ public:
         if (status == BT_TRACE_SET_ENVIRONMENT_ENTRY_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
+
+        return *this;
     }
 
-    void environmentEntry(const bt2c::CStringView name, const bt2c::CStringView val) const
+    CommonTrace environmentEntry(const bt2c::CStringView name, const bt2c::CStringView val) const
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTrace`.");
 
@@ -699,6 +707,8 @@ public:
         if (status == BT_TRACE_SET_ENVIRONMENT_ENTRY_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
+
+        return *this;
     }
 
     std::uint64_t environmentSize() const noexcept
@@ -722,11 +732,12 @@ public:
     }
 
     template <typename LibValT>
-    void userAttributes(const CommonMapValue<LibValT> userAttrs) const noexcept
+    CommonTrace userAttributes(const CommonMapValue<LibValT> userAttrs) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTrace`.");
 
         bt_trace_set_user_attributes(this->libObjPtr(), userAttrs.libObjPtr());
+        return *this;
     }
 
     UserAttributes userAttributes() const noexcept
@@ -907,7 +918,7 @@ public:
         return bt_event_class_get_id(this->libObjPtr());
     }
 
-    void name(const bt2c::CStringView name) const
+    CommonEventClass name(const bt2c::CStringView name) const
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstEventClass`.");
 
@@ -916,6 +927,8 @@ public:
         if (status == BT_EVENT_CLASS_SET_NAME_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
+
+        return *this;
     }
 
     bt2c::CStringView name() const noexcept
@@ -923,12 +936,13 @@ public:
         return bt_event_class_get_name(this->libObjPtr());
     }
 
-    void logLevel(const LogLevel logLevel) const noexcept
+    CommonEventClass logLevel(const LogLevel logLevel) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstEventClass`.");
 
         bt_event_class_set_log_level(this->libObjPtr(),
                                      static_cast<bt_event_class_log_level>(logLevel));
+        return *this;
     }
 
     bt2s::optional<LogLevel> logLevel() const noexcept
@@ -942,7 +956,7 @@ public:
         return bt2s::nullopt;
     }
 
-    void emfUri(const bt2c::CStringView emfUri) const
+    CommonEventClass emfUri(const bt2c::CStringView emfUri) const
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstEventClass`.");
 
@@ -951,6 +965,8 @@ public:
         if (status == BT_EVENT_CLASS_SET_EMF_URI_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
+
+        return *this;
     }
 
     bt2c::CStringView emfUri() const noexcept
@@ -958,7 +974,7 @@ public:
         return bt_event_class_get_emf_uri(this->libObjPtr());
     }
 
-    void payloadFieldClass(const StructureFieldClass fc) const
+    CommonEventClass payloadFieldClass(const StructureFieldClass fc) const
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstEventClass`.");
 
@@ -968,6 +984,8 @@ public:
         if (status == BT_EVENT_CLASS_SET_FIELD_CLASS_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
+
+        return *this;
     }
 
     OptionalBorrowedObject<_StructureFieldClass> payloadFieldClass() const noexcept
@@ -975,7 +993,7 @@ public:
         return _Spec::payloadFieldClass(this->libObjPtr());
     }
 
-    void specificContextFieldClass(const StructureFieldClass fc) const
+    CommonEventClass specificContextFieldClass(const StructureFieldClass fc) const
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstEventClass`.");
 
@@ -985,6 +1003,8 @@ public:
         if (status == BT_EVENT_CLASS_SET_FIELD_CLASS_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
+
+        return *this;
     }
 
     OptionalBorrowedObject<_StructureFieldClass> specificContextFieldClass() const noexcept
@@ -993,11 +1013,12 @@ public:
     }
 
     template <typename LibValT>
-    void userAttributes(const CommonMapValue<LibValT> userAttrs) const noexcept
+    CommonEventClass userAttributes(const CommonMapValue<LibValT> userAttrs) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstEventClass`.");
 
         bt_event_class_set_user_attributes(this->libObjPtr(), userAttrs.libObjPtr());
+        return *this;
     }
 
     UserAttributes userAttributes() const noexcept
@@ -1240,7 +1261,7 @@ public:
         return bt_stream_class_get_id(this->libObjPtr());
     }
 
-    void name(const bt2c::CStringView name) const
+    CommonStreamClass name(const bt2c::CStringView name) const
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstStreamClass`.");
@@ -1250,6 +1271,8 @@ public:
         if (status == BT_STREAM_CLASS_SET_NAME_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
+
+        return *this;
     }
 
     bt2c::CStringView name() const noexcept
@@ -1257,13 +1280,14 @@ public:
         return bt_stream_class_get_name(this->libObjPtr());
     }
 
-    void assignsAutomaticEventClassId(const bool val) const noexcept
+    CommonStreamClass assignsAutomaticEventClassId(const bool val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstStreamClass`.");
 
         bt_stream_class_set_assigns_automatic_event_class_id(this->libObjPtr(),
                                                              static_cast<bt_bool>(val));
+        return *this;
     }
 
     bool assignsAutomaticEventClassId() const noexcept
@@ -1272,13 +1296,14 @@ public:
             bt_stream_class_assigns_automatic_event_class_id(this->libObjPtr()));
     }
 
-    void assignsAutomaticStreamId(const bool val) const noexcept
+    CommonStreamClass assignsAutomaticStreamId(const bool val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstStreamClass`.");
 
         bt_stream_class_set_assigns_automatic_stream_id(this->libObjPtr(),
                                                         static_cast<bt_bool>(val));
+        return *this;
     }
 
     bool assignsAutomaticStreamId() const noexcept
@@ -1286,8 +1311,9 @@ public:
         return static_cast<bool>(bt_stream_class_assigns_automatic_stream_id(this->libObjPtr()));
     }
 
-    void supportsPackets(const bool supportsPackets, const bool withBeginningDefaultClkSnapshot,
-                         const bool withEndDefaultClkSnapshot) const noexcept
+    CommonStreamClass supportsPackets(const bool supportsPackets,
+                                      const bool withBeginningDefaultClkSnapshot,
+                                      const bool withEndDefaultClkSnapshot) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstStreamClass`.");
@@ -1296,6 +1322,7 @@ public:
                                              static_cast<bt_bool>(supportsPackets),
                                              static_cast<bt_bool>(withBeginningDefaultClkSnapshot),
                                              static_cast<bt_bool>(withEndDefaultClkSnapshot));
+        return *this;
     }
 
     bool supportsPackets() const noexcept
@@ -1315,8 +1342,8 @@ public:
             bt_stream_class_packets_have_end_default_clock_snapshot(this->libObjPtr()));
     }
 
-    void supportsDiscardedEvents(const bool supportsDiscardedEvents,
-                                 const bool withDefaultClkSnapshots) const noexcept
+    CommonStreamClass supportsDiscardedEvents(const bool supportsDiscardedEvents,
+                                              const bool withDefaultClkSnapshots) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstStreamClass`.");
@@ -1324,6 +1351,7 @@ public:
         bt_stream_class_set_supports_discarded_events(
             this->libObjPtr(), static_cast<bt_bool>(supportsDiscardedEvents),
             static_cast<bt_bool>(withDefaultClkSnapshots));
+        return *this;
     }
 
     bool supportsDiscardedEvents() const noexcept
@@ -1337,8 +1365,8 @@ public:
             bt_stream_class_discarded_events_have_default_clock_snapshots(this->libObjPtr()));
     }
 
-    void supportsDiscardedPackets(const bool supportsDiscardedPackets,
-                                  const bool withDefaultClkSnapshots) const noexcept
+    CommonStreamClass supportsDiscardedPackets(const bool supportsDiscardedPackets,
+                                               const bool withDefaultClkSnapshots) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstStreamClass`.");
@@ -1346,6 +1374,7 @@ public:
         bt_stream_class_set_supports_discarded_packets(
             this->libObjPtr(), static_cast<bt_bool>(supportsDiscardedPackets),
             static_cast<bt_bool>(withDefaultClkSnapshots));
+        return *this;
     }
 
     bool supportsDiscardedPackets() const noexcept
@@ -1359,7 +1388,7 @@ public:
             bt_stream_class_discarded_packets_have_default_clock_snapshots(this->libObjPtr()));
     }
 
-    void defaultClockClass(const ClockClass clkCls) const
+    CommonStreamClass defaultClockClass(const ClockClass clkCls) const
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstStreamClass`.");
@@ -1368,6 +1397,7 @@ public:
             bt_stream_class_set_default_clock_class(this->libObjPtr(), clkCls.libObjPtr());
 
         BT_ASSERT(status == BT_STREAM_CLASS_SET_DEFAULT_CLOCK_CLASS_STATUS_OK);
+        return *this;
     }
 
     OptionalBorrowedObject<_ClockClass> defaultClockClass() const noexcept
@@ -1390,7 +1420,7 @@ public:
         return _Spec::eventClassById(this->libObjPtr(), id);
     }
 
-    void packetContextFieldClass(const StructureFieldClass fc) const
+    CommonStreamClass packetContextFieldClass(const StructureFieldClass fc) const
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstStreamClass`.");
@@ -1401,6 +1431,8 @@ public:
         if (status == BT_STREAM_CLASS_SET_FIELD_CLASS_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
+
+        return *this;
     }
 
     OptionalBorrowedObject<_StructureFieldClass> packetContextFieldClass() const noexcept
@@ -1408,7 +1440,7 @@ public:
         return _Spec::packetContextFieldClass(this->libObjPtr());
     }
 
-    void eventCommonContextFieldClass(const StructureFieldClass fc) const
+    CommonStreamClass eventCommonContextFieldClass(const StructureFieldClass fc) const
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstStreamClass`.");
@@ -1419,6 +1451,8 @@ public:
         if (status == BT_STREAM_CLASS_SET_FIELD_CLASS_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
+
+        return *this;
     }
 
     OptionalBorrowedObject<_StructureFieldClass> eventCommonContextFieldClass() const noexcept
@@ -1427,12 +1461,13 @@ public:
     }
 
     template <typename LibValT>
-    void userAttributes(const CommonMapValue<LibValT> userAttrs) const noexcept
+    CommonStreamClass userAttributes(const CommonMapValue<LibValT> userAttrs) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstStreamClass`.");
 
         bt_stream_class_set_user_attributes(this->libObjPtr(), userAttrs.libObjPtr());
+        return *this;
     }
 
     UserAttributes userAttributes() const noexcept
@@ -1830,12 +1865,13 @@ public:
             VariantWithSignedIntegerSelectorFieldClass>(selectorFieldClass);
     }
 
-    void assignsAutomaticStreamClassId(const bool val) const noexcept
+    CommonTraceClass assignsAutomaticStreamClassId(const bool val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTraceClass`.");
 
         bt_trace_class_set_assigns_automatic_stream_class_id(this->libObjPtr(),
                                                              static_cast<bt_bool>(val));
+        return *this;
     }
 
     bool assignsAutomaticStreamClassId() const noexcept
@@ -1860,11 +1896,12 @@ public:
     }
 
     template <typename LibValT>
-    void userAttributes(const CommonMapValue<LibValT> userAttrs) const noexcept
+    CommonTraceClass userAttributes(const CommonMapValue<LibValT> userAttrs) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstTraceClass`.");
 
         bt_trace_class_set_user_attributes(this->libObjPtr(), userAttrs.libObjPtr());
+        return *this;
     }
 
     UserAttributes userAttributes() const noexcept

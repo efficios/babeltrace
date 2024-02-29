@@ -402,11 +402,12 @@ public:
     asVariantWithSignedIntegerSelector() const noexcept;
 
     template <typename LibValT>
-    void userAttributes(const CommonMapValue<LibValT> userAttrs) const noexcept
+    CommonFieldClass userAttributes(const CommonMapValue<LibValT> userAttrs) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstFieldClass`.");
 
         bt_field_class_set_user_attributes(this->libObjPtr(), userAttrs.libObjPtr());
+        return *this;
     }
 
     UserAttributes userAttributes() const noexcept
@@ -564,12 +565,13 @@ public:
         return CommonIntegerFieldClass<const bt_field_class> {*this};
     }
 
-    void fieldValueRange(const std::uint64_t n) const noexcept
+    CommonIntegerFieldClass fieldValueRange(const std::uint64_t n) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstIntegerFieldClass`.");
 
         bt_field_class_integer_set_field_value_range(this->libObjPtr(), n);
+        return *this;
     }
 
     std::uint64_t fieldValueRange() const noexcept
@@ -577,13 +579,14 @@ public:
         return bt_field_class_integer_get_field_value_range(this->libObjPtr());
     }
 
-    void preferredDisplayBase(const DisplayBase base) const noexcept
+    CommonIntegerFieldClass preferredDisplayBase(const DisplayBase base) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstIntegerFieldClass`.");
 
         bt_field_class_integer_set_preferred_display_base(
             this->libObjPtr(), static_cast<bt_field_class_integer_preferred_display_base>(base));
+        return *this;
     }
 
     DisplayBase preferredDisplayBase() const noexcept
@@ -859,7 +862,8 @@ public:
             this->libObjPtr(), label);
     }
 
-    void addMapping(const bt2c::CStringView label, const typename Mapping::RangeSet ranges) const
+    CommonEnumerationFieldClass addMapping(const bt2c::CStringView label,
+                                           const typename Mapping::RangeSet ranges) const
     {
         const auto status = internal::CommonEnumerationFieldClassSpec<MappingT>::addMapping(
             this->libObjPtr(), label, ranges.libObjPtr());
@@ -867,6 +871,8 @@ public:
         if (status == BT_FIELD_CLASS_ENUMERATION_ADD_MAPPING_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
+
+        return *this;
     }
 
     Iterator begin() const noexcept
@@ -1019,13 +1025,15 @@ public:
     }
 
     template <typename LibValT>
-    void userAttributes(const CommonMapValue<LibValT> userAttrs) const noexcept
+    CommonStructureFieldClassMember
+    userAttributes(const CommonMapValue<LibValT> userAttrs) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstStructureFieldClassMember`.");
 
         bt_field_class_structure_member_set_user_attributes(this->libObjPtr(),
                                                             userAttrs.libObjPtr());
+        return *this;
     }
 
     UserAttributes userAttributes() const noexcept
@@ -1136,7 +1144,7 @@ public:
         return CommonStructureFieldClass<const bt_field_class> {*this};
     }
 
-    void appendMember(const bt2c::CStringView name, const FieldClass fc) const
+    CommonStructureFieldClass appendMember(const bt2c::CStringView name, const FieldClass fc) const
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstStructureFieldClass`.");
@@ -1147,6 +1155,8 @@ public:
         if (status == BT_FIELD_CLASS_STRUCTURE_APPEND_MEMBER_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
+
+        return *this;
     }
 
     std::uint64_t length() const noexcept
@@ -1899,12 +1909,14 @@ public:
     }
 
     template <typename LibValT>
-    void userAttributes(const CommonMapValue<LibValT> userAttrs) const noexcept
+    CommonVariantFieldClassOption
+    userAttributes(const CommonMapValue<LibValT> userAttrs) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstVariantFieldClassOption`.");
 
         bt_field_class_variant_option_set_user_attributes(this->libObjPtr(), userAttrs.libObjPtr());
+        return *this;
     }
 
     UserAttributes userAttributes() const noexcept
@@ -2227,7 +2239,8 @@ public:
         return CommonVariantWithoutSelectorFieldClass<const bt_field_class> {*this};
     }
 
-    void appendOption(const char * const name, const FieldClass fc) const
+    CommonVariantWithoutSelectorFieldClass appendOption(const char * const name,
+                                                        const FieldClass fc) const
     {
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstVariantWithoutSelectorFieldClass`.");
@@ -2239,16 +2252,20 @@ public:
             BT_FIELD_CLASS_VARIANT_WITHOUT_SELECTOR_FIELD_APPEND_OPTION_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
+
+        return *this;
     }
 
-    void appendOption(const bt2c::CStringView name, const FieldClass fc) const
+    CommonVariantWithoutSelectorFieldClass appendOption(const bt2c::CStringView name,
+                                                        const FieldClass fc) const
     {
         return this->appendOption(name.data(), fc);
     }
 
-    void appendOption(const bt2s::optional<std::string>& name, const FieldClass fc) const
+    CommonVariantWithoutSelectorFieldClass appendOption(const bt2s::optional<std::string>& name,
+                                                        const FieldClass fc) const
     {
-        this->appendOption(name ? name->data() : nullptr, fc);
+        return this->appendOption(name ? name->data() : nullptr, fc);
     }
 
     Shared shared() const noexcept
@@ -2451,8 +2468,9 @@ public:
         return _Spec::optionByName(this->libObjPtr(), name);
     }
 
-    void appendOption(const char * const name, const FieldClass fc,
-                      const typename Option::RangeSet ranges) const
+    CommonVariantWithIntegerSelectorFieldClass
+    appendOption(const char * const name, const FieldClass fc,
+                 const typename Option::RangeSet ranges) const
     {
         static_assert(
             !std::is_const<LibObjT>::value,
@@ -2465,18 +2483,22 @@ public:
             BT_FIELD_CLASS_VARIANT_WITH_SELECTOR_FIELD_APPEND_OPTION_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
+
+        return *this;
     }
 
-    void appendOption(const bt2c::CStringView name, const FieldClass fc,
-                      const typename Option::RangeSet ranges) const
+    CommonVariantWithIntegerSelectorFieldClass
+    appendOption(const bt2c::CStringView name, const FieldClass fc,
+                 const typename Option::RangeSet ranges) const
     {
         return this->appendOption(name.data(), fc, ranges);
     }
 
-    void appendOption(const bt2s::optional<std::string>& name, const FieldClass fc,
-                      const typename Option::RangeSet ranges) const
+    CommonVariantWithIntegerSelectorFieldClass
+    appendOption(const bt2s::optional<std::string>& name, const FieldClass fc,
+                 const typename Option::RangeSet ranges) const
     {
-        this->appendOption(name ? name->data() : nullptr, fc, ranges);
+        return this->appendOption(name ? name->data() : nullptr, fc, ranges);
     }
 
     Iterator begin() const noexcept

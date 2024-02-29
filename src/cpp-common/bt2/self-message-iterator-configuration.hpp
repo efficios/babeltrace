@@ -22,10 +22,11 @@ public:
     {
     }
 
-    void canSeekForward(const bool canSeekForward) const noexcept
+    SelfMessageIteratorConfiguration canSeekForward(const bool canSeekForward) const noexcept
     {
         bt_self_message_iterator_configuration_set_can_seek_forward(
             this->libObjPtr(), static_cast<bt_bool>(canSeekForward));
+        return *this;
     }
 };
 
