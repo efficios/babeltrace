@@ -213,9 +213,9 @@ public:
         return bt_clock_class_get_description(this->libObjPtr());
     }
 
-    CommonClockClass uuid(const std::uint8_t * const uuid) const noexcept
+    CommonClockClass uuid(const bt2c::UuidView uuid) const noexcept
     {
-        bt_clock_class_set_uuid(this->libObjPtr(), uuid);
+        bt_clock_class_set_uuid(this->libObjPtr(), uuid.data());
         return *this;
     }
 
