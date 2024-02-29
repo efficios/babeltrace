@@ -1497,7 +1497,9 @@ public:
         static_assert(!std::is_const<LibObjT>::value,
                       "Not available with `bt2::ConstVariantField`.");
 
-        static_cast<void>(bt_field_variant_select_option_by_index(this->libObjPtr(), index));
+        const auto status = bt_field_variant_select_option_by_index(this->libObjPtr(), index);
+
+        BT_ASSERT_DBG(status == BT_FIELD_VARIANT_SELECT_OPTION_STATUS_OK);
     }
 
     CommonField<LibObjT> selectedOptionField() const noexcept
