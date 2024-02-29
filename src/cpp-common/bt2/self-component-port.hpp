@@ -128,6 +128,8 @@ public:
     }
 };
 
+namespace internal {
+
 template <typename LibObjT>
 class SelfSpecificComponent : public BorrowedObject<LibObjT>
 {
@@ -197,8 +199,6 @@ private:
         return SelfComponent {this->libObjPtr()};
     }
 };
-
-namespace internal {
 
 template <typename LibSelfCompT, typename LibSelfCompPortPtrT>
 struct SelfComponentPortsSpec;
@@ -326,7 +326,7 @@ public:
     Port back() const noexcept;
 };
 
-class SelfSourceComponent final : public SelfSpecificComponent<bt_self_component_source>
+class SelfSourceComponent final : public internal::SelfSpecificComponent<bt_self_component_source>
 {
 public:
     using OutputPorts = SelfComponentPorts<bt_self_component_source, bt_self_component_port_output,
@@ -355,7 +355,7 @@ private:
     OutputPorts::Port _addOutputPort(const char *name, DataT *data) const;
 };
 
-class SelfFilterComponent final : public SelfSpecificComponent<bt_self_component_filter>
+class SelfFilterComponent final : public internal::SelfSpecificComponent<bt_self_component_filter>
 {
 public:
     using InputPorts = SelfComponentPorts<bt_self_component_filter, bt_self_component_port_input,
@@ -396,7 +396,7 @@ private:
     OutputPorts::Port _addOutputPort(const char *name, DataT *data) const;
 };
 
-class SelfSinkComponent final : public SelfSpecificComponent<bt_self_component_sink>
+class SelfSinkComponent final : public internal::SelfSpecificComponent<bt_self_component_sink>
 {
 public:
     using InputPorts = SelfComponentPorts<bt_self_component_sink, bt_self_component_port_input,
