@@ -667,18 +667,21 @@ end:
 	return result;
 }
 
+#define NEXT_METHOD_NAME	"bt_message_iterator_class_next_method"
+
+#ifdef BT_DEV_MODE
+
 /*
  * When a new stream begins, verify that the clock class tied to this
  * stream is compatible with what we've seen before.
  */
 
-BT_ASSERT_COND_DEV_FUNC
 static
-bool clock_classes_are_compatible_one(struct bt_message_iterator *iterator,
+void assert_post_dev_clock_classes_are_compatible_one(
+		struct bt_message_iterator *iterator,
 		const struct bt_message *msg)
 {
 	enum bt_message_type message_type = bt_message_get_type(msg);
-	bool result;
 
 	if (message_type == BT_MESSAGE_TYPE_STREAM_BEGINNING) {
 		const struct bt_message_stream *stream_msg = (struct bt_message_stream *) msg;
@@ -713,118 +716,77 @@ bool clock_classes_are_compatible_one(struct bt_message_iterator *iterator,
 			break;
 
 		case CLOCK_EXPECTATION_NONE:
-			if (clock_class) {
-				BT_ASSERT_COND_DEV_MSG(
-					"Expecting no clock class, got one: %![cc-]+K",
-					clock_class);
-				result = false;
-				goto end;
-			}
-
+			BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
+				"stream-class-has-no-clock-class", !clock_class,
+				"Expecting no clock class, got one: %![cc-]+K",
+				clock_class);
 			break;
 
 		case CLOCK_EXPECTATION_ORIGIN_UNIX:
-			if (!clock_class) {
-				BT_ASSERT_COND_DEV_MSG(
-					"Expecting a clock class, got none.");
-				result = false;
-				goto end;
-			}
+			BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
+				"stream-class-has-clock-class-with-unix-epoch-origin", clock_class,
+				"Expecting a clock class with Unix epoch origin, got none.");
 
-			if (!bt_clock_class_origin_is_unix_epoch(clock_class)) {
-				BT_ASSERT_COND_DEV_MSG(
-					"Expecting a clock class with Unix epoch origin: %![cc-]+K",
-					clock_class);
-				result = false;
-				goto end;
-			}
+			BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
+				"clock-class-has-unix-epoch-origin",
+				bt_clock_class_origin_is_unix_epoch(clock_class),
+				"Expecting a clock class with Unix epoch origin: %![cc-]+K",
+				clock_class);
 			break;
 
 		case CLOCK_EXPECTATION_ORIGIN_OTHER_UUID:
-			if (!clock_class) {
-				BT_ASSERT_COND_DEV_MSG(
-					"Expecting a clock class, got none.");
-				result = false;
-				goto end;
-			}
+			BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
+				"stream-class-has-clock-class-with-uuid", clock_class,
+				"Expecting a clock class with UUID, got none.");
 
-			if (bt_clock_class_origin_is_unix_epoch(clock_class)) {
-				BT_ASSERT_COND_DEV_MSG(
-					"Expecting a clock class without Unix epoch origin: %![cc-]+K",
-					clock_class);
-				result = false;
-				goto end;
-			}
+			BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
+				"clock-class-has-non-unix-epoch-origin",
+				!bt_clock_class_origin_is_unix_epoch(clock_class),
+				"Expecting a clock class without Unix epoch origin: %![cc-]+K",
+				clock_class);
 
-			if (!clock_class_uuid) {
-				BT_ASSERT_COND_DEV_MSG(
-					"Expecting a clock class with UUID: %![cc-]+K",
-					clock_class);
-				result = false;
-				goto end;
-			}
+			BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
+				"clock-class-has-uuid",
+				clock_class_uuid,
+				"Expecting a clock class with UUID, got one without UUID: %![cc-]+K",
+				clock_class);
 
-			if (bt_uuid_compare(iterator->clock_expectation.uuid, clock_class_uuid)) {
-				BT_ASSERT_COND_DEV_MSG(
-					"Expecting a clock class with UUID, got one "
+			BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
+				"clock-class-has-expected-uuid",
+				!bt_uuid_compare(iterator->clock_expectation.uuid, clock_class_uuid),
+				"Expecting a clock class with UUID, got one "
 					"with a different UUID: %![cc-]+K, expected-uuid=%!u",
 					clock_class, iterator->clock_expectation.uuid);
-				result = false;
-				goto end;
-			}
 			break;
 
 		case CLOCK_EXPECTATION_ORIGIN_OTHER_NO_UUID:
-			if (!clock_class) {
-				BT_ASSERT_COND_DEV_MSG(
-					"Expecting clock class %![cc-]+K, got none.",
-					iterator->clock_expectation.clock_class);
-				result = false;
-				goto end;
-			}
+			BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
+				"stream-class-has-clock-class", clock_class,
+				"Expecting a clock class, got none.");
 
-			if (clock_class != iterator->clock_expectation.clock_class) {
-				BT_ASSERT_COND_DEV_MSG(
-					"Expecting clock class %![cc-]+K, got %![cc-]+K.",
-					iterator->clock_expectation.clock_class,
-					clock_class);
-				result = false;
-				goto end;
-			}
-
+			BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
+				"clock-class-is-expected",
+				clock_class == iterator->clock_expectation.clock_class,
+				"Expecting clock class %![cc-]+K, got %![cc-]+K.",
+				iterator->clock_expectation.clock_class,
+				clock_class);
 			break;
 		}
 	}
-
-	result = true;
-
-end:
-	return result;
 }
 
-BT_ASSERT_COND_DEV_FUNC
 static
-bool clock_classes_are_compatible(
+void assert_post_dev_clock_classes_are_compatible(
 		struct bt_message_iterator *iterator,
 		bt_message_array_const msgs, uint64_t msg_count)
 {
 	uint64_t i;
-	bool result;
 
 	for (i = 0; i < msg_count; i++) {
-		if (!clock_classes_are_compatible_one(iterator, msgs[i])) {
-			result = false;
-			goto end;
-		}
+		assert_post_dev_clock_classes_are_compatible_one(iterator, msgs[i]);
 	}
-
-	result = true;
-
-end:
-	return result;
 }
 
-#ifdef BT_DEV_MODE
 static
 const bt_stream *get_stream_from_msg(const struct bt_message *msg)
 {
@@ -1028,11 +990,7 @@ struct per_stream_state *get_per_stream_state(
 
 	return state;
 }
-#endif
 
-#define NEXT_METHOD_NAME	"bt_message_iterator_class_next_method"
-
-#ifdef BT_DEV_MODE
 static
 void assert_post_dev_expected_sequence(struct bt_message_iterator *iterator,
 		const struct bt_message *msg)
@@ -1183,11 +1141,9 @@ call_iterator_next_method(
 		bt_common_func_status_string(status), *user_count);
 
 	if (status == BT_FUNC_STATUS_OK) {
-		BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
-			"message-clock-classes-are-compatible",
-			clock_classes_are_compatible(iterator, msgs,
-				*user_count),
-			"Clocks are not compatible");
+		BT_IF_DEV_MODE(assert_post_dev_clock_classes_are_compatible(
+			iterator, msgs, *user_count));
+
 		BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
 			"message-clock-snapshots-are-monotonic",
 			clock_snapshots_are_monotonic(iterator, msgs,
