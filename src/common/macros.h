@@ -29,6 +29,15 @@ extern "C" {
 #define BT_EXPORT __attribute__((visibility("default")))
 #endif
 
+/*
+ * BT_NOEXCEPT: defined to `noexcept` if compiling as C++, else empty.
+ */
+#if defined(__cplusplus)
+#define BT_NOEXCEPT noexcept
+#else
+#define BT_NOEXCEPT
+#endif
+
 /* Enable `txt` if developer mode is enabled. */
 #ifdef BT_DEV_MODE
 #define BT_IF_DEV_MODE(txt) txt

@@ -51,6 +51,7 @@ DISTCLEANFILES = common/version.i
 noinst_LTLIBRARIES = \
 	argpar/libargpar.la \
 	autodisc/libautodisc.la \
+	clock-correlation-validator/libclock-correlation-validator.la \
 	common/libcommon.la \
 	compat/libcompat.la \
 	cpp-common/libcpp-common.la \
@@ -73,6 +74,11 @@ argpar_libargpar_la_SOURCES = \
 autodisc_libautodisc_la_SOURCES = \
 	autodisc/autodisc.c \
 	autodisc/autodisc.h
+
+clock_correlation_validator_libclock_correlation_validator_la_SOURCES = \
+	clock-correlation-validator/clock-correlation-validator.cpp \
+	clock-correlation-validator/clock-correlation-validator.h \
+	clock-correlation-validator/clock-correlation-validator.hpp
 
 common_libcommon_la_SOURCES = \
 	common/align.h \
