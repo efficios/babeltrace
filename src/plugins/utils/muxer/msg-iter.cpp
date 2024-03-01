@@ -401,7 +401,7 @@ void MsgIter::_validateMsgClkCls(const bt2::ConstMessage msg)
     /* Get the clock class, if any, of `msg` */
     const auto clkCls = bt2c::call([msg]() -> bt2::OptionalBorrowedObject<bt2::ConstClockClass> {
         if (msg.isStreamBeginning()) {
-            return msg.asStreamBeginning().stream().cls().defaultClockClass();
+            return msg.asStreamBeginning().streamClassDefaultClockClass();
         } else {
             BT_ASSERT(msg.isMessageIteratorInactivity());
             return msg.asMessageIteratorInactivity().clockSnapshot().clockClass();

@@ -66,13 +66,13 @@ bt2::OptionalBorrowedObject<bt2::ConstClockSnapshot> msgCs(const bt2::ConstMessa
     case bt2::MessageType::MESSAGE_ITERATOR_INACTIVITY:
         return msg.asMessageIteratorInactivity().clockSnapshot();
     case bt2::MessageType::STREAM_BEGINNING:
-        if (msg.asStreamBeginning().stream().cls().defaultClockClass()) {
+        if (msg.asStreamBeginning().streamClassDefaultClockClass()) {
             return msg.asStreamBeginning().defaultClockSnapshot();
         }
 
         break;
     case bt2::MessageType::STREAM_END:
-        if (msg.asStreamEnd().stream().cls().defaultClockClass()) {
+        if (msg.asStreamEnd().streamClassDefaultClockClass()) {
             return msg.asStreamEnd().defaultClockSnapshot();
         }
 
