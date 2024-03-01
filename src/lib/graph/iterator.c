@@ -65,7 +65,7 @@
 		(_iter)->state == BT_MESSAGE_ITERATOR_STATE_LAST_SEEKING_RETURNED_ERROR, \
 		"Message iterator is in the wrong state: %!+i", (_iter))
 
-#ifdef BT_DEV_MODE
+BT_IF_DEV_MODE(
 struct per_stream_state
 {
 	bt_packet *cur_packet;
@@ -73,7 +73,7 @@ struct per_stream_state
 	/* Bit mask of expected message types. */
 	guint expected_msg_types;
 };
-#endif
+)
 
 static void
 clear_per_stream_state (struct bt_message_iterator *iterator)
@@ -160,9 +160,7 @@ void bt_message_iterator_destroy(struct bt_object *obj)
 		iterator->msgs = NULL;
 	}
 
-#ifdef BT_DEV_MODE
-	g_hash_table_destroy(iterator->per_stream_state);
-#endif
+	BT_IF_DEV_MODE(g_hash_table_destroy(iterator->per_stream_state));
 
 	g_free(iterator);
 }
@@ -371,14 +369,12 @@ int create_self_component_input_port_message_iterator(
 	g_ptr_array_set_size(iterator->msgs, MSG_BATCH_SIZE);
 	iterator->last_ns_from_origin = INT64_MIN;
 
-#ifdef BT_DEV_MODE
 	/* The per-stream state is only used for dev assertions right now. */
-	iterator->per_stream_state = g_hash_table_new_full(
+	BT_IF_DEV_MODE(iterator->per_stream_state = g_hash_table_new_full(
 		g_direct_hash,
 		g_direct_equal,
 		NULL,
-		g_free);
-#endif
+		g_free));
 
 	iterator->auto_seek.msgs = g_queue_new();
 	if (!iterator->auto_seek.msgs) {
@@ -1151,9 +1147,8 @@ call_iterator_next_method(
 			"Clock snapshots are not monotonic");
 	}
 
-#ifdef BT_DEV_MODE
-	assert_post_dev_next(iterator, status, msgs, *user_count);
-#endif
+	BT_IF_DEV_MODE(assert_post_dev_next(iterator, status, msgs,
+		*user_count));
 
 	BT_ASSERT_POST_DEV_NO_ERROR_IF_NO_ERROR_STATUS(NEXT_METHOD_NAME,
 		status);
