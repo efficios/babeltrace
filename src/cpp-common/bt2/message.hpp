@@ -268,6 +268,12 @@ public:
             internal::CommonStreamBeginningMessageSpec<LibObjT>::stream(this->libObjPtr())};
     }
 
+    OptionalBorrowedObject<ConstClockClass> streamClassDefaultClockClass() const noexcept
+    {
+        return bt_message_stream_beginning_borrow_stream_class_default_clock_class_const(
+            this->libObjPtr());
+    }
+
     CommonStreamBeginningMessage defaultClockSnapshot(const std::uint64_t val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
@@ -381,6 +387,12 @@ public:
     _Stream stream() const noexcept
     {
         return _Stream {internal::CommonStreamEndMessageSpec<LibObjT>::stream(this->libObjPtr())};
+    }
+
+    OptionalBorrowedObject<ConstClockClass> streamClassDefaultClockClass() const noexcept
+    {
+        return bt_message_stream_end_borrow_stream_class_default_clock_class_const(
+            this->libObjPtr());
     }
 
     CommonStreamEndMessage defaultClockSnapshot(const std::uint64_t val) const noexcept
@@ -499,6 +511,12 @@ public:
             internal::CommonPacketBeginningMessageSpec<LibObjT>::packet(this->libObjPtr())};
     }
 
+    OptionalBorrowedObject<ConstClockClass> streamClassDefaultClockClass() const noexcept
+    {
+        return bt_message_packet_beginning_borrow_stream_class_default_clock_class_const(
+            this->libObjPtr());
+    }
+
     CommonPacketBeginningMessage defaultClockSnapshot(const std::uint64_t val) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value,
@@ -607,6 +625,12 @@ public:
     _Packet packet() const noexcept
     {
         return _Packet {internal::CommonPacketEndMessageSpec<LibObjT>::packet(this->libObjPtr())};
+    }
+
+    OptionalBorrowedObject<ConstClockClass> streamClassDefaultClockClass() const noexcept
+    {
+        return bt_message_packet_end_borrow_stream_class_default_clock_class_const(
+            this->libObjPtr());
     }
 
     CommonPacketEndMessage defaultClockSnapshot(const std::uint64_t val) const noexcept
@@ -824,6 +848,12 @@ public:
             internal::CommonDiscardedEventsMessageSpec<LibObjT>::stream(this->libObjPtr())};
     }
 
+    OptionalBorrowedObject<ConstClockClass> streamClassDefaultClockClass() const noexcept
+    {
+        return bt_message_discarded_events_borrow_stream_class_default_clock_class_const(
+            this->libObjPtr());
+    }
+
     ConstClockSnapshot beginningDefaultClockSnapshot() const noexcept
     {
         const auto libObjPtr =
@@ -953,6 +983,12 @@ public:
     {
         return _Stream {
             internal::CommonDiscardedPacketsMessageSpec<LibObjT>::stream(this->libObjPtr())};
+    }
+
+    OptionalBorrowedObject<ConstClockClass> streamClassDefaultClockClass() const noexcept
+    {
+        return bt_message_discarded_packets_borrow_stream_class_default_clock_class_const(
+            this->libObjPtr());
     }
 
     ConstClockSnapshot beginningDefaultClockSnapshot() const noexcept
