@@ -240,7 +240,10 @@ bool operator==(LhsT&& lhs, RhsT&& rhs) noexcept
  *
  * Both `lhs` and `rhs` must not have an underlying `nullptr` raw data.
  */
-template <typename LhsT, typename RhsT>
+template <
+    typename LhsT, typename RhsT,
+    typename = typename std::enable_if<internal::ComparableWithCStringView<LhsT>::value>::type,
+    typename = typename std::enable_if<internal::ComparableWithCStringView<RhsT>::value>::type>
 bool operator!=(LhsT&& lhs, RhsT&& rhs) noexcept
 {
     return !(std::forward<LhsT>(lhs) == std::forward<RhsT>(rhs));
