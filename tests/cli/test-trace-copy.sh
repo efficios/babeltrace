@@ -17,7 +17,7 @@ fi
 source "$UTILSSH"
 
 clean_tmp() {
-	rm -rf "${out_path}" "${text_output1}" "${text_output2_intermediary}" "${text_output2}"
+	rm -rf "${out_path}" "${text_output1}" "${text_output2_intermediary}" "${text_output2}" "${stderr_file}"
 }
 
 SUCCESS_TRACES=("${BT_CTF_TRACES_PATH}/succeed/"*)
@@ -32,6 +32,7 @@ for path in "${SUCCESS_TRACES[@]}"; do
 	text_output1="$(mktemp)"
 	text_output2_intermediary="$(mktemp)"
 	text_output2="$(mktemp)"
+	stderr_file="$(mktemp)"
 	trace="$(basename "${path}")"
 	sort_cmd="cat" # by default do not sort the trace
 
@@ -65,16 +66,25 @@ for path in "${SUCCESS_TRACES[@]}"; do
 		fi
 	fi
 
-	bt_cli "/dev/null" "/dev/null" "${path}" --component sink.ctf.fs "--params=path=\"${out_path}\""
-	ok $? "Copy trace ${trace} with ctf-fs sink"
+	bt_cli "/dev/null" "${stderr_file}" "${path}" --component sink.ctf.fs "--params=path=\"${out_path}\""
+	if ! ok $? "Copy trace ${trace} with ctf-fs sink"; then
+		diag "stderr:"
+		diag_file "${stderr_file}"
+	fi
 
-	bt_cli "/dev/null" "/dev/null" "${out_path}"
-	ok $? "Read the new trace in ${out_path}"
+	bt_cli "/dev/null" "${stderr_file}" "${out_path}"
+	if ! ok $? "Read the new trace in ${out_path}"; then
+		diag "stderr:"
+		diag_file "${stderr_file}"
+	fi
 
-	bt_cli "${text_output2_intermediary}" "/dev/null" --no-delta "${out_path}"
+	if ! bt_cli "${text_output2_intermediary}" "${stderr_file}" --no-delta "${out_path}"; then
+		diag "stderr:"
+		diag_file "${stderr_file}"
+	fi
+
 	$sort_cmd "${text_output2_intermediary}" > "${text_output2}"
-	cnt=$(diff "${text_output1}" "${text_output2}" | wc -l)
-	test "${cnt// /}" == 0
+	bt_diff "${text_output1}" "${text_output2}"
 	ok $? "Exact same content between the two traces"
 
 	clean_tmp

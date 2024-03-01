@@ -487,3 +487,9 @@ bt_gen_mctf_trace() {
 	echo "Running: \`${cmd[*]}\`" >&2
 	bt_run_in_py_utils_env "${cmd[@]}"
 }
+
+# Call `diag` with the contents of file `$1`.
+
+diag_file() {
+	diag "$(cat "$1")"
+}
