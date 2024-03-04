@@ -219,10 +219,10 @@ bt_cli() {
 
 	shift 2
 
-	local -r args=("$@")
+	local -a bt_cli_args=("$@")
 
-	echo "Running: \`$BT_TESTS_BT2_BIN ${args[*]}\`" >&2
-	bt_run_in_py_env "$BT_TESTS_BT2_BIN" "${args[@]}" 1>"$stdout_file" 2>"$stderr_file"
+	echo "Running: \`$BT_TESTS_BT2_BIN ${bt_cli_args[*]}\`" >&2
+	bt_run_in_py_env "$BT_TESTS_BT2_BIN" "${bt_cli_args[@]}" 1>"$stdout_file" 2>"$stderr_file"
 }
 
 # Checks the differences between:
@@ -318,7 +318,7 @@ bt_diff_details_ctf_gen_single() {
 
 	shift 2
 
-	local -r extra_details_args=("$@")
+	local -r gen_extra_details_args=("$@")
 	local -r temp_trace_dir=$(mktemp -d)
 
 	# Run the CTF trace generator program to get a CTF trace
@@ -330,7 +330,7 @@ bt_diff_details_ctf_gen_single() {
 
 	# Compare using the CLI with `sink.text.details`
 	bt_diff_details_ctf_single "$expected_stdout_file" "$temp_trace_dir" \
-		"${extra_details_args[@]+${extra_details_args[@]}}"
+		"${gen_extra_details_args[@]+${gen_extra_details_args[@]}}"
 
 	local -r ret=$?
 
