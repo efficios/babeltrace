@@ -1,7 +1,7 @@
 // Render with Asciidoctor
 
 = Babeltrace 2
-5 February 2024
+4 March 2024
 :btversion: 2.0
 :bt2: Babeltrace{nbsp}2
 ifdef::env-github[]
@@ -137,7 +137,7 @@ embedded into the {bt2} source tree:
 * https://github.com/nlohmann/json[JSON for Modern {cpp}]
 * https://github.com/martinmoene/optional-lite[optional lite]
 * https://github.com/martinmoene/span-lite[span lite]
-* https://github.com/bitwizeshift/string_view-standalone[`string_view` Standalone]
+* https://github.com/martinmoene/string-view-lite[string_view lite]
 * https://github.com/wonder-mice/zf_log[zf_log]
 ====
 
