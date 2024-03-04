@@ -174,7 +174,7 @@ cpp_common_libcpp_common_la_SOURCES = \
 	cpp-common/vendor/nlohmann/json.hpp \
 	cpp-common/vendor/optional-lite/optional.hpp \
 	cpp-common/vendor/span-lite/span.hpp \
-	cpp-common/vendor/string_view-standalone/string_view.hpp
+	cpp-common/vendor/string-view-lite/string_view.hpp
 
 cpp_common_vendor_fmt_libfmt_la_SOURCES = \
 	cpp-common/vendor/fmt/args.h \
@@ -756,4 +756,5 @@ endif # ENABLE_DEBUG_INFO
 
 EXTRA_DIST = \
 	cpp-common/vendor/optional-lite/optional.hpp.license \
-	cpp-common/vendor/span-lite/span.hpp.license
+	cpp-common/vendor/span-lite/span.hpp.license \
+	cpp-common/vendor/string-view-lite/string_view.hpp.license

@@ -1815,8 +1815,8 @@ the `bt2s` namespace, instead of using this directly.
 IMPORTANT: Use the symbols of `src/cpp-common/bt2s/span.hpp`, under the
 `bt2s` namespace, instead of using this directly.
 
-`string_view-standalone`::
-    https://github.com/bitwizeshift/string_view-standalone[`string_view` Standalone].
+`string-view-lite`::
+    https://github.com/martinmoene/string-view-lite[string_view lite].
 +
 IMPORTANT: Use the symbols of `src/cpp-common/bt2s/string-view.hpp`,
 under the `bt2s` namespace, instead of using this directly.
