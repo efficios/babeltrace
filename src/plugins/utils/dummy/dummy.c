@@ -127,16 +127,16 @@ end:
 bt_component_class_sink_consume_method_status dummy_consume(
 		bt_self_component_sink *component)
 {
-	bt_component_class_sink_consume_method_status status =
-		BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_OK;
+	bt_component_class_sink_consume_method_status status;
 	bt_message_array_const msgs;
 	uint64_t count;
 	struct dummy *dummy;
 	bt_message_iterator_next_status next_status;
 	uint64_t i;
+	bt_self_component *self_comp =
+		bt_self_component_sink_as_self_component(component);
 
-	dummy = bt_self_component_get_data(
-		bt_self_component_sink_as_self_component(component));
+	dummy = bt_self_component_get_data(self_comp);
 	BT_ASSERT_DBG(dummy);
 
 	if (G_UNLIKELY(!dummy->msg_iter)) {
@@ -149,28 +149,22 @@ bt_component_class_sink_consume_method_status dummy_consume(
 		dummy->msg_iter, &msgs, &count);
 	switch (next_status) {
 	case BT_MESSAGE_ITERATOR_NEXT_STATUS_OK:
-		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_OK;
-
 		for (i = 0; i < count; i++) {
 			bt_message_put_ref(msgs[i]);
 		}
 
 		break;
-	case BT_MESSAGE_ITERATOR_NEXT_STATUS_AGAIN:
-		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_AGAIN;
-		goto end;
-	case BT_MESSAGE_ITERATOR_NEXT_STATUS_END:
-		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_END;
-		goto end;
 	case BT_MESSAGE_ITERATOR_NEXT_STATUS_ERROR:
-		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_ERROR;
-		goto end;
 	case BT_MESSAGE_ITERATOR_NEXT_STATUS_MEMORY_ERROR:
-		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_MEMORY_ERROR;
-		goto end;
+		BT_CURRENT_THREAD_ERROR_APPEND_CAUSE_FROM_COMPONENT(
+			self_comp,
+			"Failed to get messages from upstream component");
+		break;
 	default:
 		break;
 	}
+
+	status = (int) next_status;
 
 end:
 	return status;
