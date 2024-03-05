@@ -127,7 +127,6 @@ end:
 bt_component_class_sink_consume_method_status dummy_consume(
 		bt_self_component_sink *component)
 {
-	bt_component_class_sink_consume_method_status status;
 	bt_message_array_const msgs;
 	uint64_t count;
 	struct dummy *dummy;
@@ -138,11 +137,7 @@ bt_component_class_sink_consume_method_status dummy_consume(
 
 	dummy = bt_self_component_get_data(self_comp);
 	BT_ASSERT_DBG(dummy);
-
-	if (G_UNLIKELY(!dummy->msg_iter)) {
-		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_END;
-		goto end;
-	}
+	BT_ASSERT_DBG(dummy->msg_iter);
 
 	/* Consume one message  */
 	next_status = bt_message_iterator_next(
@@ -164,8 +159,5 @@ bt_component_class_sink_consume_method_status dummy_consume(
 		break;
 	}
 
-	status = (int) next_status;
-
-end:
-	return status;
+	return (int) next_status;
 }
