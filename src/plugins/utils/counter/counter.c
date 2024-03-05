@@ -230,7 +230,6 @@ end:
 bt_component_class_sink_consume_method_status counter_consume(
 		bt_self_component_sink *comp)
 {
-	bt_component_class_sink_consume_method_status status;
 	struct counter *counter;
 	bt_message_iterator_next_status next_status;
 	uint64_t msg_count;
@@ -240,12 +239,7 @@ bt_component_class_sink_consume_method_status counter_consume(
 
 	counter = bt_self_component_get_data(self_comp);
 	BT_ASSERT_DBG(counter);
-
-	if (G_UNLIKELY(!counter->msg_iter)) {
-		try_print_last(counter);
-		status = BT_COMPONENT_CLASS_SINK_CONSUME_METHOD_STATUS_END;
-		goto end;
-	}
+	BT_ASSERT_DBG(counter->msg_iter);
 
 	/* Consume messages */
 	next_status = bt_message_iterator_next(
@@ -307,8 +301,5 @@ bt_component_class_sink_consume_method_status counter_consume(
 		break;
 	}
 
-	status = (int) next_status;
-
-end:
-	return status;
+	return (int) next_status;
 }
