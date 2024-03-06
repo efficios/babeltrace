@@ -74,11 +74,26 @@ void testEquality()
     testNe(foo1, bt2c::CStringView {bar});
 }
 
+void testStartsWith()
+{
+    ok(bt2c::CStringView {"Moutarde choux"}.startsWith("Moutarde"),
+       "\"Moutarde Choux\" starts with \"Moutarde\"");
+    ok(!bt2c::CStringView {"Moutarde choux"}.startsWith("Choux"),
+       "\"Moutarde Choux\" does not start with \"Choux\"");
+    ok(bt2c::CStringView {"Moutarde choux"}.startsWith(""), "\"Moutarde Choux\" starts with \"\"");
+    ok(bt2c::CStringView {"Moutarde choux"}.startsWith("Moutarde choux"),
+       "\"Moutarde Choux\" starts with \"Moutarde choux\"");
+    ok(!bt2c::CStringView {"Moutarde"}.startsWith("Moutarde choux"),
+       "\"Moutarde\" does not start with \"Moutarde choux\"");
+    ok(bt2c::CStringView {""}.startsWith(""), "\"\" starts with \"\"");
+}
+
 } /* namespace */
 
 int main()
 {
-    plan_tests(10);
+    plan_tests(16);
     testEquality();
+    testStartsWith();
     return exit_status();
 }

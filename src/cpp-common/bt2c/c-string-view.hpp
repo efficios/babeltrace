@@ -176,6 +176,13 @@ public:
         return _mStr[i];
     }
 
+    bool startsWith(const bt2c::CStringView prefix) const noexcept
+    {
+        BT_ASSERT_DBG(_mStr);
+        BT_ASSERT_DBG(prefix);
+        return std::strncmp(_mStr, prefix, prefix.len()) == 0;
+    }
+
 private:
     const char *_mStr = nullptr;
 };
