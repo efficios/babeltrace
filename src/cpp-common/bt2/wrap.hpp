@@ -14,6 +14,7 @@
 #include "component-port.hpp"
 #include "field-class.hpp"
 #include "field.hpp"
+#include "graph.hpp"
 #include "integer-range-set.hpp"
 #include "integer-range.hpp"
 #include "message-iterator.hpp"
@@ -28,6 +29,11 @@
 #include "value.hpp"
 
 namespace bt2 {
+
+inline Graph wrap(bt_graph * const libObjPtr) noexcept
+{
+    return Graph {libObjPtr};
+}
 
 inline ClockClass wrap(bt_clock_class * const libObjPtr) noexcept
 {
