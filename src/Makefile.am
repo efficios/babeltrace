@@ -642,7 +642,8 @@ plugins_utils_babeltrace_plugin_utils_la_LIBADD += \
 	common/libcommon.la \
 	cpp-common/vendor/fmt/libfmt.la \
 	logging/liblogging.la \
-	plugins/common/param-validation/libparam-validation.la
+	plugins/common/param-validation/libparam-validation.la \
+	clock-correlation-validator/libclock-correlation-validator.la
 endif
 
 # ctf plugin

@@ -11,12 +11,10 @@
 #include <vector>
 
 #include "cpp-common/bt2/component-class-dev.hpp"
-#include "cpp-common/bt2/optional-borrowed-object.hpp"
 #include "cpp-common/bt2/self-message-iterator-configuration.hpp"
 #include "cpp-common/bt2c/prio-heap.hpp"
-#include "cpp-common/bt2c/uuid.hpp"
-#include "cpp-common/bt2s/optional.hpp"
 
+#include "clock-correlation-validator/clock-correlation-validator.hpp"
 #include "upstream-msg-iter.hpp"
 
 namespace bt2mux {
@@ -28,16 +26,6 @@ class MsgIter final : public bt2::UserMessageIterator<MsgIter, Comp>
     friend bt2::UserMessageIterator<MsgIter, Comp>;
 
 private:
-    /* Clock class nature expectation */
-    enum class _ClkClsExpectation
-    {
-        ANY,
-        NONE,
-        ORIG_IS_UNIX_EPOCH,
-        ORIG_ISNT_UNIX_EPOCH_AND_SPEC_UUID,
-        ORIG_ISNT_UNIX_EPOCH_AND_NO_UUID,
-    };
-
     /* Comparator for `_mHeap` with its own logger */
     class _HeapComparator final
     {
@@ -78,19 +66,6 @@ private:
     void _validateMsgClkCls(bt2::ConstMessage msg);
 
     /*
-     * Sets the clock class expectation (`_mClkClsExpectation` and
-     * `_mExpectedClkClsUuid`) according to `clkCls`.
-     */
-    void _setClkClsExpectation(bt2::OptionalBorrowedObject<bt2::ConstClockClass> clkCls) noexcept;
-
-    /*
-     * Checks that `clkCls` meets the current clock class expectation,
-     * throwing if it doesn't.
-     */
-    void _makeSureClkClsIsExpected(bt2::ConstMessage msg,
-                                   bt2::OptionalBorrowedObject<bt2::ConstClockClass> clkCls) const;
-
-    /*
      * Container of all the upstream message iterators.
      *
      * The only purpose of this is to own them; where they are below
@@ -115,21 +90,8 @@ private:
      */
     std::vector<UpstreamMsgIter *> _mUpstreamMsgItersToReload;
 
-    /*
-     * Which kind of clock class to expect from any incoming message.
-     *
-     * The very first received message determines this for all the
-     * following.
-     *
-     * For `ORIG_ISNT_UNIX_EPOCH_AND_SPEC_UUID`, `*_mExpectedClkClsUuid`
-     * is the expected specific UUID.
-     *
-     * For `ORIG_ISNT_UNIX_EPOCH_AND_NO_UUID`, `_mExpectedClkCls` is the
-     * expected clock class.
-     */
-    _ClkClsExpectation _mClkClsExpectation = _ClkClsExpectation::ANY;
-    bt2s::optional<bt2c::Uuid> _mExpectedClkClsUuid;
-    bt2::ConstClockClass::Shared _mExpectedClkCls;
+    /* Clock class correlation validator */
+    bt2ccv::ClockCorrelationValidator _mClkCorrValidator;
 };
 
 } /* namespace bt2mux */
