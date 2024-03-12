@@ -1,5 +1,7 @@
 # SPDX-License-Identifier: MIT
 
+include $(top_srcdir)/src/Makefile.common.inc
+
 SUBDIRS = \
 	utils \
 	lib \
@@ -120,12 +122,33 @@ if !ENABLE_BUILT_IN_PLUGINS
 TESTS_LIB += lib/test-plugins.sh
 endif
 
+# plugins/flt.utils.muxer
+
+noinst_PROGRAMS += plugins/flt.utils.muxer/test-clock-compatibility
+
+plugins_flt_utils_muxer_test_clock_compatibility_SOURCES = \
+	plugins/flt.utils.muxer/test-clock-compatibility.cpp
+
+plugins_flt_utils_muxer_test_clock_compatibility_LDADD = \
+	$(COMMON_TEST_LDADD) \
+	$(top_builddir)/src/lib/libbabeltrace2.la \
+	$(top_builddir)/src/cpp-common/vendor/fmt/libfmt.la
+
+dist_check_SCRIPTS += plugins/flt.utils.muxer/test-clock-compatibility.sh
+
+if ENABLE_BUILT_IN_PLUGINS
+plugins_flt_utils_muxer_test_clock_compatibility_LDFLAGS = $(call pluginarchive,utils)
+plugins_flt_utils_muxer_test_clock_compatibility_LDADD += \
+	$(top_builddir)/src/plugins/common/param-validation/libparam-validation.la
+endif # ENABLE_BUILT_IN_PLUGINS
+
 TESTS_PLUGINS = \
 	plugins/src.ctf.fs/fail/test-fail.sh \
 	plugins/src.ctf.fs/succeed/test-succeed.sh \
 	plugins/src.ctf.fs/test-deterministic-ordering.sh \
 	plugins/sink.ctf.fs/succeed/test-succeed.sh \
-	plugins/sink.text.details/succeed/test-succeed.sh
+	plugins/sink.text.details/succeed/test-succeed.sh \
+	plugins/flt.utils.muxer/test-clock-compatibility.sh
 
 if !ENABLE_BUILT_IN_PLUGINS
 if ENABLE_PYTHON_BINDINGS
