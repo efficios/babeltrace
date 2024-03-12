@@ -1399,7 +1399,7 @@ public:
 
     bool hasField() const noexcept
     {
-        return this->field().has_value();
+        return this->field();
     }
 
     OptionalBorrowedObject<CommonField<LibObjT>> field() const noexcept
