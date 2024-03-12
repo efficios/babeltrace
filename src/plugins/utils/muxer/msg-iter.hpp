@@ -123,9 +123,13 @@ private:
      *
      * For `ORIG_ISNT_UNIX_EPOCH_AND_SPEC_UUID`, `*_mExpectedClkClsUuid`
      * is the expected specific UUID.
+     *
+     * For `ORIG_ISNT_UNIX_EPOCH_AND_NO_UUID`, `_mExpectedClkCls` is the
+     * expected clock class.
      */
     _ClkClsExpectation _mClkClsExpectation = _ClkClsExpectation::ANY;
     bt2s::optional<bt2c::Uuid> _mExpectedClkClsUuid;
+    bt2::ConstClockClass::Shared _mExpectedClkCls;
 };
 
 } /* namespace bt2mux */

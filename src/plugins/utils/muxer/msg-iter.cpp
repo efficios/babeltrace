@@ -280,6 +280,7 @@ void MsgIter::_setClkClsExpectation(
              * without a UUID.
              */
             _mClkClsExpectation = _ClkClsExpectation::ORIG_ISNT_UNIX_EPOCH_AND_NO_UUID;
+            _mExpectedClkCls = clkCls->shared();
         }
     }
 }
@@ -324,27 +325,22 @@ void MsgIter::_makeSureClkClsIsExpected(
         break;
     case _ClkClsExpectation::ORIG_ISNT_UNIX_EPOCH_AND_NO_UUID:
         BT_ASSERT_DBG(!_mExpectedClkClsUuid);
+        BT_ASSERT_DBG(_mExpectedClkCls);
 
-        if (clkCls->originIsUnixEpoch()) {
+        if (clkCls->libObjPtr() != _mExpectedClkCls->libObjPtr()) {
             BT_CPPLOGE_APPEND_CAUSE_AND_THROW(
                 bt2::Error,
-                "Expecting a clock class not having a Unix epoch origin, "
-                "but got one having a Unix epoch origin: "
-                "clock-class-addr={}, clock-class-name={}",
+                "Unexpected clock class: "
+                "expected-clock-class-addr={}, expected-clock-class-name={}, "
+                "actual-clock-class-addr={}, actual-clock-class-name={}",
+                fmt::ptr(_mExpectedClkCls->libObjPtr()), optLogStr(_mExpectedClkCls->name()),
                 clkClsAddr, optLogStr(clkCls->name()));
-        }
-
-        if (clkCls->uuid()) {
-            BT_CPPLOGE_APPEND_CAUSE_AND_THROW(
-                bt2::Error,
-                "Expecting a clock class without a UUID, but got one with a UUID: "
-                "clock-class-addr={}, clock-class-name={}, uuid={}",
-                clkClsAddr, optLogStr(clkCls->name()), clkCls->uuid()->str());
         }
 
         break;
     case _ClkClsExpectation::ORIG_ISNT_UNIX_EPOCH_AND_SPEC_UUID:
         BT_ASSERT_DBG(_mExpectedClkClsUuid);
+        BT_ASSERT_DBG(!_mExpectedClkCls);
 
         if (clkCls->originIsUnixEpoch()) {
             BT_CPPLOGE_APPEND_CAUSE_AND_THROW(
