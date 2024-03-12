@@ -241,7 +241,7 @@ public:
         return _mObj.operator->();
     }
 
-    operator bool() const noexcept
+    explicit operator bool() const noexcept
     {
         return _mObj.hasObject();
     }

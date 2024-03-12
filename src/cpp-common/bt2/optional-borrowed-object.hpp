@@ -174,7 +174,7 @@ public:
         return _mLibObjPtr;
     }
 
-    operator bool() const noexcept
+    explicit operator bool() const noexcept
     {
         return this->hasObject();
     }
