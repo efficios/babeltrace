@@ -63,10 +63,10 @@ struct CommonClockClassSpec<const bt_clock_class> final
 
 } /* namespace internal */
 
-class ClockClassOffset final
+class ClockOffset final
 {
 public:
-    explicit ClockClassOffset(const std::int64_t seconds, const std::uint64_t cycles) :
+    explicit ClockOffset(const std::int64_t seconds, const std::uint64_t cycles) :
         _mSeconds {seconds}, _mCycles {cycles}
     {
     }
@@ -131,20 +131,21 @@ public:
         return bt_clock_class_get_frequency(this->libObjPtr());
     }
 
-    void offset(const ClockClassOffset& offset) const noexcept
+    void offsetFromOrigin(const ClockOffset& offsetFromOrigin) const noexcept
     {
         static_assert(!std::is_const<LibObjT>::value, "Not available with `bt2::ConstClockClass`.");
 
-        bt_clock_class_set_offset(this->libObjPtr(), offset.seconds(), offset.cycles());
+        bt_clock_class_set_offset(this->libObjPtr(), offsetFromOrigin.seconds(),
+                                  offsetFromOrigin.cycles());
     }
 
-    ClockClassOffset offset() const noexcept
+    ClockOffset offsetFromOrigin() const noexcept
     {
         std::int64_t seconds;
         std::uint64_t cycles;
 
         bt_clock_class_get_offset(this->libObjPtr(), &seconds, &cycles);
-        return ClockClassOffset {seconds, cycles};
+        return ClockOffset {seconds, cycles};
     }
 
     void precision(const std::uint64_t precision) const noexcept
