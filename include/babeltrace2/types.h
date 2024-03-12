@@ -35,7 +35,6 @@ typedef struct bt_error bt_error;
 typedef struct bt_error_cause bt_error_cause;
 typedef struct bt_event bt_event;
 typedef struct bt_event_class bt_event_class;
-typedef struct bt_event_header_field bt_event_header_field;
 typedef struct bt_field bt_field;
 typedef struct bt_field_class bt_field_class;
 typedef struct bt_field_class_enumeration_mapping bt_field_class_enumeration_mapping;
