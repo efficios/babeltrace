@@ -153,6 +153,7 @@ cpp_common_libcpp_common_la_SOURCES = \
 	cpp-common/bt2c/align.hpp \
 	cpp-common/bt2c/c-string-view.hpp \
 	cpp-common/bt2c/call.hpp \
+	cpp-common/bt2c/contains.hpp \
 	cpp-common/bt2c/dummy.cpp \
 	cpp-common/bt2c/endian.hpp \
 	cpp-common/bt2c/exc.hpp \
