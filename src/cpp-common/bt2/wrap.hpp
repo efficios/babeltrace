@@ -74,6 +74,43 @@ inline ConstOutputPort wrap(const bt_port_output * const libObjPtr) noexcept
     return ConstOutputPort {libObjPtr};
 }
 
+inline ConstUnsignedEnumerationFieldClassMapping
+wrap(const bt_field_class_enumeration_unsigned_mapping * const libObjPtr) noexcept
+{
+    return ConstUnsignedEnumerationFieldClassMapping {libObjPtr};
+}
+
+inline ConstSignedEnumerationFieldClassMapping
+wrap(const bt_field_class_enumeration_signed_mapping * const libObjPtr) noexcept
+{
+    return ConstSignedEnumerationFieldClassMapping {libObjPtr};
+}
+
+inline VariantFieldClassOption wrap(bt_field_class_variant_option * const libObjPtr) noexcept
+{
+    return VariantFieldClassOption {libObjPtr};
+}
+
+inline ConstVariantFieldClassOption
+wrap(const bt_field_class_variant_option * const libObjPtr) noexcept
+{
+    return ConstVariantFieldClassOption {libObjPtr};
+}
+
+inline ConstVariantWithUnsignedIntegerSelectorFieldClassOption
+wrap(const bt_field_class_variant_with_selector_field_integer_unsigned_option
+         * const libObjPtr) noexcept
+{
+    return ConstVariantWithUnsignedIntegerSelectorFieldClassOption {libObjPtr};
+}
+
+inline ConstVariantWithSignedIntegerSelectorFieldClassOption
+wrap(const bt_field_class_variant_with_selector_field_integer_signed_option
+         * const libObjPtr) noexcept
+{
+    return ConstVariantWithSignedIntegerSelectorFieldClassOption {libObjPtr};
+}
+
 inline FieldClass wrap(bt_field_class * const libObjPtr) noexcept
 {
     return FieldClass {libObjPtr};
