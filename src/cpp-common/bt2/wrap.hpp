@@ -12,6 +12,7 @@
 #include "clock-class.hpp"
 #include "clock-snapshot.hpp"
 #include "component-port.hpp"
+#include "error.hpp"
 #include "field-class.hpp"
 #include "field.hpp"
 #include "graph.hpp"
@@ -29,6 +30,11 @@
 #include "value.hpp"
 
 namespace bt2 {
+
+inline ConstErrorCause wrap(const bt_error_cause * const libObjPtr) noexcept
+{
+    return ConstErrorCause {libObjPtr};
+}
 
 inline Graph wrap(bt_graph * const libObjPtr) noexcept
 {

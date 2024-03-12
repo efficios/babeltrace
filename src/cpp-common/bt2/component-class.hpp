@@ -52,6 +52,13 @@ public:
     using typename _ThisBorrowedObject::LibObjPtr;
     using Shared = SharedObject<CommonComponentClass, LibObjT, internal::ComponentClassRefFuncs>;
 
+    enum class Type
+    {
+        SOURCE = BT_COMPONENT_CLASS_TYPE_SOURCE,
+        FILTER = BT_COMPONENT_CLASS_TYPE_FILTER,
+        SINK = BT_COMPONENT_CLASS_TYPE_SINK,
+    };
+
     explicit CommonComponentClass(const LibObjPtr libObjPtr) noexcept :
         _ThisBorrowedObject {libObjPtr}
     {
