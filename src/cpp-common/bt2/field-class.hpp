@@ -2423,7 +2423,7 @@ public:
     explicit CommonVariantWithIntegerSelectorFieldClass(const LibObjPtr libObjPtr) noexcept :
         _ThisCommonVariantWithSelectorFieldClass {libObjPtr}
     {
-        BT_ASSERT_DBG(this->isVariant());
+        BT_ASSERT_DBG(this->isVariantWithIntegerSelector());
     }
 
     template <typename OtherLibObjT>
