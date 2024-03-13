@@ -1537,98 +1537,84 @@ struct TypeDescr<ConstVariantField> : public VariantFieldTypeDescr
 template <typename LibObjT>
 CommonBoolField<LibObjT> CommonField<LibObjT>::asBool() const noexcept
 {
-    BT_ASSERT_DBG(this->isBool());
     return CommonBoolField<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonBitArrayField<LibObjT> CommonField<LibObjT>::asBitArray() const noexcept
 {
-    BT_ASSERT_DBG(this->isBitArray());
     return CommonBitArrayField<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonUnsignedIntegerField<LibObjT> CommonField<LibObjT>::asUnsignedInteger() const noexcept
 {
-    BT_ASSERT_DBG(this->isUnsignedInteger());
     return CommonUnsignedIntegerField<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonSignedIntegerField<LibObjT> CommonField<LibObjT>::asSignedInteger() const noexcept
 {
-    BT_ASSERT_DBG(this->isSignedInteger());
     return CommonSignedIntegerField<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonUnsignedEnumerationField<LibObjT> CommonField<LibObjT>::asUnsignedEnumeration() const noexcept
 {
-    BT_ASSERT_DBG(this->isUnsignedEnumeration());
     return CommonUnsignedEnumerationField<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonSignedEnumerationField<LibObjT> CommonField<LibObjT>::asSignedEnumeration() const noexcept
 {
-    BT_ASSERT_DBG(this->isSignedEnumeration());
     return CommonSignedEnumerationField<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonSinglePrecisionRealField<LibObjT> CommonField<LibObjT>::asSinglePrecisionReal() const noexcept
 {
-    BT_ASSERT_DBG(this->isSinglePrecisionReal());
     return CommonSinglePrecisionRealField<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonDoublePrecisionRealField<LibObjT> CommonField<LibObjT>::asDoublePrecisionReal() const noexcept
 {
-    BT_ASSERT_DBG(this->isDoublePrecisionReal());
     return CommonDoublePrecisionRealField<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonStringField<LibObjT> CommonField<LibObjT>::asString() const noexcept
 {
-    BT_ASSERT_DBG(this->isString());
     return CommonStringField<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonStructureField<LibObjT> CommonField<LibObjT>::asStructure() const noexcept
 {
-    BT_ASSERT_DBG(this->isStructure());
     return CommonStructureField<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonArrayField<LibObjT> CommonField<LibObjT>::asArray() const noexcept
 {
-    BT_ASSERT_DBG(this->isArray());
     return CommonArrayField<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonDynamicArrayField<LibObjT> CommonField<LibObjT>::asDynamicArray() const noexcept
 {
-    BT_ASSERT_DBG(this->isDynamicArray());
     return CommonDynamicArrayField<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonOptionField<LibObjT> CommonField<LibObjT>::asOption() const noexcept
 {
-    BT_ASSERT_DBG(this->isOption());
     return CommonOptionField<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonVariantField<LibObjT> CommonField<LibObjT>::asVariant() const noexcept
 {
-    BT_ASSERT_DBG(this->isVariant());
     return CommonVariantField<LibObjT> {this->libObjPtr()};
 }
 

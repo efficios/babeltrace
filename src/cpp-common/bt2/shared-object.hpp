@@ -9,8 +9,6 @@
 
 #include <utility>
 
-#include "common/assert.h"
-
 #include "optional-borrowed-object.hpp"
 
 namespace bt2 {
@@ -235,13 +233,11 @@ public:
 
     ObjT operator*() const noexcept
     {
-        BT_ASSERT_DBG(_mObj);
         return *_mObj;
     }
 
     BorrowedObjectProxy<ObjT> operator->() const noexcept
     {
-        BT_ASSERT_DBG(_mObj);
         return _mObj.operator->();
     }
 
@@ -270,8 +266,6 @@ public:
      */
     ObjT release() noexcept
     {
-        BT_ASSERT_DBG(_mObj);
-
         const auto obj = *_mObj;
 
         this->_reset();

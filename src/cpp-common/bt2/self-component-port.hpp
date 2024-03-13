@@ -13,7 +13,6 @@
 
 #include "logging.hpp"
 
-#include "common/assert.h"
 #include "cpp-common/bt2c/c-string-view.hpp"
 
 #include "borrowed-object-iterator.hpp"
@@ -688,7 +687,6 @@ SelfSinkComponent::createMessageIterator(const InputPorts::Port port) const
 
     switch (status) {
     case BT_MESSAGE_ITERATOR_CREATE_FROM_SINK_COMPONENT_STATUS_OK:
-        BT_ASSERT(libMsgIterPtr);
         return MessageIterator::Shared::createWithoutRef(libMsgIterPtr);
     case BT_MESSAGE_ITERATOR_CREATE_FROM_SINK_COMPONENT_STATUS_MEMORY_ERROR:
         throw MemoryError {};

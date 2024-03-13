@@ -2551,21 +2551,18 @@ struct TypeDescr<ConstVariantWithSignedIntegerSelectorFieldClass> :
 template <typename LibObjT>
 CommonBitArrayFieldClass<LibObjT> CommonFieldClass<LibObjT>::asBitArray() const noexcept
 {
-    BT_ASSERT_DBG(this->isBitArray());
     return CommonBitArrayFieldClass<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonIntegerFieldClass<LibObjT> CommonFieldClass<LibObjT>::asInteger() const noexcept
 {
-    BT_ASSERT_DBG(this->isInteger());
     return CommonIntegerFieldClass<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonBaseEnumerationFieldClass<LibObjT> CommonFieldClass<LibObjT>::asEnumeration() const noexcept
 {
-    BT_ASSERT_DBG(this->isEnumeration());
     return CommonBaseEnumerationFieldClass<LibObjT> {this->libObjPtr()};
 }
 
@@ -2590,21 +2587,18 @@ CommonFieldClass<LibObjT>::asSignedEnumeration() const noexcept
 template <typename LibObjT>
 CommonStructureFieldClass<LibObjT> CommonFieldClass<LibObjT>::asStructure() const noexcept
 {
-    BT_ASSERT_DBG(this->isStructure());
     return CommonStructureFieldClass<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonArrayFieldClass<LibObjT> CommonFieldClass<LibObjT>::asArray() const noexcept
 {
-    BT_ASSERT_DBG(this->isArray());
     return CommonArrayFieldClass<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonStaticArrayFieldClass<LibObjT> CommonFieldClass<LibObjT>::asStaticArray() const noexcept
 {
-    BT_ASSERT_DBG(this->isStaticArray());
     return CommonStaticArrayFieldClass<LibObjT> {this->libObjPtr()};
 }
 
@@ -2612,14 +2606,12 @@ template <typename LibObjT>
 CommonDynamicArrayWithLengthFieldClass<LibObjT>
 CommonFieldClass<LibObjT>::asDynamicArrayWithLength() const noexcept
 {
-    BT_ASSERT_DBG(this->isDynamicArrayWithLength());
     return CommonDynamicArrayWithLengthFieldClass<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonOptionFieldClass<LibObjT> CommonFieldClass<LibObjT>::asOption() const noexcept
 {
-    BT_ASSERT_DBG(this->isOption());
     return CommonOptionFieldClass<LibObjT> {this->libObjPtr()};
 }
 
@@ -2627,7 +2619,6 @@ template <typename LibObjT>
 CommonOptionWithSelectorFieldClass<LibObjT>
 CommonFieldClass<LibObjT>::asOptionWithSelector() const noexcept
 {
-    BT_ASSERT_DBG(this->isOptionWithSelector());
     return CommonOptionWithSelectorFieldClass<LibObjT> {this->libObjPtr()};
 }
 
@@ -2635,7 +2626,6 @@ template <typename LibObjT>
 CommonOptionWithBoolSelectorFieldClass<LibObjT>
 CommonFieldClass<LibObjT>::asOptionWithBoolSelector() const noexcept
 {
-    BT_ASSERT_DBG(this->isOptionWithBoolSelector());
     return CommonOptionWithBoolSelectorFieldClass<LibObjT> {this->libObjPtr()};
 }
 
@@ -2660,7 +2650,6 @@ CommonFieldClass<LibObjT>::asOptionWithSignedIntegerSelector() const noexcept
 template <typename LibObjT>
 CommonVariantFieldClass<LibObjT> CommonFieldClass<LibObjT>::asVariant() const noexcept
 {
-    BT_ASSERT_DBG(this->isVariant());
     return CommonVariantFieldClass<LibObjT> {this->libObjPtr()};
 }
 
@@ -2668,7 +2657,6 @@ template <typename LibObjT>
 CommonVariantWithoutSelectorFieldClass<LibObjT>
 CommonFieldClass<LibObjT>::asVariantWithoutSelector() const noexcept
 {
-    BT_ASSERT_DBG(this->isVariantWithoutSelector());
     return CommonVariantWithoutSelectorFieldClass<LibObjT> {this->libObjPtr()};
 }
 
@@ -2676,7 +2664,6 @@ template <typename LibObjT>
 CommonVariantWithSelectorFieldClass<LibObjT>
 CommonFieldClass<LibObjT>::asVariantWithSelector() const noexcept
 {
-    BT_ASSERT_DBG(this->isVariantWithSelector());
     return CommonVariantWithSelectorFieldClass<LibObjT> {this->libObjPtr()};
 }
 

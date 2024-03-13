@@ -1094,49 +1094,42 @@ struct TypeDescr<ConstMessageIteratorInactivityMessage> :
 template <typename LibObjT>
 CommonStreamBeginningMessage<LibObjT> CommonMessage<LibObjT>::asStreamBeginning() const noexcept
 {
-    BT_ASSERT_DBG(this->isStreamBeginning());
     return CommonStreamBeginningMessage<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonStreamEndMessage<LibObjT> CommonMessage<LibObjT>::asStreamEnd() const noexcept
 {
-    BT_ASSERT_DBG(this->isStreamEnd());
     return CommonStreamEndMessage<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonPacketBeginningMessage<LibObjT> CommonMessage<LibObjT>::asPacketBeginning() const noexcept
 {
-    BT_ASSERT_DBG(this->isPacketBeginning());
     return CommonPacketBeginningMessage<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonPacketEndMessage<LibObjT> CommonMessage<LibObjT>::asPacketEnd() const noexcept
 {
-    BT_ASSERT_DBG(this->isPacketEnd());
     return CommonPacketEndMessage<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonEventMessage<LibObjT> CommonMessage<LibObjT>::asEvent() const noexcept
 {
-    BT_ASSERT_DBG(this->isEvent());
     return CommonEventMessage<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonDiscardedEventsMessage<LibObjT> CommonMessage<LibObjT>::asDiscardedEvents() const noexcept
 {
-    BT_ASSERT_DBG(this->isDiscardedEvents());
     return CommonDiscardedEventsMessage<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonDiscardedPacketsMessage<LibObjT> CommonMessage<LibObjT>::asDiscardedPackets() const noexcept
 {
-    BT_ASSERT_DBG(this->isDiscardedPackets());
     return CommonDiscardedPacketsMessage<LibObjT> {this->libObjPtr()};
 }
 
@@ -1144,7 +1137,6 @@ template <typename LibObjT>
 CommonMessageIteratorInactivityMessage<LibObjT>
 CommonMessage<LibObjT>::asMessageIteratorInactivity() const noexcept
 {
-    BT_ASSERT_DBG(this->isMessageIteratorInactivity());
     return CommonMessageIteratorInactivityMessage<LibObjT> {this->libObjPtr()};
 }
 

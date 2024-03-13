@@ -9,7 +9,6 @@
 
 #include <babeltrace2/babeltrace.h>
 
-#include "common/assert.h"
 #include "common/common.h"
 
 #include "borrowed-object.hpp"
@@ -34,7 +33,6 @@ public:
 
         switch (status) {
         case BT_MESSAGE_ITERATOR_CREATE_FROM_MESSAGE_ITERATOR_STATUS_OK:
-            BT_ASSERT(libMsgIterPtr);
             return MessageIterator::Shared::createWithoutRef(libMsgIterPtr);
         case BT_MESSAGE_ITERATOR_CREATE_FROM_MESSAGE_ITERATOR_STATUS_MEMORY_ERROR:
             throw MemoryError {};

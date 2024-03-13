@@ -73,7 +73,6 @@ public:
 
     Object operator*() const noexcept
     {
-        BT_ASSERT_DBG(_mIdx < _mContainer.length());
         return _mContainer[_mIdx];
     }
 

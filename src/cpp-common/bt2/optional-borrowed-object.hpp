@@ -9,8 +9,6 @@
 
 #include <type_traits>
 
-#include "common/assert.h"
-
 #include "borrowed-object-proxy.hpp"
 
 namespace bt2 {
@@ -147,7 +145,6 @@ public:
 
     ObjT object() const noexcept
     {
-        BT_ASSERT_DBG(_mLibObjPtr);
         return ObjT {_mLibObjPtr};
     }
 

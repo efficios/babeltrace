@@ -1426,49 +1426,42 @@ CommonNullValue<LibObjT> CommonValue<LibObjT>::asNull() const noexcept
 template <typename LibObjT>
 CommonBoolValue<LibObjT> CommonValue<LibObjT>::asBool() const noexcept
 {
-    BT_ASSERT_DBG(this->isBool());
     return CommonBoolValue<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonSignedIntegerValue<LibObjT> CommonValue<LibObjT>::asSignedInteger() const noexcept
 {
-    BT_ASSERT_DBG(this->isSignedInteger());
     return CommonSignedIntegerValue<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonUnsignedIntegerValue<LibObjT> CommonValue<LibObjT>::asUnsignedInteger() const noexcept
 {
-    BT_ASSERT_DBG(this->isUnsignedInteger());
     return CommonUnsignedIntegerValue<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonRealValue<LibObjT> CommonValue<LibObjT>::asReal() const noexcept
 {
-    BT_ASSERT_DBG(this->isReal());
     return CommonRealValue<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonStringValue<LibObjT> CommonValue<LibObjT>::asString() const noexcept
 {
-    BT_ASSERT_DBG(this->isString());
     return CommonStringValue<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonArrayValue<LibObjT> CommonValue<LibObjT>::asArray() const noexcept
 {
-    BT_ASSERT_DBG(this->isArray());
     return CommonArrayValue<LibObjT> {this->libObjPtr()};
 }
 
 template <typename LibObjT>
 CommonMapValue<LibObjT> CommonValue<LibObjT>::asMap() const noexcept
 {
-    BT_ASSERT_DBG(this->isMap());
     return CommonMapValue<LibObjT> {this->libObjPtr()};
 }
 

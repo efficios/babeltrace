@@ -82,7 +82,6 @@ public:
 
 inline ConstIndexFieldPathItem ConstFieldPathItem::asIndex() const noexcept
 {
-    BT_ASSERT_DBG(this->isIndex());
     return ConstIndexFieldPathItem {this->libObjPtr()};
 }
 
