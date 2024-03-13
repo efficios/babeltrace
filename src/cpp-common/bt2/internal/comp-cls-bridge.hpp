@@ -92,9 +92,9 @@ public:
                             bt_integer_range_set_unsigned * const libSupportedVersionsPtr) noexcept
     {
         try {
-            UserCompClsT::getSupportedMipVersions(wrap(libSelfCompClsPtr), wrap(libParamsPtr),
-                                                  static_cast<LoggingLevel>(logLevel),
-                                                  wrap(libSupportedVersionsPtr));
+            UserCompClsT::getSupportedMipVersions(
+                wrap(libSelfCompClsPtr), wrap(libParamsPtr).asMap(),
+                static_cast<LoggingLevel>(logLevel), wrap(libSupportedVersionsPtr));
             return BT_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD_STATUS_OK;
         } catch (const std::bad_alloc&) {
             return BT_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD_STATUS_MEMORY_ERROR;

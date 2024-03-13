@@ -131,7 +131,7 @@ public:
     }
 
     static void getSupportedMipVersions(const SelfComponentClass selfCompCls,
-                                        const ConstValue params, const LoggingLevel loggingLevel,
+                                        const ConstMapValue params, const LoggingLevel loggingLevel,
                                         const UnsignedIntegerRangeSet ranges)
     {
         UserComponentT::_getSupportedMipVersions(selfCompCls, params, loggingLevel, ranges);
@@ -152,7 +152,7 @@ protected:
     }
 
     /* Overloadable */
-    static void _getSupportedMipVersions(SelfComponentClass, ConstValue, LoggingLevel,
+    static void _getSupportedMipVersions(SelfComponentClass, ConstMapValue, LoggingLevel,
                                          const UnsignedIntegerRangeSet ranges)
     {
         ranges.addRange(0, 0);
@@ -235,7 +235,7 @@ public:
     }
 
     static void getSupportedMipVersions(const SelfComponentClass selfCompCls,
-                                        const ConstValue params, const LoggingLevel loggingLevel,
+                                        const ConstMapValue params, const LoggingLevel loggingLevel,
                                         const UnsignedIntegerRangeSet ranges)
     {
         UserComponentT::_getSupportedMipVersions(selfCompCls, params, loggingLevel, ranges);
@@ -262,7 +262,7 @@ protected:
     }
 
     /* Overloadable */
-    static void _getSupportedMipVersions(SelfComponentClass, ConstValue, LoggingLevel,
+    static void _getSupportedMipVersions(SelfComponentClass, ConstMapValue, LoggingLevel,
                                          const UnsignedIntegerRangeSet ranges)
     {
         ranges.addRange(0, 0);
@@ -362,7 +362,7 @@ public:
     }
 
     static void getSupportedMipVersions(const SelfComponentClass selfCompCls,
-                                        const ConstValue params, const LoggingLevel loggingLevel,
+                                        const ConstMapValue params, const LoggingLevel loggingLevel,
                                         const UnsignedIntegerRangeSet ranges)
     {
         UserComponentT::_getSupportedMipVersions(selfCompCls, params, loggingLevel, ranges);
@@ -393,7 +393,7 @@ protected:
     }
 
     /* Overloadable */
-    static void _getSupportedMipVersions(SelfComponentClass, ConstValue, LoggingLevel,
+    static void _getSupportedMipVersions(SelfComponentClass, ConstMapValue, LoggingLevel,
                                          const UnsignedIntegerRangeSet ranges)
     {
         ranges.addRange(0, 0);
