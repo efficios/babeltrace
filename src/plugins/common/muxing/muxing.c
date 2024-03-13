@@ -161,6 +161,70 @@ end:
 	return ret;
 }
 
+
+static
+int compare_clock_classes(const bt_clock_class *left_cc,
+		const bt_clock_class *right_cc)
+{
+	int ret;
+	const char *left_clock_class_name, *right_clock_class_name;
+	bt_uuid left_clock_class_uuid, right_clock_class_uuid;
+	uint64_t left_freq, right_freq, left_prec, right_prec;
+
+	left_clock_class_uuid = bt_clock_class_get_uuid(left_cc);
+	right_clock_class_uuid = bt_clock_class_get_uuid(right_cc);
+
+	if (left_clock_class_uuid && !right_clock_class_uuid) {
+		ret = -1;
+		goto end;
+	} else if (!left_clock_class_uuid && right_clock_class_uuid) {
+		ret = 1;
+		goto end;
+	} else if (left_clock_class_uuid && right_clock_class_uuid) {
+		ret = bt_uuid_compare(left_clock_class_uuid,
+			right_clock_class_uuid);
+		if (ret != 0) {
+			goto end;
+		}
+	}
+
+
+	left_clock_class_name = bt_clock_class_get_name(left_cc);
+	right_clock_class_name = bt_clock_class_get_name(right_cc);
+
+	if (left_clock_class_name && !right_clock_class_name) {
+		ret = -1;
+		goto end;
+	} else if (!left_clock_class_name && right_clock_class_name) {
+		ret = 1;
+		goto end;
+	} else if (left_clock_class_name && right_clock_class_name) {
+		ret = strcmp(left_clock_class_name, right_clock_class_name);
+		if (ret != 0) {
+			goto end;
+		}
+	}
+
+	left_freq = bt_clock_class_get_frequency(left_cc);
+	right_freq = bt_clock_class_get_frequency(right_cc);
+
+	ret = right_freq - left_freq;
+	if (ret != 0) {
+		goto end;
+	}
+
+	left_prec = bt_clock_class_get_precision(left_cc);
+	right_prec = bt_clock_class_get_precision(right_cc);
+
+	ret = right_prec - left_prec;
+	if (ret != 0) {
+		goto end;
+	}
+
+end:
+	return ret;
+}
+
 static
 int compare_streams(const bt_stream *left_stream, const bt_stream *right_stream)
 {
@@ -335,78 +399,13 @@ end:
 }
 
 static
-int compare_clock_snapshots_and_clock_classes(const bt_clock_snapshot *left_cs,
+int compare_clock_snapshots(const bt_clock_snapshot *left_cs,
 		const bt_clock_snapshot *right_cs)
 {
-	int ret;
-	uint64_t left_freq, right_freq, left_prec, right_prec;
-	uint64_t left_cs_value, right_cs_value;
-	const bt_clock_class *left_clock_class, *right_clock_class;
-	const char *left_clock_class_name, *right_clock_class_name;
-	left_cs_value = bt_clock_snapshot_get_value(left_cs);
-	right_cs_value = bt_clock_snapshot_get_value(right_cs);
-	bt_uuid left_clock_class_uuid, right_clock_class_uuid;
+	uint64_t left_cs_value = bt_clock_snapshot_get_value(left_cs);
+	uint64_t right_cs_value = bt_clock_snapshot_get_value(right_cs);
 
-	ret = left_cs_value - right_cs_value;
-	if (ret != 0) {
-		goto end;
-	}
-
-	left_clock_class = bt_clock_snapshot_borrow_clock_class_const(left_cs);
-	right_clock_class = bt_clock_snapshot_borrow_clock_class_const(right_cs);
-
-	left_clock_class_uuid = bt_clock_class_get_uuid(left_clock_class);
-	right_clock_class_uuid = bt_clock_class_get_uuid(right_clock_class);
-
-	if (left_clock_class_uuid && !right_clock_class_uuid) {
-		ret = -1;
-		goto end;
-	} else if (!left_clock_class_uuid && right_clock_class_uuid) {
-		ret = 1;
-		goto end;
-	} else if (left_clock_class_uuid && right_clock_class_uuid) {
-		ret = bt_uuid_compare(left_clock_class_uuid,
-			right_clock_class_uuid);
-		if (ret != 0) {
-			goto end;
-		}
-	}
-
-
-	left_clock_class_name = bt_clock_class_get_name(left_clock_class);
-	right_clock_class_name = bt_clock_class_get_name(right_clock_class);
-
-	if (left_clock_class_name && !right_clock_class_name) {
-		ret = -1;
-		goto end;
-	} else if (!left_clock_class_name && right_clock_class_name) {
-		ret = 1;
-		goto end;
-	} else if (left_clock_class_name && right_clock_class_name) {
-		ret = strcmp(left_clock_class_name, right_clock_class_name);
-		if (ret != 0) {
-			goto end;
-		}
-	}
-
-	left_freq = bt_clock_class_get_frequency(left_clock_class);
-	right_freq = bt_clock_class_get_frequency(right_clock_class);
-
-	ret = right_freq - left_freq;
-	if (ret != 0) {
-		goto end;
-	}
-
-	left_prec = bt_clock_class_get_precision(left_clock_class);
-	right_prec = bt_clock_class_get_precision(right_clock_class);
-
-	ret = right_prec - left_prec;
-	if (ret != 0) {
-		goto end;
-	}
-
-end:
-	return ret;
+	return left_cs_value - right_cs_value;
 }
 
 static
@@ -699,15 +698,20 @@ int compare_messages_same_type(struct messages_to_compare *msgs)
 			const bt_clock_snapshot *right_end_cs =
 				bt_message_discarded_events_borrow_end_default_clock_snapshot_const(msgs->right.msg);
 
-			ret = compare_clock_snapshots_and_clock_classes(
-				left_beg_cs, right_beg_cs);
+			ret = compare_clock_snapshots(left_beg_cs, right_beg_cs);
 			if (ret) {
 				goto end;
 			}
 
-			ret = compare_clock_snapshots_and_clock_classes(
-				left_end_cs, right_end_cs);
+			ret = compare_clock_snapshots(left_end_cs, right_end_cs);
 			if (ret) {
+				goto end;
+			}
+
+			ret = compare_clock_classes(
+				bt_clock_snapshot_borrow_clock_class_const(left_beg_cs),
+				bt_clock_snapshot_borrow_clock_class_const(right_beg_cs));
+			if (ret != 0) {
 				goto end;
 			}
 		}
@@ -766,15 +770,20 @@ int compare_messages_same_type(struct messages_to_compare *msgs)
 			const bt_clock_snapshot *right_end_cs =
 				bt_message_discarded_packets_borrow_end_default_clock_snapshot_const(msgs->right.msg);
 
-			ret = compare_clock_snapshots_and_clock_classes(
-				left_beg_cs, right_beg_cs);
+			ret = compare_clock_snapshots(left_beg_cs, right_beg_cs);
 			if (ret) {
 				goto end;
 			}
 
-			ret = compare_clock_snapshots_and_clock_classes(
-				left_end_cs, right_end_cs);
+			ret = compare_clock_snapshots(left_end_cs, right_end_cs);
 			if (ret) {
+				goto end;
+			}
+
+			ret = compare_clock_classes(
+				bt_clock_snapshot_borrow_clock_class_const(left_beg_cs),
+				bt_clock_snapshot_borrow_clock_class_const(right_beg_cs));
+			if (ret != 0) {
 				goto end;
 			}
 		}
@@ -808,8 +817,14 @@ int compare_messages_same_type(struct messages_to_compare *msgs)
 		const bt_clock_snapshot *right_cs =
 			bt_message_message_iterator_inactivity_borrow_clock_snapshot_const(msgs->right.msg);
 
-		ret = compare_clock_snapshots_and_clock_classes(
-			left_cs, right_cs);
+		ret = compare_clock_snapshots(left_cs, right_cs);
+		if (ret != 0) {
+			goto end;
+		}
+
+		ret = compare_clock_classes(
+			bt_clock_snapshot_borrow_clock_class_const(left_cs),
+			bt_clock_snapshot_borrow_clock_class_const(right_cs));
 		if (ret != 0) {
 			goto end;
 		}
