@@ -1420,7 +1420,7 @@ template <typename LibObjT>
 CommonNullValue<LibObjT> CommonValue<LibObjT>::asNull() const noexcept
 {
     BT_ASSERT_DBG(this->isNull());
-    return CommonNullValue<LibObjT> {this->libObjPtr()};
+    return CommonNullValue<LibObjT> {};
 }
 
 template <typename LibObjT>
