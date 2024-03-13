@@ -66,7 +66,7 @@ public:
 
     template <typename InitDataT>
     ConstSourceComponent addComponent(const ConstSourceComponentClass componentClass,
-                                      const bt2c::CStringView name, InitDataT& initData,
+                                      const bt2c::CStringView name, InitDataT&& initData,
                                       const OptionalBorrowedObject<ConstMapValue> params = {},
                                       const LoggingLevel loggingLevel = LoggingLevel::NONE) const
     {
@@ -87,7 +87,7 @@ public:
 
     template <typename InitDataT>
     ConstFilterComponent addComponent(const ConstFilterComponentClass componentClass,
-                                      const bt2c::CStringView name, InitDataT& initData,
+                                      const bt2c::CStringView name, InitDataT&& initData,
                                       const OptionalBorrowedObject<ConstMapValue> params = {},
                                       const LoggingLevel loggingLevel = LoggingLevel::NONE) const
     {
@@ -108,7 +108,7 @@ public:
 
     template <typename InitDataT>
     ConstSinkComponent addComponent(const ConstSinkComponentClass componentClass,
-                                    const bt2c::CStringView name, InitDataT& initData,
+                                    const bt2c::CStringView name, InitDataT&& initData,
                                     const OptionalBorrowedObject<ConstMapValue> params = {},
                                     const LoggingLevel loggingLevel = LoggingLevel::NONE) const
     {
