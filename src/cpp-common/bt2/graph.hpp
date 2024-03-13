@@ -182,7 +182,7 @@ private:
             throw MemoryError {};
         }
 
-        return wrap(libObjPtr);
+        return ConstComponentT {libObjPtr};
     }
 };
 
