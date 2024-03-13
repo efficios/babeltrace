@@ -283,7 +283,7 @@ public:
     static UserMsgIterT&
     userMsgIterFromLibSelfMsgIterPtr(bt_self_message_iterator * const libSelfMsgIterPtr) noexcept
     {
-        return bt2::wrap(libSelfMsgIterPtr).data<UserMsgIterT>();
+        return wrap(libSelfMsgIterPtr).data<UserMsgIterT>();
     }
 
     static bt_message_iterator_class_initialize_method_status
@@ -291,16 +291,16 @@ public:
          bt_self_message_iterator_configuration * const libSelfMsgIterConfigPtr,
          bt_self_component_port_output * const libSelfCompPortPtr) noexcept
     {
-        const auto selfMsgIter = bt2::wrap(libSelfMsgIterPtr);
+        const auto selfMsgIter = wrap(libSelfMsgIterPtr);
 
         try {
-            const auto msgIter = new UserMsgIterT {selfMsgIter, bt2::wrap(libSelfMsgIterConfigPtr),
-                                                   bt2::wrap(libSelfCompPortPtr)};
+            const auto msgIter = new UserMsgIterT {selfMsgIter, wrap(libSelfMsgIterConfigPtr),
+                                                   wrap(libSelfCompPortPtr)};
 
             selfMsgIter.data(*msgIter);
         } catch (const std::bad_alloc&) {
             return BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_MEMORY_ERROR;
-        } catch (const bt2::Error&) {
+        } catch (const Error&) {
             return BT_MESSAGE_ITERATOR_CLASS_INITIALIZE_METHOD_STATUS_ERROR;
         } catch (...) {
             BT_LOG_WRITE_CUR_LVL(
@@ -323,7 +323,7 @@ public:
          const uint64_t capacity, uint64_t * const count) noexcept
     {
         try {
-            auto msgArray = bt2::ConstMessageArray::wrapEmpty(libMsgsPtr, capacity);
+            auto msgArray = ConstMessageArray::wrapEmpty(libMsgsPtr, capacity);
             auto& msgIter = userMsgIterFromLibSelfMsgIterPtr(libSelfMsgIterPtr);
 
             msgIter.next(msgArray);
@@ -334,11 +334,11 @@ public:
             } else {
                 return BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_END;
             }
-        } catch (const bt2::TryAgain&) {
+        } catch (const TryAgain&) {
             return BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_AGAIN;
         } catch (const std::bad_alloc&) {
             return BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_MEMORY_ERROR;
-        } catch (const bt2::Error&) {
+        } catch (const Error&) {
             return BT_MESSAGE_ITERATOR_CLASS_NEXT_METHOD_STATUS_ERROR;
         } catch (...) {
             BT_LOG_WRITE_CUR_LVL(
@@ -356,11 +356,11 @@ public:
         try {
             *canSeek = static_cast<bt_bool>(
                 userMsgIterFromLibSelfMsgIterPtr(libSelfMsgIterPtr).canSeekBeginning());
-        } catch (const bt2::TryAgain&) {
+        } catch (const TryAgain&) {
             return BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_BEGINNING_METHOD_STATUS_AGAIN;
         } catch (const std::bad_alloc&) {
             return BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_BEGINNING_METHOD_STATUS_MEMORY_ERROR;
-        } catch (const bt2::Error&) {
+        } catch (const Error&) {
             return BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_BEGINNING_METHOD_STATUS_ERROR;
         } catch (...) {
             BT_LOG_WRITE_CUR_LVL(
@@ -378,11 +378,11 @@ public:
     {
         try {
             userMsgIterFromLibSelfMsgIterPtr(libSelfMsgIterPtr).seekBeginning();
-        } catch (const bt2::TryAgain&) {
+        } catch (const TryAgain&) {
             return BT_MESSAGE_ITERATOR_CLASS_SEEK_BEGINNING_METHOD_STATUS_AGAIN;
         } catch (const std::bad_alloc&) {
             return BT_MESSAGE_ITERATOR_CLASS_SEEK_BEGINNING_METHOD_STATUS_MEMORY_ERROR;
-        } catch (const bt2::Error&) {
+        } catch (const Error&) {
             return BT_MESSAGE_ITERATOR_CLASS_SEEK_BEGINNING_METHOD_STATUS_ERROR;
         } catch (...) {
             BT_LOG_WRITE_CUR_LVL(
@@ -402,11 +402,11 @@ public:
         try {
             *canSeek = static_cast<bt_bool>(userMsgIterFromLibSelfMsgIterPtr(libSelfMsgIterPtr)
                                                 .canSeekNsFromOrigin(nsFromOrigin));
-        } catch (const bt2::TryAgain&) {
+        } catch (const TryAgain&) {
             return BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_AGAIN;
         } catch (const std::bad_alloc&) {
             return BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_MEMORY_ERROR;
-        } catch (const bt2::Error&) {
+        } catch (const Error&) {
             return BT_MESSAGE_ITERATOR_CLASS_CAN_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_ERROR;
         } catch (...) {
             BT_LOG_WRITE_CUR_LVL(
@@ -425,11 +425,11 @@ public:
     {
         try {
             userMsgIterFromLibSelfMsgIterPtr(libSelfMsgIterPtr).seekNsFromOrigin(nsFromOrigin);
-        } catch (const bt2::TryAgain&) {
+        } catch (const TryAgain&) {
             return BT_MESSAGE_ITERATOR_CLASS_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_AGAIN;
         } catch (const std::bad_alloc&) {
             return BT_MESSAGE_ITERATOR_CLASS_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_MEMORY_ERROR;
-        } catch (const bt2::Error&) {
+        } catch (const Error&) {
             return BT_MESSAGE_ITERATOR_CLASS_SEEK_NS_FROM_ORIGIN_METHOD_STATUS_ERROR;
         } catch (...) {
             BT_LOG_WRITE_CUR_LVL(

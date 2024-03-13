@@ -106,7 +106,7 @@ public:
         return *this;
     }
 
-    bt2::TraceClass::Shared createTraceClass() const
+    TraceClass::Shared createTraceClass() const
     {
         const auto libObjPtr = bt_trace_class_create(this->libObjPtr());
 
@@ -114,10 +114,10 @@ public:
             throw MemoryError {};
         }
 
-        return bt2::TraceClass::Shared::createWithoutRef(libObjPtr);
+        return TraceClass::Shared::createWithoutRef(libObjPtr);
     }
 
-    bt2::ClockClass::Shared createClockClass() const
+    ClockClass::Shared createClockClass() const
     {
         const auto libObjPtr = bt_clock_class_create(this->libObjPtr());
 
@@ -125,7 +125,7 @@ public:
             throw MemoryError {};
         }
 
-        return bt2::ClockClass::Shared::createWithoutRef(libObjPtr);
+        return ClockClass::Shared::createWithoutRef(libObjPtr);
     }
 };
 

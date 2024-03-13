@@ -486,7 +486,7 @@ protected:
     }
 
 public:
-    void next(bt2::ConstMessageArray& messages)
+    void next(ConstMessageArray& messages)
     {
         /* Any saved error? Now is the time to throw */
         if (G_UNLIKELY(_mExcToThrowType != _ExcToThrowType::NONE)) {
@@ -497,10 +497,10 @@ public:
 
             /* Throw the corresponding exception */
             if (_mExcToThrowType == _ExcToThrowType::ERROR) {
-                throw bt2::Error {};
+                throw Error {};
             } else {
                 BT_ASSERT(_mExcToThrowType == _ExcToThrowType::MEM_ERROR);
-                throw bt2::MemoryError {};
+                throw MemoryError {};
             }
         }
 
@@ -520,7 +520,7 @@ public:
 
             /* We're done: everything below is exception handling */
             return;
-        } catch (const bt2::TryAgain&) {
+        } catch (const TryAgain&) {
             if (messages.isEmpty()) {
                 throw;
             }
@@ -530,7 +530,7 @@ public:
             }
 
             _mExcToThrowType = _ExcToThrowType::MEM_ERROR;
-        } catch (const bt2::Error&) {
+        } catch (const Error&) {
             if (messages.isEmpty()) {
                 throw;
             }

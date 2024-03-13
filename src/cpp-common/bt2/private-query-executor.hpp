@@ -23,9 +23,9 @@ public:
     {
     }
 
-    bt2::LoggingLevel loggingLevel() const noexcept
+    LoggingLevel loggingLevel() const noexcept
     {
-        return static_cast<bt2::LoggingLevel>(bt_query_executor_get_logging_level(
+        return static_cast<LoggingLevel>(bt_query_executor_get_logging_level(
             bt_private_query_executor_as_query_executor_const(this->libObjPtr())));
     }
 
