@@ -232,6 +232,7 @@ int compare_streams(const bt_stream *left_stream, const bt_stream *right_stream)
 	const char *left_stream_name, *right_stream_name,
 	      *left_stream_class_name, *right_stream_class_name;
 	const bt_stream_class *left_stream_class, *right_stream_class;
+	const bt_clock_class *left_cc, *right_cc;
 
 	/*
 	 * No need to compare stream id as it was checked earlier and if we are
@@ -339,58 +340,73 @@ int compare_streams(const bt_stream *left_stream, const bt_stream *right_stream)
 		goto end;
 	}
 
-	if (!bt_stream_class_supports_packets(left_stream_class)) {
-		/* Skip all packet related checks. */
-		goto end;
+	if (bt_stream_class_supports_packets(left_stream_class)) {
+		/*
+		* Compare stream class presence of discarded packets beginning default
+		* clock snapshot.
+		*/
+		if (bt_stream_class_packets_have_beginning_default_clock_snapshot(left_stream_class) &&
+				!bt_stream_class_packets_have_beginning_default_clock_snapshot(right_stream_class)) {
+			ret = 1;
+			goto end;
+		} else if (!bt_stream_class_packets_have_beginning_default_clock_snapshot(left_stream_class) &&
+				bt_stream_class_packets_have_beginning_default_clock_snapshot(right_stream_class)) {
+			ret = -1;
+			goto end;
+		}
+
+		/*
+		* Compare stream class presence of discarded packets end default clock
+		* snapshot.
+		*/
+		if (bt_stream_class_packets_have_end_default_clock_snapshot(left_stream_class) &&
+				!bt_stream_class_packets_have_end_default_clock_snapshot(right_stream_class)) {
+			ret = 1;
+			goto end;
+		} else if (!bt_stream_class_packets_have_end_default_clock_snapshot(left_stream_class) &&
+				bt_stream_class_packets_have_end_default_clock_snapshot(right_stream_class)) {
+			ret = -1;
+			goto end;
+		}
+
+		/* Compare stream class support of discarded packets. */
+		if (bt_stream_class_supports_discarded_packets(left_stream_class) &&
+				!bt_stream_class_supports_discarded_packets(right_stream_class)) {
+			ret = 1;
+			goto end;
+		} else if (!bt_stream_class_supports_discarded_packets(left_stream_class) &&
+				bt_stream_class_supports_discarded_packets(right_stream_class)) {
+			ret = -1;
+			goto end;
+		}
+
+		/* Compare stream class discarded packets default clock snapshot. */
+		if (bt_stream_class_discarded_packets_have_default_clock_snapshots(left_stream_class) &&
+				!bt_stream_class_discarded_packets_have_default_clock_snapshots(right_stream_class)) {
+			ret = 1;
+			goto end;
+		} else if (!bt_stream_class_discarded_packets_have_default_clock_snapshots(left_stream_class) &&
+				bt_stream_class_discarded_packets_have_default_clock_snapshots(right_stream_class)) {
+			ret = -1;
+			goto end;
+		}
 	}
 
-	/*
-	 * Compare stream class presence of discarded packets beginning default
-	 * clock snapshot.
-	 */
-	if (bt_stream_class_packets_have_beginning_default_clock_snapshot(left_stream_class) &&
-			!bt_stream_class_packets_have_beginning_default_clock_snapshot(right_stream_class)) {
-		ret = 1;
-		goto end;
-	} else if (!bt_stream_class_packets_have_beginning_default_clock_snapshot(left_stream_class) &&
-			bt_stream_class_packets_have_beginning_default_clock_snapshot(right_stream_class)) {
-		ret = -1;
-		goto end;
-	}
+	/* Compare the clock classes associated to the stream classes. */
+	left_cc = bt_stream_class_borrow_default_clock_class_const(left_stream_class);
+	right_cc = bt_stream_class_borrow_default_clock_class_const(right_stream_class);
 
-	/*
-	 * Compare stream class presence of discarded packets end default clock
-	 * snapshot.
-	 */
-	if (bt_stream_class_packets_have_end_default_clock_snapshot(left_stream_class) &&
-			!bt_stream_class_packets_have_end_default_clock_snapshot(right_stream_class)) {
-		ret = 1;
-		goto end;
-	} else if (!bt_stream_class_packets_have_end_default_clock_snapshot(left_stream_class) &&
-			bt_stream_class_packets_have_end_default_clock_snapshot(right_stream_class)) {
-		ret = -1;
-		goto end;
-	}
+	if (!left_cc && !right_cc) {
+		ret = compare_clock_classes(left_cc, right_cc);
 
-	/* Compare stream class support of discarded packets. */
-	if (bt_stream_class_supports_discarded_packets(left_stream_class) &&
-			!bt_stream_class_supports_discarded_packets(right_stream_class)) {
-		ret = 1;
-		goto end;
-	} else if (!bt_stream_class_supports_discarded_packets(left_stream_class) &&
-			bt_stream_class_supports_discarded_packets(right_stream_class)) {
+		if (ret != 0) {
+			goto end;
+		}
+	} else if (left_cc && !right_cc) {
 		ret = -1;
 		goto end;
-	}
-
-	/* Compare stream class discarded packets default clock snapshot. */
-	if (bt_stream_class_discarded_packets_have_default_clock_snapshots(left_stream_class) &&
-			!bt_stream_class_discarded_packets_have_default_clock_snapshots(right_stream_class)) {
+	} else if (!left_cc && right_cc) {
 		ret = 1;
-		goto end;
-	} else if (!bt_stream_class_discarded_packets_have_default_clock_snapshots(left_stream_class) &&
-			bt_stream_class_discarded_packets_have_default_clock_snapshots(right_stream_class)) {
-		ret = -1;
 		goto end;
 	}
 
@@ -632,7 +648,7 @@ int compare_messages_same_type(struct messages_to_compare *msgs)
 	int ret = 0;
 
 	/*
-	 * Both messages are of the same type, we must compare characterics of
+	 * Both messages are of the same type, we must compare characteristics of
 	 * the messages such as the attributes of the event in a event message.
 	 */
 	BT_ASSERT_DBG(bt_message_get_type(msgs->left.msg) ==
