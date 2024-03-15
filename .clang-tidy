@@ -55,6 +55,7 @@ Checks:          '-*,
                   bugprone-virtual-near-miss,
                   bugprone-unused-raii,
                   bugprone-use-after-move,
+                  cppcoreguidelines-avoid-const-or-ref-data-members,
                   cppcoreguidelines-pro-type-const-cast,
                   cppcoreguidelines-slicing,
                   cppcoreguidelines-special-member-functions,
@@ -96,3 +97,7 @@ FormatStyle: 'file'
 CheckOptions:
   - key:          bugprone-assert-side-effect.AssertMacros
     value:        BT_ASSERT,BT_ASSERT_DBG
+  - key:          cppcoreguidelines-special-member-functions.AllowSoleDefaultDtor
+    value:        true
+  - key:          cppcoreguidelines-special-member-functions.AllowMissingMoveFunctionsWhenCopyIsDeleted
+    value:        true
