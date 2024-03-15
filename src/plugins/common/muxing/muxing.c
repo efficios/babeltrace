@@ -170,6 +170,7 @@ int compare_clock_classes(const bt_clock_class *left_cc,
 	const char *left_clock_class_name, *right_clock_class_name;
 	bt_uuid left_clock_class_uuid, right_clock_class_uuid;
 	uint64_t left_freq, right_freq, left_prec, right_prec;
+	bool left_origin_is_unix, right_origin_is_unix;
 
 	left_clock_class_uuid = bt_clock_class_get_uuid(left_cc);
 	right_clock_class_uuid = bt_clock_class_get_uuid(right_cc);
@@ -188,6 +189,13 @@ int compare_clock_classes(const bt_clock_class *left_cc,
 		}
 	}
 
+	left_origin_is_unix = bt_clock_class_origin_is_unix_epoch(left_cc);
+	right_origin_is_unix = bt_clock_class_origin_is_unix_epoch(right_cc);
+
+	if (left_origin_is_unix != right_origin_is_unix) {
+		ret = left_origin_is_unix - right_origin_is_unix;
+		goto end;
+	}
 
 	left_clock_class_name = bt_clock_class_get_name(left_cc);
 	right_clock_class_name = bt_clock_class_get_name(right_cc);
