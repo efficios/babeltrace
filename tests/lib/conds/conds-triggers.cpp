@@ -9,6 +9,7 @@
 #include <babeltrace2/babeltrace.h>
 
 #include "cpp-common/bt2/graph.hpp"
+#include "cpp-common/bt2c/c-string-view.hpp"
 
 #include "utils.hpp"
 
@@ -19,8 +20,7 @@ namespace {
  */
 template <typename FuncT>
 CondTrigger *makeSimpleTrigger(FuncT&& func, const CondTrigger::Type type,
-                               const std::string& condId,
-                               const bt2s::optional<std::string>& nameSuffix = bt2s::nullopt)
+                               const std::string& condId, const bt2c::CStringView nameSuffix = {})
 {
     return new SimpleCondTrigger {std::forward<FuncT>(func), type, condId, nameSuffix};
 }
@@ -62,7 +62,7 @@ private:
  */
 CondTrigger *makeRunInCompInitTrigger(OnCompInitFunc func, const CondTrigger::Type type,
                                       const std::string& condId,
-                                      const bt2s::optional<std::string>& nameSuffix = bt2s::nullopt)
+                                      const bt2c::CStringView nameSuffix = {})
 {
     return new RunInCondTrigger<RunInDelegator> {RunInDelegator::makeOnCompInit(std::move(func)),
                                                  type, condId, nameSuffix};

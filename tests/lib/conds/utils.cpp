@@ -17,17 +17,16 @@
 #include "utils.hpp"
 
 CondTrigger::CondTrigger(const Type type, const std::string& condId,
-                         const bt2s::optional<std::string>& nameSuffix) noexcept :
+                         const bt2c::CStringView nameSuffix) noexcept :
     _mType {type},
     _mCondId {fmt::format("{}:{}", type == Type::PRE ? "pre" : "post", condId)},
-    _mName {
-        fmt::format("{}{}{}", condId, nameSuffix ? "-" : "", nameSuffix ? nameSuffix->data() : "")}
+    _mName {fmt::format("{}{}{}", condId, nameSuffix ? "-" : "", nameSuffix ? nameSuffix : "")}
 {
 }
 
 SimpleCondTrigger::SimpleCondTrigger(std::function<void()> func, const Type type,
                                      const std::string& condId,
-                                     const bt2s::optional<std::string>& nameSuffix) :
+                                     const bt2c::CStringView nameSuffix) :
     CondTrigger {type, condId, nameSuffix},
     _mFunc {std::move(func)}
 {

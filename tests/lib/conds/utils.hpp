@@ -13,7 +13,7 @@
 
 #include <babeltrace2/babeltrace.h>
 
-#include "cpp-common/bt2s/optional.hpp"
+#include "cpp-common/bt2c/c-string-view.hpp"
 #include "cpp-common/bt2s/span.hpp"
 
 #include "../utils/run-in.hpp"
@@ -48,7 +48,7 @@ protected:
      * name of the created condition trigger with name().
      */
     explicit CondTrigger(Type type, const std::string& condId,
-                         const bt2s::optional<std::string>& nameSuffix) noexcept;
+                         const bt2c::CStringView nameSuffix) noexcept;
 
 public:
     virtual ~CondTrigger() = default;
@@ -88,7 +88,7 @@ class SimpleCondTrigger : public CondTrigger
 {
 public:
     explicit SimpleCondTrigger(std::function<void()> func, Type type, const std::string& condId,
-                               const bt2s::optional<std::string>& nameSuffix = bt2s::nullopt);
+                               const bt2c::CStringView nameSuffix = {});
 
     void operator()() noexcept override
     {
@@ -111,14 +111,14 @@ class RunInCondTrigger : public CondTrigger
 {
 public:
     explicit RunInCondTrigger(RunInT runIn, const Type type, const std::string& condId,
-                              const bt2s::optional<std::string>& nameSuffix = bt2s::nullopt) :
+                              const bt2c::CStringView nameSuffix = {}) :
         CondTrigger {type, condId, nameSuffix},
         _mRunIn {std::move(runIn)}
     {
     }
 
     explicit RunInCondTrigger(const Type type, const std::string& condId,
-                              const bt2s::optional<std::string>& nameSuffix = bt2s::nullopt) :
+                              const bt2c::CStringView nameSuffix = {}) :
         RunInCondTrigger {RunInT {}, type, condId, nameSuffix}
     {
     }
