@@ -8,13 +8,14 @@
 #define TESTS_LIB_CONDS_UTILS_HPP
 
 #include <functional>
+#include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include <babeltrace2/babeltrace.h>
 
 #include "cpp-common/bt2c/c-string-view.hpp"
-#include "cpp-common/bt2s/span.hpp"
 
 #include "../utils/run-in.hpp"
 
@@ -28,6 +29,8 @@
 class CondTrigger
 {
 public:
+    using UP = std::unique_ptr<CondTrigger>;
+
     /*
      * Condition type.
      */
@@ -135,7 +138,7 @@ private:
 /*
  * List of condition triggers.
  */
-using CondTriggers = bt2s::span<CondTrigger * const>;
+using CondTriggers = std::vector<CondTrigger::UP>;
 
 /*
  * The entry point of a condition trigger program.
@@ -174,6 +177,6 @@ using CondTriggers = bt2s::span<CondTrigger * const>;
  *     The program is expected to abort through a libbabeltrace2
  *     condition failure.
  */
-void condMain(int argc, const char **argv, CondTriggers triggers) noexcept;
+void condMain(int argc, const char **argv, const CondTriggers& triggers) noexcept;
 
 #endif /* TESTS_LIB_CONDS_UTILS_HPP */

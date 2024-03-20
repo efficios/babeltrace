@@ -34,11 +34,11 @@ SimpleCondTrigger::SimpleCondTrigger(std::function<void()> func, const Type type
 
 namespace {
 
-void listCondTriggers(const CondTriggers condTriggers) noexcept
+void listCondTriggers(const CondTriggers& condTriggers) noexcept
 {
     auto condTriggerArray = nlohmann::json::array();
 
-    for (const auto condTrigger : condTriggers) {
+    for (const auto& condTrigger : condTriggers) {
         condTriggerArray.push_back(nlohmann::json {
             {"cond-id", condTrigger->condId()},
             {"name", condTrigger->name()},
@@ -50,7 +50,7 @@ void listCondTriggers(const CondTriggers condTriggers) noexcept
 
 } /* namespace */
 
-void condMain(const int argc, const char ** const argv, const CondTriggers condTriggers) noexcept
+void condMain(const int argc, const char ** const argv, const CondTriggers& condTriggers) noexcept
 {
     BT_ASSERT(argc >= 2);
 
