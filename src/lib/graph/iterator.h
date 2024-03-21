@@ -123,55 +123,8 @@ struct bt_message_iterator {
 	 */
 	int64_t last_ns_from_origin;
 
-	struct {
-		enum {
-			/* We haven't recorded clock properties yet. */
-			CLOCK_EXPECTATION_UNSET,
-
-			/* Expect to have no clock. */
-			CLOCK_EXPECTATION_NONE,
-
-			/* Clock with origin_is_unix_epoch true.*/
-			CLOCK_EXPECTATION_ORIGIN_UNIX,
-
-			/* Clock with origin_is_unix_epoch false, with a UUID.*/
-			CLOCK_EXPECTATION_ORIGIN_OTHER_UUID,
-
-			/* Clock with origin_is_unix_epoch false, without a UUID.*/
-			CLOCK_EXPECTATION_ORIGIN_OTHER_NO_UUID,
-		} type;
-
-
-		union {
-			/*
-			 * Expected UUID of the clock, if `type`is
-			 * CLOCK_EXPECTATION_ORIGIN_OTHER_UUID.
-			 *
-			 * If the clock's origin is the unix epoch, the UUID is
-			 * irrelevant (as the clock will be correlatable with other
-			 * clocks having the same origin).
-			 */
-			bt_uuid_t uuid;
-
-			/*
-			 * Expected clock class, if `type` is
-			 * CLOCK_EXPECTATION_ORIGIN_OTHER_NO_UUID.
-			 *
-			 * If the first clock class seen has an unknown origin
-			 * and no UUID, then all subsequent clock classes seen
-			 * must be the same instance.
-			 *
-			 * To make sure that the clock class pointed by this
-			 * field doesn't get freed and another one reallocated
-			 * at the same address (which could potentially bypass
-			 * the clock expectation check), we keep a strong
-			 * reference, ensuring that the clock class lives at
-			 * least as long as the iterator.
-			 */
-			const bt_clock_class *clock_class;
-		};
-	} clock_expectation;
-
+	BT_IF_DEV_MODE(
+		struct bt_clock_correlation_validator *correlation_validator);
 	BT_IF_DEV_MODE(GHashTable *per_stream_state);
 
 	/*

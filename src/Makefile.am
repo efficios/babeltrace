@@ -497,7 +497,10 @@ lib_libbabeltrace2_la_CPPFLAGS = \
 lib_libbabeltrace2_la_LIBADD = \
 	logging/liblogging.la \
 	common/libcommon.la \
-	compat/libcompat.la
+	compat/libcompat.la \
+	clock-correlation-validator/libclock-correlation-validator.la
+
+nodist_EXTRA_lib_libbabeltrace2_la_SOURCES = dummy.cpp
 
 ctf_writer_libbabeltrace2_ctf_writer_la_SOURCES = \
 	ctf-writer/assert-pre.h \

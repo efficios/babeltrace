@@ -42,4 +42,6 @@ test_bin_info_LDADD = \
 	$(ELFUTILS_LIBS) \
 	$(LIBTAP)
 test_bin_info_SOURCES = test-bin-info.c
+nodist_EXTRA_test_bin_info_SOURCES = dummy.cpp
+
 endif # ENABLE_DEBUG_INFO

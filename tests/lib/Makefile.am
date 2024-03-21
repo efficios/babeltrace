@@ -37,20 +37,24 @@ test_trace_ir_ref_SOURCES = test-trace-ir-ref.c
 test_trace_ir_ref_LDADD = $(COMMON_TEST_LDADD) \
 	$(top_builddir)/src/lib/libbabeltrace2.la \
 	$(top_builddir)/src/ctf-writer/libbabeltrace2-ctf-writer.la
+nodist_EXTRA_test_trace_ir_ref_SOURCES = dummy.cpp
 
 test_graph_topo_SOURCES = test-graph-topo.c
 test_graph_topo_LDADD = $(COMMON_TEST_LDADD) \
 	$(top_builddir)/src/lib/libbabeltrace2.la
+nodist_EXTRA_test_graph_topo_SOURCES = dummy.cpp
 
 test_simple_sink_SOURCES = test-simple-sink.c
 test_simple_sink_LDADD = $(COMMON_TEST_LDADD) \
 	$(top_builddir)/src/lib/libbabeltrace2.la
+nodist_EXTRA_test_simple_sink_SOURCES = dummy.cpp
 
 test_remove_destruction_listener_in_destruction_listener_SOURCES = \
 	test-remove-destruction-listener-in-destruction-listener.c
 test_remove_destruction_listener_in_destruction_listener_LDADD = \
 	$(COMMON_TEST_LDADD) \
 	$(top_builddir)/src/lib/libbabeltrace2.la
+nodist_EXTRA_test_remove_destruction_listener_in_destruction_listener_SOURCES = dummy.cpp
 
 noinst_PROGRAMS = \
 	test-bt-uuid \
