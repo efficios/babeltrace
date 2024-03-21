@@ -677,97 +677,113 @@ void assert_post_dev_clock_classes_are_compatible_one(
 		struct bt_message_iterator *iterator,
 		const struct bt_message *msg)
 {
-	enum bt_message_type message_type = bt_message_get_type(msg);
+	const struct bt_clock_class *clock_class = NULL;
+	bt_uuid clock_class_uuid = NULL;
 
-	if (message_type == BT_MESSAGE_TYPE_STREAM_BEGINNING) {
-		const struct bt_message_stream *stream_msg = (struct bt_message_stream *) msg;
-		const struct bt_clock_class *clock_class = stream_msg->stream->class->default_clock_class;
-		bt_uuid clock_class_uuid = NULL;
+	switch (bt_message_get_type(msg)) {
+	case BT_MESSAGE_TYPE_STREAM_BEGINNING:
+	{
+		const struct bt_message_stream *stream_msg =
+			(struct bt_message_stream *) msg;
 
-		if (clock_class) {
-			clock_class_uuid = bt_clock_class_get_uuid(clock_class);
+		clock_class = stream_msg->stream->class->default_clock_class;
+		break;
+	}
+	case BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY:
+	{
+		const struct bt_message_message_iterator_inactivity *mii_msg =
+			(struct bt_message_message_iterator_inactivity *) msg;
+
+		clock_class = mii_msg->cs->clock_class;
+		break;
+	}
+	default:
+		return;
+	}
+
+	if (clock_class) {
+		clock_class_uuid = bt_clock_class_get_uuid(clock_class);
+	}
+
+	switch (iterator->clock_expectation.type) {
+	case CLOCK_EXPECTATION_UNSET:
+		/*
+		 * This is the first time we see a message with a clock
+		 * snapshot: record the properties of that clock, against
+		 * which we'll compare the clock properties of the following
+		 * messages.
+		 */
+
+		if (!clock_class) {
+			iterator->clock_expectation.type = CLOCK_EXPECTATION_NONE;
+		} else if (bt_clock_class_origin_is_unix_epoch(clock_class)) {
+			iterator->clock_expectation.type = CLOCK_EXPECTATION_ORIGIN_UNIX;
+		} else if (clock_class_uuid) {
+			iterator->clock_expectation.type = CLOCK_EXPECTATION_ORIGIN_OTHER_UUID;
+			bt_uuid_copy(iterator->clock_expectation.uuid, clock_class_uuid);
+		} else {
+			iterator->clock_expectation.type = CLOCK_EXPECTATION_ORIGIN_OTHER_NO_UUID;
+			iterator->clock_expectation.clock_class = clock_class;
+			bt_clock_class_get_ref(iterator->clock_expectation.clock_class);
 		}
+		break;
 
-		switch (iterator->clock_expectation.type) {
-		case CLOCK_EXPECTATION_UNSET:
-			/*
-			 * This is the first time we see a message with a clock
-			 * snapshot: record the properties of that clock, against
-			 * which we'll compare the clock properties of the following
-			 * messages.
-			 */
+	case CLOCK_EXPECTATION_NONE:
+		BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
+			"stream-class-has-no-clock-class", !clock_class,
+			"Expecting no clock class, got one: %![cc-]+K",
+			clock_class);
+		break;
 
-			if (!clock_class) {
-				iterator->clock_expectation.type = CLOCK_EXPECTATION_NONE;
-			} else if (bt_clock_class_origin_is_unix_epoch(clock_class)) {
-				iterator->clock_expectation.type = CLOCK_EXPECTATION_ORIGIN_UNIX;
-			} else if (clock_class_uuid) {
-				iterator->clock_expectation.type = CLOCK_EXPECTATION_ORIGIN_OTHER_UUID;
-				bt_uuid_copy(iterator->clock_expectation.uuid, clock_class_uuid);
-			} else {
-				iterator->clock_expectation.type = CLOCK_EXPECTATION_ORIGIN_OTHER_NO_UUID;
-				iterator->clock_expectation.clock_class = clock_class;
-				bt_clock_class_get_ref(iterator->clock_expectation.clock_class);
-			}
-			break;
+	case CLOCK_EXPECTATION_ORIGIN_UNIX:
+		BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
+			"stream-class-has-clock-class-with-unix-epoch-origin", clock_class,
+			"Expecting a clock class with Unix epoch origin, got none.");
 
-		case CLOCK_EXPECTATION_NONE:
-			BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
-				"stream-class-has-no-clock-class", !clock_class,
-				"Expecting no clock class, got one: %![cc-]+K",
-				clock_class);
-			break;
+		BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
+			"clock-class-has-unix-epoch-origin",
+			bt_clock_class_origin_is_unix_epoch(clock_class),
+			"Expecting a clock class with Unix epoch origin: %![cc-]+K",
+			clock_class);
+		break;
 
-		case CLOCK_EXPECTATION_ORIGIN_UNIX:
-			BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
-				"stream-class-has-clock-class-with-unix-epoch-origin", clock_class,
-				"Expecting a clock class with Unix epoch origin, got none.");
+	case CLOCK_EXPECTATION_ORIGIN_OTHER_UUID:
+		BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
+			"stream-class-has-clock-class-with-uuid", clock_class,
+			"Expecting a clock class with UUID, got none.");
 
-			BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
-				"clock-class-has-unix-epoch-origin",
-				bt_clock_class_origin_is_unix_epoch(clock_class),
-				"Expecting a clock class with Unix epoch origin: %![cc-]+K",
-				clock_class);
-			break;
+		BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
+			"clock-class-has-non-unix-epoch-origin",
+			!bt_clock_class_origin_is_unix_epoch(clock_class),
+			"Expecting a clock class without Unix epoch origin: %![cc-]+K",
+			clock_class);
 
-		case CLOCK_EXPECTATION_ORIGIN_OTHER_UUID:
-			BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
-				"stream-class-has-clock-class-with-uuid", clock_class,
-				"Expecting a clock class with UUID, got none.");
+		BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
+			"clock-class-has-uuid",
+			clock_class_uuid,
+			"Expecting a clock class with UUID, got one without UUID: %![cc-]+K",
+			clock_class);
 
-			BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
-				"clock-class-has-non-unix-epoch-origin",
-				!bt_clock_class_origin_is_unix_epoch(clock_class),
-				"Expecting a clock class without Unix epoch origin: %![cc-]+K",
-				clock_class);
+		BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
+			"clock-class-has-expected-uuid",
+			!bt_uuid_compare(iterator->clock_expectation.uuid, clock_class_uuid),
+			"Expecting a clock class with UUID, got one "
+				"with a different UUID: %![cc-]+K, expected-uuid=%!u",
+				clock_class, iterator->clock_expectation.uuid);
+		break;
 
-			BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
-				"clock-class-has-uuid",
-				clock_class_uuid,
-				"Expecting a clock class with UUID, got one without UUID: %![cc-]+K",
-				clock_class);
+	case CLOCK_EXPECTATION_ORIGIN_OTHER_NO_UUID:
+		BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
+			"stream-class-has-clock-class", clock_class,
+			"Expecting a clock class, got none.");
 
-			BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
-				"clock-class-has-expected-uuid",
-				!bt_uuid_compare(iterator->clock_expectation.uuid, clock_class_uuid),
-				"Expecting a clock class with UUID, got one "
-					"with a different UUID: %![cc-]+K, expected-uuid=%!u",
-					clock_class, iterator->clock_expectation.uuid);
-			break;
-
-		case CLOCK_EXPECTATION_ORIGIN_OTHER_NO_UUID:
-			BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
-				"stream-class-has-clock-class", clock_class,
-				"Expecting a clock class, got none.");
-
-			BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
-				"clock-class-is-expected",
-				clock_class == iterator->clock_expectation.clock_class,
-				"Expecting clock class %![cc-]+K, got %![cc-]+K.",
-				iterator->clock_expectation.clock_class,
-				clock_class);
-			break;
-		}
+		BT_ASSERT_POST_DEV(NEXT_METHOD_NAME,
+			"clock-class-is-expected",
+			clock_class == iterator->clock_expectation.clock_class,
+			"Expecting clock class %![cc-]+K, got %![cc-]+K.",
+			iterator->clock_expectation.clock_class,
+			clock_class);
+		break;
 	}
 }
 
