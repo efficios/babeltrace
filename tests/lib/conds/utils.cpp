@@ -50,9 +50,9 @@ void listCondTriggers(const CondTriggers& condTriggers) noexcept
 
 } /* namespace */
 
-void condMain(const int argc, const char ** const argv, const CondTriggers& condTriggers) noexcept
+void condMain(const bt2s::span<const char * const> argv, const CondTriggers& condTriggers) noexcept
 {
-    BT_ASSERT(argc >= 2);
+    BT_ASSERT(argv.size() >= 2);
 
     if (strcmp(argv[1], "list") == 0) {
         listCondTriggers(condTriggers);
@@ -65,7 +65,7 @@ void condMain(const int argc, const char ** const argv, const CondTriggers& cond
         g_unsetenv("BABELTRACE_EXEC_ON_ABORT");
 
         /* Call the trigger */
-        BT_ASSERT(argc >= 3);
+        BT_ASSERT(argv.size() >= 3);
 
         const auto index = atoi(argv[2]);
 

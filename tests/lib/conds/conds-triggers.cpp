@@ -10,6 +10,7 @@
 
 #include "cpp-common/bt2/graph.hpp"
 #include "cpp-common/bt2c/c-string-view.hpp"
+#include "cpp-common/bt2c/span.hpp"
 #include "cpp-common/bt2s/make-unique.hpp"
 
 #include "utils.hpp"
@@ -106,5 +107,5 @@ int main(const int argc, const char ** const argv)
         },
         CondTrigger::Type::PRE, "field-class-integer-set-field-value-range:not-null:field-class"));
 
-    condMain(argc, argv, triggers);
+    condMain(bt2c::makeSpan(argv, argc), triggers);
 }

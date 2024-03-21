@@ -16,6 +16,7 @@
 #include <babeltrace2/babeltrace.h>
 
 #include "cpp-common/bt2c/c-string-view.hpp"
+#include "cpp-common/bt2s/span.hpp"
 
 #include "../utils/run-in.hpp"
 
@@ -177,6 +178,6 @@ using CondTriggers = std::vector<CondTrigger::UP>;
  *     The program is expected to abort through a libbabeltrace2
  *     condition failure.
  */
-void condMain(int argc, const char **argv, const CondTriggers& triggers) noexcept;
+void condMain(const bt2s::span<const char * const> argv, const CondTriggers& triggers) noexcept;
 
 #endif /* TESTS_LIB_CONDS_UTILS_HPP */
