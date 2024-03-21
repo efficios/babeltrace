@@ -1,5 +1,7 @@
 # SPDX-License-Identifier: MIT
 
+include $(top_srcdir)/src/Makefile.common.inc
+
 AM_CPPFLAGS += -I$(top_srcdir)/tests/utils
 
 noinst_LTLIBRARIES =
@@ -21,8 +23,6 @@ test_fields_bin_LDADD = $(COMMON_TEST_LDADD) \
 	$(top_builddir)/src/cpp-common/vendor/fmt/libfmt.la
 
 if ENABLE_BUILT_IN_PLUGINS
-
-include $(top_srcdir)/src/Makefile.common.inc
 
 test_fields_bin_LDFLAGS = $(call pluginarchive,utils)
 test_fields_bin_LDADD += \
@@ -135,12 +135,22 @@ noinst_PROGRAMS += conds/conds-triggers
 conds_conds_triggers_SOURCES = \
 	conds/conds-triggers.cpp \
 	conds/utils.cpp \
-	conds/utils.hpp
+	conds/utils.hpp \
+	conds/clk-cls-compat-postconds-triggers.cpp \
+	conds/clk-cls-compat-postconds-triggers.hpp
 
 conds_conds_triggers_LDADD = \
 	$(COMMON_TEST_LDADD) \
 	$(top_builddir)/src/lib/libbabeltrace2.la \
 	$(top_builddir)/src/cpp-common/vendor/fmt/libfmt.la
+
+if ENABLE_BUILT_IN_PLUGINS
+
+conds_conds_triggers_LDFLAGS = $(call pluginarchive,utils)
+conds_conds_triggers_LDADD += \
+	$(top_builddir)/src/plugins/common/param-validation/libparam-validation.la
+
+endif # ENABLE_BUILT_IN_PLUGINS
 
 dist_check_SCRIPTS += conds/test-conds.sh conds/test.py
 

@@ -13,6 +13,7 @@
 #include "cpp-common/bt2c/span.hpp"
 #include "cpp-common/bt2s/make-unique.hpp"
 
+#include "clk-cls-compat-postconds-triggers.hpp"
 #include "utils.hpp"
 
 namespace {
@@ -107,5 +108,6 @@ int main(const int argc, const char ** const argv)
         },
         CondTrigger::Type::PRE, "field-class-integer-set-field-value-range:not-null:field-class"));
 
+    addClkClsCompatTriggers(triggers);
     condMain(bt2c::makeSpan(argv, argc), triggers);
 }
