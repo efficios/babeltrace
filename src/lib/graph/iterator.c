@@ -761,43 +761,43 @@ const bt_stream *get_stream_from_msg(const struct bt_message *msg)
 	struct bt_stream *stream;
 
 	switch (msg->type) {
-        case BT_MESSAGE_TYPE_STREAM_BEGINNING:
-        case BT_MESSAGE_TYPE_STREAM_END:
+	case BT_MESSAGE_TYPE_STREAM_BEGINNING:
+	case BT_MESSAGE_TYPE_STREAM_END:
 	{
 		struct bt_message_stream *msg_stream =
 			(struct bt_message_stream *) msg;
 		stream = msg_stream->stream;
 		break;
 	}
-        case BT_MESSAGE_TYPE_EVENT:
+	case BT_MESSAGE_TYPE_EVENT:
 	{
 		struct bt_message_event *msg_event =
 			(struct bt_message_event *) msg;
 		stream = msg_event->event->stream;
 		break;
 	}
-        case BT_MESSAGE_TYPE_PACKET_BEGINNING:
-        case BT_MESSAGE_TYPE_PACKET_END:
+	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
+	case BT_MESSAGE_TYPE_PACKET_END:
 	{
 		struct bt_message_packet *msg_packet =
 			(struct bt_message_packet *) msg;
 		stream = msg_packet->packet->stream;
 		break;
 	}
-        case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
-        case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
+	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
+	case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
 	{
 		struct bt_message_discarded_items *msg_discarded =
 			(struct bt_message_discarded_items *) msg;
 		stream = msg_discarded->stream;
 		break;
 	}
-        case BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY:
+	case BT_MESSAGE_TYPE_MESSAGE_ITERATOR_INACTIVITY:
 		stream = NULL;
 		break;
 	default:
 		bt_common_abort();
-        }
+	}
 
 	return stream;
 }
@@ -828,7 +828,7 @@ void update_expected_msg_type(const struct bt_stream *stream,
 		const struct bt_message *msg)
 {
 	switch (msg->type) {
-        case BT_MESSAGE_TYPE_STREAM_BEGINNING:
+	case BT_MESSAGE_TYPE_STREAM_BEGINNING:
 		state->expected_msg_types = BT_MESSAGE_TYPE_STREAM_END;
 
 		if (stream->class->supports_packets) {
@@ -849,10 +849,10 @@ void update_expected_msg_type(const struct bt_stream *stream,
 		}
 
 		break;
-        case BT_MESSAGE_TYPE_STREAM_END:
+	case BT_MESSAGE_TYPE_STREAM_END:
 		state->expected_msg_types = 0;
 		break;
-        case BT_MESSAGE_TYPE_EVENT:
+	case BT_MESSAGE_TYPE_EVENT:
 	{
 		state->expected_msg_types = BT_MESSAGE_TYPE_EVENT;
 
@@ -869,7 +869,7 @@ void update_expected_msg_type(const struct bt_stream *stream,
 
 		break;
 	}
-        case BT_MESSAGE_TYPE_PACKET_BEGINNING:
+	case BT_MESSAGE_TYPE_PACKET_BEGINNING:
 	{
 		state->expected_msg_types = BT_MESSAGE_TYPE_EVENT |
 			BT_MESSAGE_TYPE_PACKET_END;
@@ -881,7 +881,7 @@ void update_expected_msg_type(const struct bt_stream *stream,
 
 		break;
 	}
-        case BT_MESSAGE_TYPE_PACKET_END:
+	case BT_MESSAGE_TYPE_PACKET_END:
 	{
 		state->expected_msg_types = BT_MESSAGE_TYPE_PACKET_BEGINNING |
 			BT_MESSAGE_TYPE_STREAM_END;
@@ -898,7 +898,7 @@ void update_expected_msg_type(const struct bt_stream *stream,
 
 		break;
 	}
-        case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
+	case BT_MESSAGE_TYPE_DISCARDED_EVENTS:
 		state->expected_msg_types = BT_MESSAGE_TYPE_DISCARDED_EVENTS;
 
 		if (state->cur_packet) {
@@ -922,7 +922,7 @@ void update_expected_msg_type(const struct bt_stream *stream,
 		}
 
 		break;
-        case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
+	case BT_MESSAGE_TYPE_DISCARDED_PACKETS:
 		state->expected_msg_types = BT_MESSAGE_TYPE_DISCARDED_PACKETS |
 			BT_MESSAGE_TYPE_PACKET_BEGINNING |
 			BT_MESSAGE_TYPE_STREAM_END;
@@ -937,8 +937,8 @@ void update_expected_msg_type(const struct bt_stream *stream,
 		 * Other message types are not associated to a stream, so we
 		 * should not get them here.
 		 */
-                bt_common_abort();
-        }
+		bt_common_abort();
+	}
 }
 
 static
