@@ -219,10 +219,6 @@ void MsgIter::_seekBeginning()
     _mHeap.clear();
     _mUpstreamMsgItersToReload.clear();
 
-    /* Also reset clock class expectation */
-    _mClkClsExpectation = _ClkClsExpectation::ANY;
-    _mExpectedClkClsUuid.reset();
-
     /* Make each upstream message iterator seek */
     for (auto& upstreamMsgIter : _mUpstreamMsgIters) {
         /* This may throw! */
