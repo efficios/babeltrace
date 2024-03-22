@@ -100,8 +100,19 @@ cpp_common_test_c_string_view_SOURCES = \
 cpp_common_test_c_string_view_LDADD = \
 	$(COMMON_TEST_LDADD)
 
+noinst_PROGRAMS += \
+	cpp-common/test-uuid
+
+cpp_common_test_uuid_SOURCES = \
+	cpp-common/test-uuid.cpp
+
+cpp_common_test_uuid_LDADD = \
+	$(COMMON_TEST_LDADD) \
+	$(top_builddir)/src/cpp-common/vendor/fmt/libfmt.la
+
 TESTS_CPP_COMMON = \
-	cpp-common/test-c-string-view
+	cpp-common/test-c-string-view \
+	cpp-common/test-uuid
 
 TESTS_LIB = \
 	lib/test-bt-uuid \
