@@ -1445,7 +1445,6 @@ void reset_iterator_expectations(
 		struct bt_message_iterator *iterator)
 {
 	iterator->last_ns_from_origin = INT64_MIN;
-	iterator->clock_expectation.type = CLOCK_EXPECTATION_UNSET;
 }
 
 static
