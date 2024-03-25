@@ -4,8 +4,8 @@
  * Copyright (C) 2020 Philippe Proulx <pproulx@efficios.com>
  */
 
-#ifndef TESTS_LIB_CONDS_UTILS_H
-#define TESTS_LIB_CONDS_UTILS_H
+#ifndef TESTS_LIB_CONDS_UTILS_HPP
+#define TESTS_LIB_CONDS_UTILS_HPP
 
 #include <functional>
 #include <string>
@@ -176,4 +176,4 @@ using CondTriggers = bt2s::span<CondTrigger * const>;
  */
 void condMain(int argc, const char **argv, CondTriggers triggers) noexcept;
 
-#endif /* TESTS_LIB_CONDS_UTILS_H */
+#endif /* TESTS_LIB_CONDS_UTILS_HPP */

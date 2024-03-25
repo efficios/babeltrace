@@ -7,9 +7,9 @@
  * Lib BabelTrace - Common function to all tests
  */
 
-#ifndef _TESTS_COMMON_H
-#define _TESTS_COMMON_H
+#ifndef TESTS_UTILS_COMMON_H
+#define TESTS_UTILS_COMMON_H
 
 void recursive_rmdir(const char *path);
 
-#endif /* _TESTS_COMMON_H */
+#endif /* TESTS_UTILS_COMMON_H */
