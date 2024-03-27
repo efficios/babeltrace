@@ -1837,7 +1837,7 @@ returns \c NULL.
     @endparblock
 
 @bt_pre_not_null{value}
-@bt_pre_is_array_val{value}
+@bt_pre_is_map_val{value}
 @bt_pre_not_null{key}
 
 @sa bt_value_map_borrow_entry_value_const() &mdash;
