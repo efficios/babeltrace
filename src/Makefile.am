@@ -619,7 +619,7 @@ nodist_EXTRA_python_plugin_provider_babeltrace2_python_plugin_provider_la_SOURCE
 python_plugin_provider_babeltrace2_python_plugin_provider_la_LDFLAGS = \
 	$(AM_LDFLAGS) \
 	$(LT_NO_UNDEFINED) \
-	-avoid-version -module \
+	-avoid-version -module -shared \
 	$(PYTHON_LDFLAGS)
 
 python_plugin_provider_babeltrace2_python_plugin_provider_la_CPPFLAGS = \
@@ -669,7 +669,7 @@ plugins_utils_babeltrace_plugin_utils_la_SOURCES = \
 plugins_utils_babeltrace_plugin_utils_la_LDFLAGS = \
 	$(AM_LDFLAGS) \
 	$(LT_NO_UNDEFINED) \
-	-avoid-version -module $(LD_NOTEXT)
+	-avoid-version -module -shared $(LD_NOTEXT)
 
 plugins_utils_babeltrace_plugin_utils_la_LIBADD = \
 	plugins/common/muxing/libmuxing.la
@@ -775,7 +775,7 @@ plugins_ctf_babeltrace_plugin_ctf_la_SOURCES = \
 plugins_ctf_babeltrace_plugin_ctf_la_LDFLAGS = \
 	$(AM_LDFLAGS) \
 	$(LT_NO_UNDEFINED) \
-	-avoid-version -module $(LD_NOTEXT)
+	-avoid-version -module -shared $(LD_NOTEXT)
 
 plugins_ctf_babeltrace_plugin_ctf_la_LIBADD = \
 	plugins/ctf/common/metadata/libctf-parser.la \
@@ -816,7 +816,7 @@ plugins_text_babeltrace_plugin_text_la_SOURCES = \
 plugins_text_babeltrace_plugin_text_la_LDFLAGS = \
 	$(AM_LDFLAGS) \
 	$(LT_NO_UNDEFINED) \
-	-avoid-version -module $(LD_NOTEXT)
+	-avoid-version -module -shared $(LD_NOTEXT)
 
 plugins_text_babeltrace_plugin_text_la_LIBADD =
 
@@ -840,7 +840,7 @@ plugins_lttng_utils_babeltrace_plugin_lttng_utils_la_SOURCES = \
 plugins_lttng_utils_babeltrace_plugin_lttng_utils_la_LDFLAGS = \
 	$(AM_LDFLAGS) \
 	$(LT_NO_UNDEFINED) \
-	-avoid-version -module $(LD_NOTEXT) \
+	-avoid-version -module -shared $(LD_NOTEXT) \
 	$(ELFUTILS_LIBS)
 
 plugins_lttng_utils_babeltrace_plugin_lttng_utils_la_LIBADD = \
