@@ -20,7 +20,7 @@
 #include "../common/src/pkt-props.hpp"
 #include "data-stream-file.hpp"
 #include "file.hpp"
-#include "lttng-index.hpp"
+#include "../common/src/lttng-index.hpp"
 
 using namespace bt2c::literals::datalen;
 

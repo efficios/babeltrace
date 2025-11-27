@@ -692,6 +692,7 @@ plugins_ctf_babeltrace_plugin_ctf_la_SOURCES = \
 	plugins/ctf/common/metadata/json-strings.hpp \
 	plugins/ctf/common/metadata/json-strings.cpp \
 	plugins/ctf/common/src/clk-cls-cfg.hpp \
+	plugins/ctf/common/lttng-index.hpp \
 	plugins/ctf/common/src/item-seq/item.cpp \
 	plugins/ctf/common/src/item-seq/item.hpp \
 	plugins/ctf/common/src/item-seq/item-seq-iter.cpp \
@@ -756,7 +757,6 @@ plugins_ctf_babeltrace_plugin_ctf_la_SOURCES = \
 	plugins/ctf/fs-src/file.hpp \
 	plugins/ctf/fs-src/fs.cpp \
 	plugins/ctf/fs-src/fs.hpp \
-	plugins/ctf/fs-src/lttng-index.hpp \
 	plugins/ctf/fs-src/metadata.hpp \
 	plugins/ctf/fs-src/query.cpp \
 	plugins/ctf/fs-src/query.hpp \
