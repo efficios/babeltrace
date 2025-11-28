@@ -532,6 +532,9 @@ void fs_sink_trace_destroy(struct fs_sink_trace *trace)
         }
     }
 
+    if (trace->lttng_index_path) {
+        g_string_free(trace->lttng_index_path, TRUE);
+    }
     g_string_free(trace->metadata_path, TRUE);
     trace->metadata_path = NULL;
 
@@ -579,6 +582,17 @@ struct fs_sink_trace *fs_sink_trace_create(struct fs_sink_comp *fs_sink, const b
         BT_CPPLOGE_ERRNO_SPEC(trace->logger, "Cannot create directories for trace directory",
                               ": path=\"{}\"", trace->path->str);
         goto error;
+    }
+
+    if (fs_sink->create_lttng_index) {
+        trace->lttng_index_path = g_string_new(trace->path->str);
+        g_string_append(trace->lttng_index_path, "/index");
+        ret = mkdir(trace->lttng_index_path->str, 0755);
+        if (ret) {
+            BT_CPPLOGE_ERRNO_SPEC(trace->logger, "Cannot create lttng index for trace directory",
+                                  ": path=\"{}\"", trace->lttng_index_path->str);
+            goto error;
+        }
     }
 
     trace->metadata_path = g_string_new(trace->path->str);

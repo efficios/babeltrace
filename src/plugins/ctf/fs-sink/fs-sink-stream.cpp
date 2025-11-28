@@ -19,6 +19,7 @@
 #include "fs-sink-stream.hpp"
 #include "fs-sink-trace.hpp"
 #include "translate-trace-ir-to-ctf-ir.hpp"
+#include "../common/src/lttng-index.hpp"
 
 void fs_sink_stream_destroy(struct fs_sink_stream *stream)
 {
@@ -27,6 +28,13 @@ void fs_sink_stream_destroy(struct fs_sink_stream *stream)
     }
 
     bt_ctfser_fini(&stream->ctfser);
+
+    if (stream->trace->lttng_index_path) {
+        /* no padding needed as the index packets are n*8 bits in size */
+        uint64_t total_size = bt_ctfser_get_offset_in_current_packet_bits(&stream->ctfser_index);
+        bt_ctfser_close_current_packet(&stream->ctfser_index, total_size / 8);
+        bt_ctfser_fini(&stream->ctfser_index);
+    }
 
     if (stream->file_name) {
         g_string_free(stream->file_name, TRUE);
@@ -123,6 +131,10 @@ struct fs_sink_stream *fs_sink_stream_create(struct fs_sink_trace *trace,
     fs_sink_stream *stream = new fs_sink_stream {trace->logger};
     int ret;
     GString *path = g_string_new(trace->path->str);
+    GString *lttng_index_path = NULL;
+    if (trace->lttng_index_path) {
+        lttng_index_path = g_string_copy(trace->lttng_index_path);
+    }
 
     stream->trace = trace;
     stream->ir_stream = ir_stream;
@@ -144,6 +156,22 @@ struct fs_sink_stream *fs_sink_stream_create(struct fs_sink_trace *trace,
         goto error;
     }
 
+    if (trace->lttng_index_path) {
+        stream->lttng_index = true;
+        bt_common_g_string_append_printf(lttng_index_path, "/%s.idx", stream->file_name->str);
+        ret = bt_ctfser_init(&stream->ctfser_index, lttng_index_path->str, static_cast<int>(stream->logger.level()));
+        if (ret) {
+            goto error;
+        }
+
+        if (stream->lttng_index) {
+            ret = fs_sink_stream_index_write_header(stream);
+            if (ret) {
+                goto end;
+            }
+        }
+    }
+
     g_hash_table_insert(trace->streams, (gpointer) ir_stream, stream);
     goto end;
 
@@ -154,6 +182,10 @@ error:
 end:
     if (path) {
         g_string_free(path, TRUE);
+    }
+
+    if (lttng_index_path) {
+        g_string_free(lttng_index_path, TRUE);
     }
 
     return stream;
@@ -596,6 +628,11 @@ int fs_sink_stream_open_packet(struct fs_sink_stream *stream, const bt_clock_sna
         goto end;
     }
 
+    if (stream->lttng_index) {
+        stream->lttng_index_state.pkg_offset_in_file +=
+            bt_ctfser_get_offset_in_current_packet_bits(&stream->ctfser);
+    }
+
     /* Packet header: magic */
     ret = bt_ctfser_write_byte_aligned_unsigned_int(&stream->ctfser, UINT64_C(0xc1fc1fc1), 8, 32,
                                                     BYTE_ORDER);
@@ -679,6 +716,13 @@ int fs_sink_stream_close_packet(struct fs_sink_stream *stream, const bt_clock_sn
     /* Close packet */
     bt_ctfser_close_current_packet(&stream->ctfser, stream->packet_state.total_size / 8);
 
+    if (stream->lttng_index) {
+        ret = fs_sink_stream_index_write_packet_entry(stream);
+        if (ret) {
+            goto end;
+        }
+    }
+
     /* Partially copy current packet state to previous packet state */
     stream->prev_packet_state.end_cs = stream->packet_state.end_cs;
     stream->prev_packet_state.discarded_events_counter =
@@ -694,6 +738,63 @@ int fs_sink_stream_close_packet(struct fs_sink_stream *stream, const bt_clock_sn
     stream->packet_state.context_offset_bits = 0;
     stream->packet_state.is_open = false;
     BT_PACKET_PUT_REF_AND_RESET(stream->packet_state.packet);
+
+end:
+    return ret;
+}
+
+int fs_sink_stream_index_write_header(struct fs_sink_stream *stream)
+{
+    int ret;
+    struct ctf_packet_index_file_hdr packet_idx = {.magic = htobe32(CTF_INDEX_MAGIC),
+                                                   .index_major = htobe32(CTF_INDEX_MAJOR),
+                                                   .index_minor = htobe32(CTF_INDEX_MINOR),
+                                                   .packet_index_len =
+                                                       htobe32(sizeof(struct ctf_packet_index))};
+
+    /* Open packet */
+    ret = bt_ctfser_open_packet(&stream->ctfser_index);
+    if (ret) {
+        /* bt_ctfser_open_packet() logs errors */
+        goto end;
+    }
+
+    ret = bt_ctfser_write_data(&stream->ctfser_index, (const uint8_t *) &packet_idx,
+                               sizeof(packet_idx));
+    if (ret) {
+        BT_CPPLOGE_SPEC(stream->logger, "Error writing index header: stream-file-name={}",
+                        stream->file_name->str);
+        goto end;
+    }
+
+end:
+    return ret;
+}
+
+int fs_sink_stream_index_write_packet_entry(struct fs_sink_stream *stream)
+{
+    int ret;
+    struct ctf_packet_index entry = {
+        .offset = htobe64(stream->lttng_index_state.pkg_offset_in_file),
+        .packet_size = htobe64(stream->packet_state.total_size),
+        .content_size = htobe64(stream->packet_state.content_size),
+        .timestamp_begin = htobe64(stream->packet_state.beginning_cs),
+        .timestamp_end = htobe64(stream->packet_state.end_cs),
+        .events_discarded = htobe64(stream->packet_state.discarded_events_counter),
+        .stream_id =
+            htobe64(bt_stream_class_get_id(bt_stream_borrow_class_const(stream->ir_stream))),
+        .stream_instance_id = htobe64(bt_stream_get_id(stream->ir_stream)),
+        .packet_seq_num = htobe64(stream->packet_state.seq_num)};
+
+    ret = bt_ctfser_write_data(&stream->ctfser_index, (const uint8_t *) &entry, sizeof(entry));
+    if (ret) {
+        BT_CPPLOGE_SPEC(stream->logger, "Error writing index entry: stream-file-name={}",
+                        stream->file_name->str);
+        goto end;
+    }
+
+    stream->lttng_index_state.content_size += sizeof(entry) / 8;
+    stream->lttng_index_state.pkg_offset_in_file += stream->packet_state.total_size / 8;
 
 end:
     return ret;

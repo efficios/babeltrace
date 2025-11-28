@@ -48,6 +48,9 @@ struct fs_sink_trace
     /* Trace's directory */
     GString *path = nullptr;
 
+    /* Trace's lttng index directory */
+    GString *lttng_index_path = nullptr;
+
     /* `metadata` file path */
     GString *metadata_path = nullptr;
 

@@ -42,6 +42,9 @@ struct fs_sink_comp
     /* True to completely ignore discarded packets messages */
     bool ignore_discarded_packets = false;
 
+    /* Create the LTTng index */
+    bool create_lttng_index = false;
+
     /*
      * True to make the component quiet (nothing printed to the
      * standard output).

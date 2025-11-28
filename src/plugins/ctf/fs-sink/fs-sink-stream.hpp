@@ -28,9 +28,13 @@ struct fs_sink_stream
     bt2c::Logger logger;
     fs_sink_trace *trace = nullptr;
     bt_ctfser ctfser {};
+    bt_ctfser ctfser_index {};
 
     /* Stream's file name */
     GString *file_name = nullptr;
+
+    /* create and lttng index as well */
+    bool lttng_index = false;
 
     /* Weak */
     const bt_stream *ir_stream = nullptr;
@@ -164,6 +168,19 @@ struct fs_sink_stream
         uint64_t beginning_cs = 0;
         uint64_t end_cs = 0;
     } discarded_packets_state;
+
+    struct
+    {
+        /*
+         * Size of the index payload.
+         */
+        uint64_t content_size = 0;
+
+        /*
+         * Offset of the current packet in the file
+         */
+        uint64_t pkg_offset_in_file = 0;
+    } lttng_index_state;
 };
 
 struct fs_sink_stream *fs_sink_stream_create(struct fs_sink_trace *trace,
@@ -178,5 +195,9 @@ int fs_sink_stream_open_packet(struct fs_sink_stream *stream, const bt_clock_sna
                                const bt_packet *packet);
 
 int fs_sink_stream_close_packet(struct fs_sink_stream *stream, const bt_clock_snapshot *cs);
+
+int fs_sink_stream_index_write_header(struct fs_sink_stream *stream);
+
+int fs_sink_stream_index_write_packet_entry(struct fs_sink_stream *stream);
 
 #endif /* BABELTRACE_PLUGINS_CTF_FS_SINK_FS_SINK_STREAM_HPP */
