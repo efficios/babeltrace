@@ -304,6 +304,11 @@ This parameter affects how the component builds the output trace path
 +
 Default: false.
 
+param:create-lttng-index='VAL' vtype:[optional boolean]::
+    If 'VAL' is true, then create the LTTng trace index.
++
+Default: false.
+
 param:ctf-version='VERSION' vtype:[optional string]::
 +
 Write traces following version 'VERSION' of CTF, where 'VERSION' is

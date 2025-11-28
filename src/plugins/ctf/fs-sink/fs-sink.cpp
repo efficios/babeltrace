@@ -60,6 +60,8 @@ static bt_param_validation_map_value_entry_descr fs_sink_params_descr[] = {
      bt_param_validation_value_descr::makeBool()},
     {ctfVersionParamName, BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL,
      bt_param_validation_value_descr::makeString()},
+    {"create-lttng-index", BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_OPTIONAL,
+     bt_param_validation_value_descr::makeBool()},
     BT_PARAM_VALIDATION_MAP_VALUE_ENTRY_END};
 
 static int ctfVersionFromParams(const bt_value *params, const bt2c::Logger& logger)
@@ -137,6 +139,11 @@ configure_component(bt_self_component_sink *self_comp_sink, struct fs_sink_comp 
         }
 
         fs_sink->ctf_version = static_cast<unsigned int>(ctfVersion);
+    }
+
+    value = bt_value_map_borrow_entry_value_const(params, "create-lttng-index");
+    if (value) {
+        fs_sink->create_lttng_index = (bool) bt_value_bool_get(value);
     }
 
     {
