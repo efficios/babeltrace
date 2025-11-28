@@ -21,7 +21,7 @@ BT_PLUGIN(ctf);
 BT_PLUGIN_DESCRIPTION("CTF input and output");
 BT_PLUGIN_AUTHOR("EfficiOS <https://www.efficios.com/>");
 BT_PLUGIN_LICENSE("MIT");
-BT_PLUGIN_VERSION(2, 0, 0, NULL);
+BT_PLUGIN_VERSION(2, 1, 0, NULL);
 
 /* ctf.fs source */
 BT_PLUGIN_SOURCE_COMPONENT_CLASS(fs, ctf_fs_iterator_next);
