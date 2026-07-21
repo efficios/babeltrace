@@ -24,3 +24,7 @@ indent_size = 8
 [*.{mctf,dox}]
 indent_style = space
 indent_size = 2
+
+[COMMIT_EDITMSG]
+indent_style = space
+indent_size = 2
