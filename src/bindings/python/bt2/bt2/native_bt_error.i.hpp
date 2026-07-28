@@ -19,7 +19,7 @@ static PyObject *bt_bt2_format_bt_error_cause(const bt_error_cause *error_cause)
                               BT_COMMON_COLOR_WHEN_NEVER);
     BT_ASSERT(error_cause_str);
 
-    py_error_cause_str = PyString_FromString(error_cause_str);
+    py_error_cause_str = PyUnicode_FromString(error_cause_str);
 
     g_free(error_cause_str);
 
@@ -35,7 +35,7 @@ static PyObject *bt_bt2_format_bt_error(const bt_error *error)
                                 BT_COMMON_COLOR_WHEN_NEVER);
     BT_ASSERT(error_str);
 
-    py_error_str = PyString_FromString(error_str);
+    py_error_str = PyUnicode_FromString(error_str);
 
     g_free(error_str);
 

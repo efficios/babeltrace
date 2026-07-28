@@ -62,7 +62,7 @@ typedef uint64_t bt_listener_id;
  *
  * We initialize the output parameter `temp_value` to an invalid but non-zero
  * pointer value.  This is to make sure we don't rely on its initial value in
- * the epilogue (where we call SWIG_Python_str_FromChar).  When they fail,
+ * the epilogue (where we call PyUnicode_FromString).  When they fail,
  * functions on which we apply this typemap don't guarantee that the value of
  * `temp_value` will be unchanged or valid.
  */
@@ -73,7 +73,7 @@ typedef uint64_t bt_listener_id;
 %typemap(argout) (const char **) {
 	if (*$1) {
 		/* SWIG_AppendOutput() steals the created object */
-		$result = SWIG_AppendOutput($result, SWIG_Python_str_FromChar(*$1));
+		$result = SWIG_AppendOutput($result, PyUnicode_FromString(*$1));
 	} else {
 		/* SWIG_AppendOutput() steals Py_None */
 		Py_INCREF(Py_None);
