@@ -12,6 +12,7 @@
 #include "cpp-common/bt2c/c-string-view.hpp"
 
 #include "borrowed-object.hpp"
+#include "component-class.hpp"
 
 namespace bt2 {
 
@@ -36,6 +37,11 @@ public:
     explicit SelfComponentClass(bt_self_component_class_sink * const libObjPtr) noexcept
         : _ThisBorrowedObject {bt_self_component_class_sink_as_self_component_class(libObjPtr)}
     {
+    }
+
+    ConstComponentClass asConstComponentClass() const noexcept
+    {
+        return ConstComponentClass {this->_libCompClsPtr()};
     }
 
     bt2c::CStringView name() const noexcept

@@ -17,6 +17,7 @@
 
 #include "borrowed-object-iterator.hpp"
 #include "borrowed-object.hpp"
+#include "component-class.hpp"
 #include "shared-object.hpp"
 
 namespace bt2 {
@@ -92,6 +93,11 @@ public:
     bool isSink() const noexcept
     {
         return static_cast<bool>(bt_component_is_sink(this->libObjPtr()));
+    }
+
+    ConstComponentClass cls() const noexcept
+    {
+        return ConstComponentClass {bt_component_borrow_class_const(this->libObjPtr())};
     }
 
     bt2c::CStringView name() const noexcept
