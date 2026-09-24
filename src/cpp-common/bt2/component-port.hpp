@@ -445,12 +445,12 @@ struct ConstPortRefFuncs final
 {
     static void get(LibObjT * const libObjPtr) noexcept
     {
-        bt_port_get_ref(ConstPortSpec<LibObjT>::port(libObjPtr));
+        bt_port_get_ref(ConstPortSpec<LibObjT>::asPort(libObjPtr));
     }
 
     static void put(LibObjT * const libObjPtr) noexcept
     {
-        bt_port_put_ref(ConstPortSpec<LibObjT>::port(libObjPtr));
+        bt_port_put_ref(ConstPortSpec<LibObjT>::asPort(libObjPtr));
     }
 };
 
