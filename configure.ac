@@ -615,11 +615,6 @@ AC_SUBST([ENABLE_UBSAN])
 ## Check for optional features dependencies ##
 ##                                          ##
 
-# The Python bindings require SWIG
-AE_IF_FEATURE_ENABLED([python-bindings],
-  [AX_PKG_SWIG(2.0.0, [], [AC_MSG_ERROR([SWIG 2.0.0 or newer is required to build the python bindings])])]
-)
-
 AS_IF([test "$PYTHON" != :], [have_python=yes], [have_python=no])
 AS_IF([test -n "$PYTHON_CONFIG"], [have_python_dev=yes], [have_python_dev=no])
 
@@ -915,19 +910,6 @@ m4_define([WARN_FLAGS_LIST], [ dnl
   -Wlogical-op dnl
   -Wsuggest-override dnl
   -Wno-sign-compare dnl
-  dnl
-  dnl Some versions of SWIG (like 3.0.12) generate code that produces
-  dnl -Wcast-function-type warnings.  This warning is present in gcc >= 8.  This
-  dnl combo happens on RHEL/Centos 8, for example.  Later versions of SWIG (like
-  dnl 4.0.1) have the correct function signatures to not produce this warning.
-  dnl It's simpler to just disable the warning globally.
-  dnl
-  dnl Note that the Debian/Ubuntu SWIG package 3.0.12-2 contains a local patch to
-  dnl fix this (python-fix-function-cast-warnings.patch), so you won't be able to
-  dnl reproduce the warning using that package.
-  dnl
-  dnl Ref: https://github.com/swig/swig/issues/1259
-  -Wno-cast-function-type dnl
   -Wno-maybe-uninitialized dnl
   dnl We need to use a deprecated literal operator form (with a space) to please
   dnl g++ 4.8, so disable this diagnostic. There are instances of this both in the
@@ -1071,10 +1053,6 @@ AS_IF([test "x$have_python_dev" = "xyes"], [
   AE_PPRINT_PROP_STRING([python-config path], [$PYTHON_CONFIG])
   AE_PPRINT_PROP_STRING([Python include paths], [$PYTHON_INCLUDE])
   AE_PPRINT_PROP_STRING([Python linker flags], [$PYTHON_LDFLAGS])
-])
-AE_IF_FEATURE_ENABLED([python-bindings], [
-  AE_PPRINT_PROP_STRING([SWIG executable], [$SWIG])
-  AE_PPRINT_PROP_STRING([SWIG library], [$SWIG_LIB])
 ])
 
 AS_ECHO

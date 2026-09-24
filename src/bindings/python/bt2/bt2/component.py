@@ -519,12 +519,12 @@ class _UserComponentType(type):
 
         if _UserSourceComponent in bases:
             _UserComponentType._bt_set_iterator_class(cls, iter_cls)
-            cc_ptr = native_bt.bt2_component_class_source_create(
+            cc_ptr = native_bt.component_class_source_create(
                 cls, comp_cls_name, comp_cls_descr, comp_cls_help
             )
         elif _UserFilterComponent in bases:
             _UserComponentType._bt_set_iterator_class(cls, iter_cls)
-            cc_ptr = native_bt.bt2_component_class_filter_create(
+            cc_ptr = native_bt.component_class_filter_create(
                 cls, comp_cls_name, comp_cls_descr, comp_cls_help
             )
         elif _UserSinkComponent in bases:
@@ -533,17 +533,12 @@ class _UserComponentType(type):
                     f"cannot create component class '{class_name}': missing a _user_consume() method"
                 )
 
-            cc_ptr = native_bt.bt2_component_class_sink_create(
+            cc_ptr = native_bt.component_class_sink_create(
                 cls, comp_cls_name, comp_cls_descr, comp_cls_help
             )
         else:
             raise _IncompleteUserClass(
                 f"cannot find a known component class base in the bases of '{class_name}'"
-            )
-
-        if cc_ptr is None:
-            raise bt2_error._MemoryError(
-                f"cannot create component class '{class_name}'"
             )
 
         cls._bt_cc_ptr = cc_ptr
@@ -636,7 +631,7 @@ class _UserComponentType(type):
 
         # return new reference
         range_set._get_ref(range_set._ptr)
-        return int(range_set._ptr)
+        return range_set._ptr
 
     def _user_get_supported_mip_versions(cls, params, obj, log_level):
         return [0]
@@ -673,7 +668,7 @@ class _UserComponentType(type):
 
         # return new reference
         bt2_value._Value._get_ref(results_ptr)
-        return int(results_ptr)
+        return results_ptr
 
     def _user_query(cls, priv_query_executor, object_name, params, method_obj):
         raise bt2_utils.UnknownObject
@@ -685,7 +680,7 @@ class _UserComponentType(type):
         if hasattr(cls, "_bt_cc_ptr"):
             cc_ptr = cls._bt_as_component_class_ptr(cls._bt_cc_ptr)
             native_bt.component_class_put_ref(cc_ptr)
-            native_bt.bt2_unregister_cc_ptr_to_py_cls(cc_ptr)
+            native_bt.component_class_unregister_py_cls(cc_ptr)
 
 
 # Configuration objects for components.
@@ -917,14 +912,10 @@ class _UserSourceComponent(_UserComponent, _SourceComponentConst):
                 f"source component `{self.name}` already contains an output port named `{name}`"
             )
 
-        comp_status, self_port_ptr = native_bt.self_component_source_add_output_port(
-            self._bt_ptr, name, user_data
-        )
-        bt2_utils._handle_func_status(
-            comp_status, "cannot add output port to source component object"
-        )
         return bt2_port._UserComponentOutputPort._create_from_ptr_and_get_ref(
-            self_port_ptr
+            native_bt.self_component_source_add_output_port(
+                self._bt_ptr, name, user_data
+            )
         )
 
 
@@ -977,14 +968,10 @@ class _UserFilterComponent(_UserComponent, _FilterComponentConst):
                 f"filter component `{self.name}` already contains an output port named `{name}`"
             )
 
-        comp_status, self_port_ptr = native_bt.self_component_filter_add_output_port(
-            self._bt_ptr, name, user_data
-        )
-        bt2_utils._handle_func_status(
-            comp_status, "cannot add output port to filter component object"
-        )
         return bt2_port._UserComponentOutputPort._create_from_ptr_and_get_ref(
-            self_port_ptr
+            native_bt.self_component_filter_add_output_port(
+                self._bt_ptr, name, user_data
+            )
         )
 
     def _add_input_port(
@@ -997,14 +984,10 @@ class _UserFilterComponent(_UserComponent, _FilterComponentConst):
                 f"filter component `{self.name}` already contains an input port named `{name}`"
             )
 
-        comp_status, self_port_ptr = native_bt.self_component_filter_add_input_port(
-            self._bt_ptr, name, user_data
-        )
-        bt2_utils._handle_func_status(
-            comp_status, "cannot add input port to filter component object"
-        )
         return bt2_port._UserComponentInputPort._create_from_ptr_and_get_ref(
-            self_port_ptr
+            native_bt.self_component_filter_add_input_port(
+                self._bt_ptr, name, user_data
+            )
         )
 
 
@@ -1048,14 +1031,8 @@ class _UserSinkComponent(_UserComponent, _SinkComponentConst):
                 f"sink component `{self.name}` already contains an input port named `{name}`"
             )
 
-        comp_status, self_port_ptr = native_bt.self_component_sink_add_input_port(
-            self._bt_ptr, name, user_data
-        )
-        bt2_utils._handle_func_status(
-            comp_status, "cannot add input port to sink component object"
-        )
         return bt2_port._UserComponentInputPort._create_from_ptr_and_get_ref(
-            self_port_ptr
+            native_bt.self_component_sink_add_input_port(self._bt_ptr, name, user_data)
         )
 
     def _create_message_iterator(
@@ -1066,15 +1043,12 @@ class _UserSinkComponent(_UserComponent, _SinkComponentConst):
         if not input_port.is_connected:
             raise ValueError("input port is not connected")
 
-        (
-            status,
-            msg_iter_ptr,
-        ) = native_bt.bt2_message_iterator_create_from_sink_component(
-            self._bt_ptr, input_port._ptr
+        return bt2_message_iterator._UserComponentInputPortMessageIterator(
+            native_bt.message_iterator_create_from_sink_component(
+                self._bt_ptr, input_port._ptr
+            )
         )
-        bt2_utils._handle_func_status(status, "cannot create message iterator object")
-        return bt2_message_iterator._UserComponentInputPortMessageIterator(msg_iter_ptr)
 
     @property
     def _is_interrupted(self) -> bool:
-        return bool(native_bt.self_component_sink_is_interrupted(self._bt_ptr))
+        return native_bt.self_component_sink_is_interrupted(self._bt_ptr)

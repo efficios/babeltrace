@@ -107,9 +107,7 @@ class _BitArrayFieldConst(_FieldConst):
     @property
     def active_flag_labels(self) -> typing.List[str]:
         bt2_utils._check_mip_ge(self, "Bit array field class flags", 1)
-        status, labels = native_bt.field_bit_array_get_active_flag_labels(self._ptr)
-        bt2_utils._handle_func_status(status, "cannot get active flag labels")
-        return labels
+        return native_bt.field_bit_array_get_active_flag_labels(self._ptr)
 
     def _spec_eq(self, other):
         if type(other) is not type(self):
@@ -487,10 +485,18 @@ class _SinglePrecisionRealField(_SinglePrecisionRealFieldConst, _RealField):
     def cls(self) -> bt2_field_class._SinglePrecisionRealFieldClass:
         return self._cls
 
+    # Largest finite single-precision value
+    _MAX = 3.4028234663852886e38
+
     def _set_value(self, value):
-        native_bt.field_real_single_precision_set_value(
-            self._ptr, self._value_to_float(value)
-        )
+        value = self._value_to_float(value)
+
+        if math.isfinite(value) and not (-self._MAX <= value <= self._MAX):
+            raise OverflowError(
+                f"Value is outside the single-precision range ({value})"
+            )
+
+        native_bt.field_real_single_precision_set_value(self._ptr, value)
 
     value = property(fset=_set_value)
 
@@ -520,9 +526,7 @@ class _EnumerationFieldConst(_IntegerFieldConst):
 
     @property
     def labels(self) -> typing.List[str]:
-        status, labels = self._get_mapping_labels(self._ptr)
-        bt2_utils._handle_func_status(status, "cannot get label for enumeration field")
-        return labels
+        return self._get_mapping_labels(self._ptr)
 
 
 class _EnumerationField(_EnumerationFieldConst, _IntegerField):
@@ -931,6 +935,8 @@ class _VariantField(_VariantFieldConst, _ContainerField, _Field):
 
     @_VariantFieldConst.selected_option_index.setter
     def selected_option_index(self, index: int):
+        bt2_utils._check_int(index)
+
         if index < 0 or index >= len(self):
             raise IndexError(f"{self._NAME} field object index is out of range")
 
@@ -1190,6 +1196,7 @@ class _DynamicBlobField(_DynamicBlobFieldConst, _BlobField):
         return self._cls
 
     def _set_length(self, length):
+        bt2_utils._check_uint64(length)
         native_bt.field_blob_dynamic_set_length(self._ptr, length)
 
     length = property(fget=_BlobFieldConst.length, fset=_set_length)

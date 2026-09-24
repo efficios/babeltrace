@@ -512,8 +512,10 @@ class _ArrayValueConst(
         if index < 0 or index >= len(self):
             raise IndexError("array value object index is out of range")
 
+        return index
+
     def __getitem__(self, index: int) -> typing.Optional[_ValueConst]:
-        self._check_index(index)
+        index = self._check_index(index)
         return self._create_value_from_ptr_and_get_ref(
             self._borrow_element_by_index(self._ptr, index)
         )
@@ -540,7 +542,7 @@ class ArrayValue(_ArrayValueConst, _Container, collections.abc.MutableSequence, 
                 self.append(elem)
 
     def __setitem__(self, index: int, value):
-        self._check_index(index)
+        index = self._check_index(index)
         value = create_value(value)
 
         if value is None:
@@ -580,12 +582,7 @@ class _MapValueKeyIterator(typing.Iterator[str]):
     def __init__(self, map_obj):
         self._map_obj = map_obj
         self._at = 0
-        keys_ptr = native_bt.value_map_get_keys(map_obj._ptr)
-
-        if keys_ptr is None:
-            raise RuntimeError("unexpected error: cannot get map value object keys")
-
-        self._keys = _create_from_ptr(keys_ptr)
+        self._keys = native_bt.value_map_get_keys(map_obj._ptr)
 
     def __next__(self) -> str:
         if self._at == len(self._map_obj):
@@ -593,7 +590,7 @@ class _MapValueKeyIterator(typing.Iterator[str]):
 
         key = self._keys[self._at]
         self._at += 1
-        return str(key)
+        return key
 
 
 class _MapValueConst(

@@ -134,7 +134,7 @@ def test_exc_chaining():
     assert isinstance(exc[1], bt2._ErrorCause)
     assert isinstance(exc[2], bt2._ComponentErrorCause)
     assert exc[2].component_class_name == "_SinkWithExceptionChaining"
-    assert "unexpected error: cannot advance the message iterator" in exc[2].message
+    assert "bt2._Error" in exc[2].message
     assert isinstance(exc[3], bt2._ComponentErrorCause)
     assert exc[3].component_class_name == "_SinkWithExceptionChaining"
     assert "ValueError: oops" in exc[3].message

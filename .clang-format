@@ -32,8 +32,6 @@ AttributeMacros: [
   'BT_CTF_ASSERT_PRE_FUNC',
   'BT_EXTERN_C',
   'BT_HIDDEN',
-  'SWIGEXPORT',
-  'SWIGUNUSED',
   'YY_ATTRIBUTE_PURE',
   'YY_ATTRIBUTE_UNUSED',
   'yynoreturn',

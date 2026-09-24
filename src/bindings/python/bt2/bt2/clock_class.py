@@ -14,7 +14,7 @@ from bt2 import user_attributes as bt2_user_attrs
 class ClockOffset:
     def __init__(self, seconds: int = 0, cycles: int = 0):
         bt2_utils._check_int64(seconds)
-        bt2_utils._check_int64(cycles)
+        bt2_utils._check_uint64(cycles)
         self._seconds = seconds
         self._cycles = cycles
 
@@ -116,22 +116,12 @@ class _ClockClassConst(bt2_object._SharedObject, bt2_user_attrs._WithUserAttrsCo
 
     @property
     def precision(self) -> typing.Optional[int]:
-        avail, precision = native_bt.clock_class_get_opt_precision(self._ptr)
-
-        if avail != native_bt.PROPERTY_AVAILABILITY_AVAILABLE:
-            return None
-
-        return precision
+        return native_bt.clock_class_get_opt_precision(self._ptr)
 
     @property
     def accuracy(self) -> typing.Optional[int]:
         bt2_utils._check_mip_ge(self, "Clock class accuracy", 1)
-        avail, accuracy = native_bt.clock_class_get_accuracy(self._ptr)
-
-        if avail != native_bt.PROPERTY_AVAILABILITY_AVAILABLE:
-            return None
-
-        return accuracy
+        return native_bt.clock_class_get_accuracy(self._ptr)
 
     @property
     def offset(self) -> ClockOffset:
@@ -174,12 +164,7 @@ class _ClockClassConst(bt2_object._SharedObject, bt2_user_attrs._WithUserAttrsCo
 
     def cycles_to_ns_from_origin(self, cycles: int) -> int:
         bt2_utils._check_uint64(cycles)
-        status, ns = native_bt.clock_class_cycles_to_ns_from_origin(self._ptr, cycles)
-        bt2_utils._handle_func_status(
-            status,
-            "cannot convert clock value to nanoseconds from origin for given clock class",
-        )
-        return ns
+        return native_bt.clock_class_cycles_to_ns_from_origin(self._ptr, cycles)
 
 
 class _ClockClass(bt2_user_attrs._WithUserAttrs, _ClockClassConst):

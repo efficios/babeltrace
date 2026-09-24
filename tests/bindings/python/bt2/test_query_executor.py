@@ -174,7 +174,7 @@ def test_query_gen_error():
         bt2.QueryExecutor(MySink, "obj", [17, 23]).query()
 
     exc = exc_info.value
-    assert len(exc) == 3
+    assert len(exc) == 2
     cause = exc[0]
     assert isinstance(cause, bt2._ComponentClassErrorCause)
     assert "raise ValueError" in cause.message

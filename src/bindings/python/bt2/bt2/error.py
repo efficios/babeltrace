@@ -32,7 +32,7 @@ class _ErrorCause:
         self._module_name = native_bt.error_cause_get_module_name(ptr)
         self._file_name = native_bt.error_cause_get_file_name(ptr)
         self._line_number = native_bt.error_cause_get_line_number(ptr)
-        self._str = native_bt.bt2_format_bt_error_cause(ptr)
+        self._str = native_bt.format_error_cause(ptr)
 
     def __str__(self) -> str:
         return self._str
@@ -176,7 +176,7 @@ class _Error(Exception, abc.Sequence):
         assert self._ptr is not None
 
         self._msg = msg
-        self._str = f"{msg}\n{native_bt.bt2_format_bt_error(self._ptr)}"
+        self._str = f"{msg}\n{native_bt.format_error(self._ptr)}"
 
         # Read everything we might need from the error pointer, so we don't
         # depend on it.  It's possible for the user to keep an Error object

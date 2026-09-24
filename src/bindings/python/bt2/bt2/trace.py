@@ -64,9 +64,12 @@ class _TraceEnvironment(_TraceEnvironmentConst, collections.abc.MutableMapping):
     )
 
     def __setitem__(self, key: str, value: typing.Union[str, int]):
+        bt2_utils._check_str(key)
+
         if isinstance(value, str):
             set_env_entry_fn = native_bt.trace_set_environment_entry_string
         elif isinstance(value, int):
+            bt2_utils._check_int64(value)
             set_env_entry_fn = native_bt.trace_set_environment_entry_integer
         else:
             raise TypeError(f"expected str or int, got {type(value)}")
@@ -170,17 +173,17 @@ class _TraceConst(
             raise TypeError("'listener' parameter is not callable")
 
         handle = bt2_utils._ListenerHandle(self.addr)
-        status, listener_id = native_bt.bt2_trace_add_destruction_listener(
-            self._ptr,
-            functools.partial(
-                _trace_destruction_listener_from_native, listener, handle
-            ),
+        native_callable = functools.partial(
+            _trace_destruction_listener_from_native, listener, handle
+        )
+        status, listener_id = native_bt.trace_add_destruction_listener(
+            self._ptr, native_callable
         )
         bt2_utils._handle_func_status(
             status, "cannot add destruction listener to trace object"
         )
 
-        handle._set_listener_id(listener_id)
+        handle._set_listener_id(listener_id, native_callable)
 
         return handle
 
@@ -197,7 +200,9 @@ class _TraceConst(
 
         bt2_utils._handle_func_status(
             native_bt.trace_remove_destruction_listener(
-                self._ptr, listener_handle._listener_id
+                self._ptr,
+                listener_handle._listener_id,
+                listener_handle._native_callable,
             )
         )
         listener_handle._invalidate()

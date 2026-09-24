@@ -66,6 +66,7 @@ class _EventClassConst(bt2_object._SharedObject, bt2_user_attrs._WithUserAttrsCo
     )
     _stream_class_pycls = property(lambda s: _bt2_stream_class()._StreamClassConst)
 
+    @property
     def graph_mip_version(self) -> int:
         return self.stream_class.graph_mip_version
 
@@ -99,9 +100,9 @@ class _EventClassConst(bt2_object._SharedObject, bt2_user_attrs._WithUserAttrsCo
 
     @property
     def log_level(self) -> typing.Optional[EventClassLogLevel]:
-        is_available, log_level = native_bt.event_class_get_log_level(self._ptr)
+        log_level = native_bt.event_class_get_log_level(self._ptr)
 
-        if is_available != native_bt.PROPERTY_AVAILABILITY_AVAILABLE:
+        if log_level is None:
             return None
 
         return EventClassLogLevel(log_level)

@@ -107,27 +107,27 @@ class Graph(bt2_object._SharedObject):
     ) -> bt2_component._ComponentConst:
         if isinstance(component_class, bt2_component._SourceComponentClassConst):
             cc_ptr = component_class._ptr
-            add_fn = native_bt.bt2_graph_add_source_component
+            add_fn = native_bt.graph_add_source_component
             cc_type = native_bt.COMPONENT_CLASS_TYPE_SOURCE
         elif isinstance(component_class, bt2_component._FilterComponentClassConst):
             cc_ptr = component_class._ptr
-            add_fn = native_bt.bt2_graph_add_filter_component
+            add_fn = native_bt.graph_add_filter_component
             cc_type = native_bt.COMPONENT_CLASS_TYPE_FILTER
         elif isinstance(component_class, bt2_component._SinkComponentClassConst):
             cc_ptr = component_class._ptr
-            add_fn = native_bt.bt2_graph_add_sink_component
+            add_fn = native_bt.graph_add_sink_component
             cc_type = native_bt.COMPONENT_CLASS_TYPE_SINK
         elif issubclass(component_class, bt2_component._UserSourceComponent):
             cc_ptr = component_class._bt_cc_ptr
-            add_fn = native_bt.bt2_graph_add_source_component
+            add_fn = native_bt.graph_add_source_component
             cc_type = native_bt.COMPONENT_CLASS_TYPE_SOURCE
         elif issubclass(component_class, bt2_component._UserSinkComponent):
             cc_ptr = component_class._bt_cc_ptr
-            add_fn = native_bt.bt2_graph_add_sink_component
+            add_fn = native_bt.graph_add_sink_component
             cc_type = native_bt.COMPONENT_CLASS_TYPE_SINK
         elif issubclass(component_class, bt2_component._UserFilterComponent):
             cc_ptr = component_class._bt_cc_ptr
-            add_fn = native_bt.bt2_graph_add_filter_component
+            add_fn = native_bt.graph_add_filter_component
             cc_type = native_bt.COMPONENT_CLASS_TYPE_FILTER
         else:
             raise TypeError(
@@ -137,7 +137,7 @@ class Graph(bt2_object._SharedObject):
         bt2_utils._check_str(name)
         bt2_utils._check_type(logging_level, bt2_logging.LoggingLevel)
 
-        if obj is not None and not native_bt.bt2_is_python_component_class(
+        if obj is not None and not native_bt.component_class_is_python(
             component_class._bt_component_class_ptr()
         ):
             raise ValueError("cannot pass a Python object to a non-Python component")
@@ -146,7 +146,7 @@ class Graph(bt2_object._SharedObject):
             raise TypeError("'params' parameter is not a 'dict' or a 'bt2.MapValue'.")
 
         params = bt2_value.create_value(params)
-        status, comp_ptr = add_fn(
+        comp_ptr = add_fn(
             self._ptr,
             cc_ptr,
             name,
@@ -154,7 +154,6 @@ class Graph(bt2_object._SharedObject):
             obj,
             logging_level.value,
         )
-        bt2_utils._handle_func_status(status, "cannot add component to graph")
         return bt2_component._create_component_from_const_ptr_and_get_ref(
             comp_ptr, cc_type
         )
@@ -166,11 +165,17 @@ class Graph(bt2_object._SharedObject):
     ) -> bt2_connection._ConnectionConst:
         bt2_utils._check_type(upstream_port, bt2_port._OutputPortConst)
         bt2_utils._check_type(downstream_port, bt2_port._InputPortConst)
-        status, conn_ptr = native_bt.graph_connect_ports(
+
+        # A user component port wraps a self component port pointer,
+        # not a port pointer.
+        for port in (upstream_port, downstream_port):
+            if isinstance(port, bt2_port._UserComponentPort):
+                raise TypeError(
+                    f"cannot connect a '{port.__class__.__name__}' object: use the ports of the component object which `Graph.add_component()` returns"
+                )
+
+        conn_ptr = native_bt.graph_connect_ports(
             self._ptr, upstream_port._ptr, downstream_port._ptr
-        )
-        bt2_utils._handle_func_status(
-            status, "cannot connect component ports within graph"
         )
         return bt2_connection._ConnectionConst._create_from_ptr_and_get_ref(conn_ptr)
 
@@ -187,14 +192,16 @@ class Graph(bt2_object._SharedObject):
             _graph_port_added_listener_from_native, listener
         )
 
+        # Keep the partial's reference, even if adding the listener
+        # fails below: the graph may still hold some of the native
+        # listeners, and there's no way to remove them.
+        self._listener_partials.append(listener_from_native)
+
         if (
-            native_bt.bt2_graph_add_port_added_listener(self._ptr, listener_from_native)
+            native_bt.graph_add_port_added_listener(self._ptr, listener_from_native)
             is None
         ):
             raise bt2_error._Error("cannot add listener to graph object")
-
-        # keep the partial's reference
-        self._listener_partials.append(listener_from_native)
 
     def run_once(self):
         bt2_utils._handle_func_status(

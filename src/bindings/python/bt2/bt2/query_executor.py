@@ -5,7 +5,6 @@
 
 import typing
 
-from bt2 import error as bt2_error
 from bt2 import utils as bt2_utils
 from bt2 import value as bt2_value
 from bt2 import object as bt2_object
@@ -81,20 +80,14 @@ class QueryExecutor(bt2_object._SharedObject, _QueryExecutorCommon):
 
         cc_ptr = component_class._bt_component_class_ptr()
 
-        if method_obj is not None and not native_bt.bt2_is_python_component_class(
-            cc_ptr
-        ):
+        if method_obj is not None and not native_bt.component_class_is_python(cc_ptr):
             raise ValueError(
                 "cannot pass a Python object to a non-Python component class"
             )
 
-        ptr = native_bt.bt2_query_executor_create(
+        ptr = native_bt.query_executor_create(
             cc_ptr, object_name, params_ptr, method_obj
         )
-
-        if ptr is None:
-            raise bt2_error._MemoryError("cannot create query executor object")
-
         super().__init__(ptr)
 
         # Keep a reference of `method_obj` as the native query executor
@@ -121,9 +114,9 @@ class QueryExecutor(bt2_object._SharedObject, _QueryExecutorCommon):
         )
 
     def query(self) -> typing.Optional[bt2_value._ValueConst]:
-        status, result_ptr = native_bt.query_executor_query(self._ptr)
-        bt2_utils._handle_func_status(status, "cannot query component class")
-        return bt2_value._create_from_const_ptr(result_ptr)
+        return bt2_value._create_from_const_ptr(
+            native_bt.query_executor_query(self._ptr)
+        )
 
 
 class _PrivateQueryExecutor(_QueryExecutorCommon):

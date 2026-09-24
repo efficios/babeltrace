@@ -31,27 +31,16 @@ def get_greatest_operative_mip_version(
             if type(descr) is not bt2_component_descriptor.ComponentDescriptor:
                 raise TypeError(f"'{descr}' is not a component descriptor")
 
-            status = native_bt.bt2_component_descriptor_set_add_descriptor_with_initialize_method_data(
+            native_bt.component_descriptor_set_add_descriptor(
                 comp_descr_set_ptr,
                 descr.component_class._bt_component_class_ptr(),
                 descr.params._ptr if descr.params is not None else None,
                 descr.obj,
             )
-            bt2_utils._handle_func_status(
-                status, "cannot add descriptor to component descriptor set"
-            )
 
-        status, version = native_bt.get_greatest_operative_mip_version(
+        return native_bt.get_greatest_operative_mip_version(
             comp_descr_set_ptr, log_level.value
         )
-
-        if status == native_bt.__BT_FUNC_STATUS_NO_MATCH:
-            return None
-
-        bt2_utils._handle_func_status(
-            status, "cannot get greatest operative MIP version"
-        )
-        return version
     finally:
         native_bt.component_descriptor_set_put_ref(comp_descr_set_ptr)
 

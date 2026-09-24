@@ -5,7 +5,6 @@
 import numbers
 import functools
 
-from bt2 import utils as bt2_utils
 from bt2 import object as bt2_object
 from bt2 import native_bt
 from bt2 import clock_class as bt2_clock_class
@@ -25,11 +24,7 @@ class _ClockSnapshotConst(bt2_object._UniqueObject):
 
     @property
     def ns_from_origin(self) -> int:
-        status, ns = native_bt.clock_snapshot_get_ns_from_origin(self._ptr)
-        bt2_utils._handle_func_status(
-            status, "cannot get clock snapshot's nanoseconds from origin"
-        )
-        return ns
+        return native_bt.clock_snapshot_get_ns_from_origin(self._ptr)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, numbers.Integral):

@@ -114,7 +114,6 @@ _**If you need the `bt2` Python bindings**_::
     * https://www.python.org[Python]{nbsp}≥{nbsp}3.6 (development
       libraries and `python3-config`)
       (Debian/Ubuntu: `python3-dev`; Fedora: `python3-devel`)
-    * http://www.swig.org[SWIG]{nbsp}≥{nbsp}3.0
 
 _**If you need the https://lttng.org/[LTTng] debug information filter component class (https://babeltrace.org/docs/v{btversion}/man7/babeltrace2-filter.lttng-utils.debug-info.7/[`filter.lttng-utils.debug-info`])**_::
     * https://sourceware.org/elfutils/[elfutils]{nbsp}≥{nbsp}0.154
@@ -147,8 +146,6 @@ _**If you need to build and run the tests**_:: {empty}
 +
 Use an in-tree pytest with `--enable-vendor-pytest` if you can't
 install it.
-
-* http://www.swig.org[SWIG]{nbsp}≥{nbsp}3.0
 
 * https://github.com/catchorg/Catch2[Catch2]{nbsp}≥{nbsp}3.7.1
   (Debian/Ubuntu: `libcatch2-dev`)

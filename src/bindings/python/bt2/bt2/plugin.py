@@ -74,14 +74,12 @@ class _PluginProvider(bt2_object._BaseObject):
 
     @property
     def version(self) -> typing.Optional[_PluginProviderVersion]:
-        status, major, minor, patch, extra = native_bt.bt2_plugin_provider_get_version(
-            self._ptr
-        )
+        version = native_bt.plugin_provider_get_version(self._ptr)
 
-        if status == native_bt.PROPERTY_AVAILABILITY_NOT_AVAILABLE:
+        if version is None:
             return
 
-        return _PluginProviderVersion(major, minor, patch, extra)
+        return _PluginProviderVersion(*version)
 
 
 class _PluginProviderSet(bt2_object._BaseObject, typing.Sequence[_PluginProvider]):
@@ -105,9 +103,7 @@ class _PluginProviderSet(bt2_object._BaseObject, typing.Sequence[_PluginProvider
 
 
 def plugin_providers() -> _PluginProviderSet:
-    status, ptr = native_bt.bt2_plugin_provider_set_borrow()
-    bt2_utils._handle_func_status(status, "failed to borrow plugin provider set")
-    return _PluginProviderSet(ptr)
+    return _PluginProviderSet(native_bt.plugin_provider_set_borrow())
 
 
 class _PluginComponentClassesIterator(typing.Iterator[str]):
@@ -252,12 +248,12 @@ class _Plugin(bt2_object._SharedObject):
 
     @property
     def version(self) -> typing.Optional[_PluginVersion]:
-        status, major, minor, patch, extra = native_bt.bt2_plugin_get_version(self._ptr)
+        version = native_bt.plugin_get_version(self._ptr)
 
-        if status == native_bt.PROPERTY_AVAILABILITY_NOT_AVAILABLE:
+        if version is None:
             return
 
-        return _PluginVersion(major, minor, patch, extra)
+        return _PluginVersion(*version)
 
     @property
     def provider(self) -> typing.Optional[_PluginProvider]:
@@ -386,23 +382,19 @@ def find_plugins_in_path(
     bt2_utils._check_str(path)
     bt2_utils._check_bool(recurse)
     bt2_utils._check_bool(fail_on_load_error)
-    plugin_set_ptr = None
 
     if os.path.isfile(path):
-        status, plugin_set_ptr = native_bt.bt2_plugin_find_all_from_file(
-            path, fail_on_load_error
-        )
+        plugin_set_ptr = native_bt.plugin_find_all_from_file(path, fail_on_load_error)
     elif os.path.isdir(path):
-        status, plugin_set_ptr = native_bt.bt2_plugin_find_all_from_dir(
-            path, int(recurse), int(fail_on_load_error)
+        plugin_set_ptr = native_bt.plugin_find_all_from_dir(
+            path, recurse, fail_on_load_error
         )
     else:
         raise ValueError(f"invalid path: '{path}'")
 
-    if status == native_bt.__BT_FUNC_STATUS_NOT_FOUND:
+    if plugin_set_ptr is None:
         return
 
-    bt2_utils._handle_func_status(status, "failed to find plugins")
     return _PluginSet._create_from_ptr(plugin_set_ptr)
 
 
@@ -418,20 +410,17 @@ def find_plugins(
     bt2_utils._check_bool(find_in_sys_dir)
     bt2_utils._check_bool(find_in_static)
     bt2_utils._check_bool(fail_on_load_error)
-    plugin_set_ptr = None
-
-    status, plugin_set_ptr = native_bt.bt2_plugin_find_all(
-        int(find_in_std_env_var),
-        int(find_in_user_dir),
-        int(find_in_sys_dir),
-        int(find_in_static),
-        int(fail_on_load_error),
+    plugin_set_ptr = native_bt.plugin_find_all(
+        find_in_std_env_var,
+        find_in_user_dir,
+        find_in_sys_dir,
+        find_in_static,
+        fail_on_load_error,
     )
 
-    if status == native_bt.__BT_FUNC_STATUS_NOT_FOUND:
+    if plugin_set_ptr is None:
         return
 
-    bt2_utils._handle_func_status(status, "failed to find plugins")
     return _PluginSet._create_from_ptr(plugin_set_ptr)
 
 
@@ -445,17 +434,16 @@ def find_plugin(
 ) -> typing.Optional[_Plugin]:
     bt2_utils._check_str(name)
     bt2_utils._check_bool(fail_on_load_error)
-    status, ptr = native_bt.bt2_plugin_find(
+    ptr = native_bt.plugin_find(
         name,
-        int(find_in_std_env_var),
-        int(find_in_user_dir),
-        int(find_in_sys_dir),
-        int(find_in_static),
-        int(fail_on_load_error),
+        bool(find_in_std_env_var),
+        bool(find_in_user_dir),
+        bool(find_in_sys_dir),
+        bool(find_in_static),
+        fail_on_load_error,
     )
 
-    if status == native_bt.__BT_FUNC_STATUS_NOT_FOUND:
+    if ptr is None:
         return
 
-    bt2_utils._handle_func_status(status, "failed to find plugin")
     return _Plugin._create_from_ptr(ptr)

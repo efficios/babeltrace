@@ -138,9 +138,9 @@ class _StreamMessageConst(_MessageConst, _MessageWithDefaultClockSnapshot):
     def default_clock_snapshot(self) -> bt2_clock_snapshot._ClockSnapshotConst:
         self._check_has_default_clock_class(self.stream.cls.default_clock_class)
 
-        status, snapshot_ptr = self._borrow_default_clock_snapshot_ptr(self._ptr)
+        snapshot_ptr = self._borrow_default_clock_snapshot_ptr(self._ptr)
 
-        if status == native_bt.MESSAGE_STREAM_CLOCK_SNAPSHOT_STATE_UNKNOWN:
+        if snapshot_ptr is None:
             return bt2_clock_snapshot._UnknownClockSnapshot()
 
         return bt2_clock_snapshot._ClockSnapshotConst._create_from_ptr_and_get_ref(
@@ -217,9 +217,7 @@ class _DiscardedMessageConst(_MessageConst, _MessageWithDefaultClockSnapshot):
 
     @property
     def count(self) -> typing.Optional[int]:
-        avail, count = self._get_count(self._ptr)
-        if avail is native_bt.PROPERTY_AVAILABILITY_AVAILABLE:
-            return count
+        return self._get_count(self._ptr)
 
     def _check_has_default_clock_snapshots(self):
         if not self._has_default_clock_snapshots:

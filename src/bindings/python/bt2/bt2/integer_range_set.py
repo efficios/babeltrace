@@ -94,6 +94,10 @@ class _IntegerRangeSetConst(bt2_object._SharedObject, collections.abc.Set):
         if not isinstance(other, _IntegerRangeSetConst):
             return False
 
+        # a signed and an unsigned integer range set are never equal
+        if self._is_equal is not other._is_equal:
+            return False
+
         return self._is_equal(self._ptr, other._ptr)
 
     def contains_value(self, value: int) -> bool:

@@ -12,7 +12,6 @@
   exclude = '''
   (
        src/bindings/python/bt2/build/
-     | src/bindings/python/bt2/bt2/native_bt\.py$
      | src/bindings/python/bt2/bt2/version\.py$
      | tests/utils/python/vendor
 
@@ -46,7 +45,6 @@ markers = [
 [tool.coverage.run]
 include = ["**/src/bindings/python/bt2/build/build_lib/bt2/*.py"]
 omit = [
-    "native_*.py",
     "object.py",
     "utils.py",
     "logging.py",

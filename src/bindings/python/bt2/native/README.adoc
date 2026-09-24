@@ -1,0 +1,535 @@
+// SPDX-FileCopyrightText: 2026 Philippe Proulx <pproulx@efficios.com>
+// SPDX-License-Identifier: CC-BY-4.0
+
+= `bt2.native_bt` native module
+Philippe Proulx
+:toc: left
+
+This directory holds the sources of `bt2.native_bt`, the native
+Python module through which the `bt2` Python package calls
+libbabeltrace2.
+
+The module is a flat set of functions and integer constants which
+mostly mirror the libbabeltrace2 C API (for example,
+`value_bool_create()` or `VALUE_TYPE_UNSIGNED_INTEGER`). The Python
+classes of `bt2` are written in Python on top of it.
+
+Most module functions are libbabeltrace2 C functions as is: the
+_runtime_ adapts any C or {cpp} function to a Python C function
+automatically. Therefore, like the C API, those functions return
+status codes and `None` on memory error, and the Python layer checks
+them.
+
+A custom {cpp} function, typically taking and returning {cpp} wrapper
+objects of the `bt2` namespace, only exists when there's no fitting C
+function (output parameters, building a Python object, and so on).
+
+A module function may also be a libbabeltrace2 {cpp} wrapper free
+function as is (for example, `bt2::findPlugin()`).
+
+Unlike a C function, a custom or {cpp} wrapper function never returns
+a status: it throws on error (see <<errors-func,Module function>>) and
+returns `std::optional` or an empty `bt2::__OBJ__::Shared` (Python
+`None`) for a missing result which isn't an error (for example, an
+unavailable property or a plugin not found).
+
+This module is an internal interface: it trusts the Python layer.
+Instead of raising Python exceptions, it asserts its preconditions
+(see <<preconds,Preconditions>>).
+
+== Pieces
+
+`native-bt.cpp`::
+    Module entry point (`PyInit_native_bt()`).
++
+Creates the `native_bt.PtrObj` Python type, and then builds the whole
+Python module with a `bt2py::PyModuleBuilder`, calling the
+`register*Api()` function of each API area.
+
+`api.hpp`::
+    Declares every `register*Api(PyModuleBuilder&)` function.
+
+`api/`::
+    One file per libbabeltrace2 API area (for example, `value.cpp`).
++
+Each file contains, in an anonymous namespace, any custom {cpp}
+function to expose, and then its own `register*Api()` function which
+adds the libbabeltrace2 and custom functions, as well as any constant
+or object, to the Python module builder.
+
+`runtime/`::
+    Generic machinery, specific to no API area:
++
+--
+`py-module-builder.hpp`::
+`py-module-builder.cpp`::
+    `bt2py::PyModuleBuilder` and the Python function adapter (see
+    <<call,How a call works>>).
++
+`bt2py::PyModuleBuilder` collects the following, and then builds the
+module:
+
+Functions::: {empty}
++
+* `addFunc<__FUNC__>(__NAME__)`
+* `addLibFunc<__FUNC__>()`
+* `addLibBoolRetFunc<__FUNC__>()`
+* `addLibAddDestructionListenerFunc<__FUNC__>()`
+* `addLibRemoveDestructionListenerFunc<__FUNC__>()`
++
+The `addLib*()` methods only accept a libbabeltrace2 function: they
+name the Python function after `__FUNC__` without its `bt_` prefix
+(see <<lib-func-name,Name of a libbabeltrace2 function>>).
+
+Constants:::
+    `addConstant()` and `addWiseEnumConstants()`
+
+Python objects:::
+    `addObject()`
+
+`py-conv.hpp`::
+    `bt2py::PyConv<__T__>`: converts between the {cpp} type `__T__`
+    and Python objects with its static `fromPy()` and
+    `toPy()` methods.
+
+`ptr-obj.hpp`::
+`ptr-obj.cpp`::
+    `PtrObj`, the Python type which represents a libbabeltrace2 object
+    pointer (see <<ptr-obj,Pointer objects>>).
+
+`exc.hpp`::
+`exc.cpp`::
+    Error handling (see <<errors,Errors>>).
+
+`logging.hpp`::
+`logging.cpp`::
+    Log level of the module, initialized from the
+    `BABELTRACE_PYTHON_BT2_LOG_LEVEL` environment variable.
+
+`utils.hpp`::
+    Miscellaneous utilities to duplicate code.
+--
+
+IMPORTANT: Python requires that `<Python.h>` be included before any
+other header: make it the first include of each source and header
+file.
+
+[[call]]
+== How a call works
+
+`PyModuleBuilder::addFunc<__FUNC__>(__NAME__)` and
+`PyModuleBuilder::addLibFunc<__FUNC__>()` inspect the signature of
+`__FUNC__` at compile time and create a Python C function which:
+
+. Converts each Python argument with
+  `PyConv<__ParamT__>::fromPy()`.
+
+. Calls `__FUNC__`.
+
+. Converts the returned value with `PyConv<__RET__>::toPy()`
+  (`None` if `__FUNC__` returns `void`).
+
+The adapter picks the calling convention from the parameter count:
+`METH_NOARGS`, `METH_O`, or `METH_VARARGS`.
+
+`PyConv` already handles:
+
+* `bool`, any signed or unsigned integer type, `float`, and `double`.
++
+`bt_bool` is `int`: see the note about `addLibBoolRetFunc()` below.
+
+* `const char *` and `bt2c::CStringView` (Python's `str` or `None`).
+
+* Enumerations (Python `int`, through the converter of their
+  underlying type), including libbabeltrace2 status enumerations.
+
+* `bt2c::UuidView` (16-byte Python `bytes`).
+
+* `std::string` (return value only; Python `str`), for a custom
+  function which builds a string.
+
+* libbabeltrace2 objects (see <<ptr-obj,Pointer objects>>).
+
+* `PyObject *` (parameter only; any Python object as is, borrowed), for
+  a custom function which needs the Python object itself, for example
+  a Python callable.
+
+* `bt2py::PyObjUP` (return value only; transfers the reference), for
+  a custom function which builds its Python return value itself.
+
+* `std::optional<...>` (return value only; `None` when empty).
+
+* `std::tuple<...>` (return value only; Python `tuple`), for
+  a custom function which replaces output parameters.
+
+For any other parameter or return type, please kindly
+specialize `bt2py::PyConv`.
+
+[IMPORTANT]
+====
+`bt_bool` is an alias of `int`, so the adapter can't distinguish a
+`bt_bool` return value from an integer one: it would return a Python
+`int`.
+
+Add any libbabeltrace2 function returning `bt_bool` with
+`addLibBoolRetFunc()` instead of `addLibFunc()` so that it returns a
+Python `bool`:
+
+[source,cpp]
+----
+mb.addLibBoolRetFunc<bt_port_is_connected>();
+----
+
+`addLibBoolRetFunc()` fails to build if the function doesn't
+return `bt_bool`.
+====
+
+[[ptr-obj]]
+== Pointer objects
+
+A `PtrObj` Python object holds the address of a libbabeltrace2 object
+and a type tag (for example, `bt_value`), so that passing a
+`bt_field *` where a `bt_value *` is expected fails an assertion.
+`None` stands for `nullptr`.
+
+`PyConv` converts `PtrObj` objects to/from:
+
+`bt_{empty}__OBJ__ *` and `const bt_{empty}__OBJ__ *`::
+    Accepts `None`.
++
+The Python layer knows whether a returned pointer is a new or a
+borrowed reference.
+
+`bt2::__OBJ__` (wrapper)::
+    Doesn't expect `None`.
+
+`bt2::OptionalBorrowedObject<bt2::__OBJ__>`::
+    Accepts `None`.
+
+`bt2::__OBJ__::Shared`::
+    Return value only: _transfers_ the reference to the Python layer.
+
+A `PtrObj` object never owns a libbabeltrace2 object reference: the
+`bt2` Python classes get and put references explicitly (for example,
+with `value_get_ref()` and `value_put_ref()`).
+
+To make a `PtrObj` object able to hold a pointer to a new
+libbabeltrace2 object type, specialize
+`bt2py::internal::libObjTypeName` in `runtime/ptr-obj.hpp`.
+
+[[preconds]]
+== Preconditions
+
+The Python layer is the only user of this module, and it already
+validates what the user passes (types, integer ranges, and so on).
+
+Therefore, the module checks its own preconditions with
+`BT_ASSERT_DBG()` (per call) or `BT_ASSERT()` (once) instead of
+raising Python exceptions. For example:
+
+* Each `PyConv<__T__>::fromPy()` asserts the type (and, for integers,
+  the range) of the Python object.
+* Converting a `PtrObj` object asserts its type tag.
+* `PyModuleBuilder::build()` asserts that all the names are unique.
+
+Only raise a Python exception for a genuine runtime error, which the
+Python layer can't prevent: memory error, libbabeltrace2 error, string
+which isn't UTF-8-encodable, and so on.
+
+[[errors]]
+== Errors
+
+There are three error situations:
+
+. A <<errors-func,module function fails>>.
+. A <<errors-callback,native callback>> which libbabeltrace2 calls runs
+  Python code which raises.
+. A libbabeltrace2 function returns an error status (nothing to do
+  here).
++
+The adapted function returns the status as is: it's not a {cpp}
+exception. The Python layer checks it with
+`bt2.utils._handle_func_status()` which, for example, raises
+`bt2._Error` for `__BT_FUNC_STATUS_ERROR`.
+
+A precondition violation isn't an error: it fails an assertion (see
+<<preconds,Preconditions>>).
+
+[[errors-func]]
+=== Module function
+
+A custom or {cpp} wrapper function reports an error by throwing a {cpp}
+exception, never by returning a status: prefer calling a
+libbabeltrace2 {cpp} wrapper which throws (for example,
+`bt2::QueryExecutor::query()`) to checking the status of a C function
+yourself.
+
+The Python function adapter catches any exception, calls
+`setPyErrFromCurCppExc()` to set the Python error indicator, and
+returns `nullptr` to the interpreter.
+
+`setPyErrFromCurCppExc()` translates as follows:
+
+[%header,cols="1m,1"]
+|===
+|{cpp} exception |Python exception
+
+|bt2py::PyErrSet
+|(already set)
+
+|bt2::MemoryError
+|`bt2._MemoryError`
+
+|bt2::OverflowError
+|`bt2._OverflowError`
+
+|bt2::Error
+|`bt2._Error`
+
+|bt2::TryAgain
+|`bt2.TryAgain`
+
+|bt2c::End
+|`bt2.Stop`
+
+|bt2::UnknownObject
+|`bt2.UnknownObject`
+
+|std::bad_alloc
+|`MemoryError`
+
+|std::exception
+|`SystemError` (with the `what()` message)
+
+|Anything else
+|`SystemError`
+|===
+
+[IMPORTANT]
+====
+`bt2._Error`, as well as its `bt2._MemoryError` and
+`bt2._OverflowError` subclasses, takes the error of the current thread
+on construction and asserts that there's one.
+
+Therefore, before throwing `bt2::Error`, `bt2::MemoryError`, or
+`bt2::OverflowError` yourself, append a cause to the error of the
+current thread, for example:
+
+[source,cpp]
+----
+BT_CPPLOGE_APPEND_CAUSE_AND_THROW_SPEC(logger, bt2::Error,
+                                       "Failed to do something: name={}",
+                                       name);
+----
+
+where `logger` comes from `bt2py::createLogger()`.
+
+This isn't needed when a libbabeltrace2 {cpp} wrapper throws: the
+underlying libbabeltrace2 function already appended a cause.
+
+See `api/autodisc.cpp`.
+====
+
+When a Python API function already set the Python error indicator
+(it returned `nullptr` or -1), throw `bt2py::PyErrSet` so that the
+adapter leaves the indicator as is. The following helpers of
+`runtime/exc.hpp` do that for you:
+
+`throwIfPyErr(__PYOBJ__)`::
+    Returns `__PYOBJ__` as a reference, throwing `PyErrSet` if
+    `__PYOBJ__` is `nullptr`.
+
+`throwIfPyErr(__INTRES__)`::
+    Returns `__INTRES__`, throwing `PyErrSet` if it's negative.
+
+`throwPyErr(__EXCTYPE__, __FMT__, __ARGS__...)`::
+    Sets the Python error indicator to an exception of type
+    `__EXCTYPE__` with a message formatted with `fmt::format()`, and then
+    throws `PyErrSet`.
+
+A `PyConv` converter throws `PyErrSet` on error too, for example when
+a Python string isn't UTF-8-encodable.
+
+[IMPORTANT]
+====
+Never throw from a user function which a libbabeltrace2 {cpp} wrapper
+calls, for example the user function of
+`bt2::CommonMapValue::forEach()`: the wrapper catches any exception
+and translates it to `bt2::Error`, losing the Python error indicator
+(and without any cause, see above).
+
+Instead, record the failure, return from the user function, and throw
+`PyErrSet` after the wrapper returns: see `pyListFromMapValueKeys()`
+in `api/value.cpp`.
+====
+
+[[errors-callback]]
+=== Native callback
+
+A native callback is a function which libbabeltrace2 calls and which
+calls Python code: it's not called by the interpreter, so it must
+never throw (make it `noexcept`) and it can't let a Python exception
+through.
+
+When the Python code raises, the callback handles the Python exception
+according to how it may report an error to libbabeltrace2:
+
+With a status (for example, a graph listener)::
+    Call `logErrorAndAppendCausesFromCurPyExc(__LOGGER__)`, and then
+    return an error status.
++
+This function:
++
+--
+. Logs the whole Python exception chain with `__LOGGER__` at the error
+  level.
+
+. If the oldest exception of the chain is a `bt2._Error`, moves the
+  libbabeltrace2 error which it wraps back as the error of the current
+  thread.
++
+The `bt2._Error` doesn't release its error afterwards: its `_ptr`
+attribute becomes `None`.
++
+This is what keeps the causes of the complete call chain when
+libbabeltrace2 calls Python code which calls libbabeltrace2 again.
+
+. Appends one cause per exception of the chain, from the oldest, to
+  the error of the current thread with the actor of `__LOGGER__`.
++
+For a `bt2._Error`, the cause only contains its traceback and message,
+not its own causes (already part of the error of the current thread).
+
+. Clears the Python error indicator.
+--
++
+See `listener()` in `api/graph.cpp`.
+
+Without any status (for example, a destruction listener)::
+    Log the Python exception at the warning level, and then clear the
+    Python error indicator: libbabeltrace2 can't know about the error.
++
+See `callPyDestructionListener()` in `runtime/py-module-builder.cpp`.
+
+As a component class or message iterator method (see
+<<py-comp-cls,Python component classes>>)::
+    Call `throwCppExcFromCurPyExc(__LOGGER__)`, which translates the
+    Python exception to a {cpp} exception and clears the Python error
+    indicator, and let it propagate: the {cpp} component class bridge
+    of `cpp-common/bt2/component-class-dev.hpp` translates it to a
+    method status.
++
+[%header,cols="1m,1m,1"]
+|===
+|Python exception |{cpp} exception |Method status
+
+|bt2.TryAgain
+|bt2::TryAgain
+|`+*_AGAIN+`
+
+|bt2.Stop
+|bt2c::End
+|`+*_END+` (the method catches it: only the "next" message iterator
+method and the "consume" sink component method may end)
+
+|bt2.UnknownObject
+|bt2::UnknownObject
+|`+*_UNKNOWN_OBJECT+` (query method)
+
+|bt2._MemoryError
+|bt2::MemoryError
+|`+*_MEMORY_ERROR+`
+
+|Anything else
+|bt2::Error
+|`+*_ERROR+`
+|===
++
+For the last two, `throwCppExcFromCurPyExc()` first calls
+`logErrorAndAppendCausesFromCurPyExc(__LOGGER__)`.
++
+The finalization method of a component or message iterator can't report
+an error: it logs the Python exception at the warning level, and then
+clears the Python error indicator.
+
+[[py-comp-cls]]
+== Python component classes
+
+A Python component class (a Python class which inherits
+`bt2._UserSourceComponent`, `bt2._UserFilterComponent`, or
+`bt2._UserSinkComponent`) is a libbabeltrace2 component class which
+`bt2::createComponentClass()` creates, with the name, description, and
+help text of the Python class, from one of the {cpp} component classes
+of `api/component-class-dev.cpp`:
+
+[%header,cols="1m,1"]
+|===
+|{cpp} component class |Base
+
+|SrcComp
+|`bt2::UserSourceComponent`
+
+|FltComp
+|`bt2::UserFilterComponent`
+
+|SinkComp
+|`bt2::UserSinkComponent`
+|===
+
+The message iterator class of `SrcComp` and `FltComp` is
+`MsgIter`, which inherits `bt2::UserMessageIterator`.
+
+`api/component-class-dev.cpp` maps each libbabeltrace2 component class
+which it creates to its Python class. The static methods (query and
+"get supported MIP versions") find the Python class to call from
+this map.
+
+The user data of a Python component is its {cpp} object, which owns
+the Python component object: use
+`self_message_iterator_get_component_data()` to get the latter from a
+message iterator.
+
+Each method calls a `_bt_*_from_native()` method of the Python class, of
+the Python component object, or of the Python message iterator object.
+When such a method returns a libbabeltrace2 object (message, query
+result, or MIP version range set), it returns a _new reference_ as a
+`PtrObj` object.
+
+== Add an API area
+
+. Create `api/__AREA__.cpp` with a
+  `register__AREA__Api(PyModuleBuilder&)` function which adds the
+  libbabeltrace2 functions, as well as any custom {cpp} function:
++
+[source,cpp]
+----
+namespace bt2py {
+namespace {
+
+PyObjUP fieldClassFooGetBars(const bt2::ConstFooFieldClass fc)
+{
+    /* Build and return a Python list... */
+}
+
+} /* namespace */
+
+void registerFieldClassApi(PyModuleBuilder& mb)
+{
+    mb.addLibFunc<bt_field_class_get_type>();
+    mb.addLibFunc<bt_field_class_integer_get_field_value_range>();
+    mb.addFunc<fieldClassFooGetBars>("field_class_foo_get_bars");
+}
+
+} /* namespace bt2py */
+----
+
++
+Don't add the status constants of a specific function (for example,
+`GRAPH_RUN_STATUS_OK`): the Python layer only compares statuses with
+the generic `__BT_FUNC_STATUS_*` constants of `native-bt.cpp`.
+
+. Declare `register__AREA__Api()` in `api.hpp` and call it from
+  `pyModuleBuilder()` in `native-bt.cpp`.
+
+. Specialize `bt2py::internal::libObjTypeName` for each new
+  libbabeltrace2 object type.

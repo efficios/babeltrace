@@ -208,9 +208,14 @@ class _ListenerHandle:
     def __init__(self, addr):
         self._addr = addr
         self._listener_id = None
+        self._native_callable = None
 
-    def _set_listener_id(self, listener_id):
+    # `native_callable` is the callable which the native listener owns:
+    # the native removal function needs it to release it.
+    def _set_listener_id(self, listener_id, native_callable):
         self._listener_id = listener_id
+        self._native_callable = native_callable
 
     def _invalidate(self):
         self._listener_id = None
+        self._native_callable = None

@@ -94,17 +94,17 @@ class _TraceClassConst(
 
         handle = bt2_utils._ListenerHandle(self.addr)
 
-        status, listener_id = native_bt.bt2_trace_class_add_destruction_listener(
-            self._ptr,
-            functools.partial(
-                _trace_class_destruction_listener_from_native, listener, handle
-            ),
+        native_callable = functools.partial(
+            _trace_class_destruction_listener_from_native, listener, handle
+        )
+        status, listener_id = native_bt.trace_class_add_destruction_listener(
+            self._ptr, native_callable
         )
         bt2_utils._handle_func_status(
             status, "cannot add destruction listener to trace class object"
         )
 
-        handle._set_listener_id(listener_id)
+        handle._set_listener_id(listener_id, native_callable)
 
         return handle
 
@@ -123,7 +123,9 @@ class _TraceClassConst(
 
         bt2_utils._handle_func_status(
             native_bt.trace_class_remove_destruction_listener(
-                self._ptr, listener_handle._listener_id
+                self._ptr,
+                listener_handle._listener_id,
+                listener_handle._native_callable,
             )
         )
         listener_handle._invalidate()
@@ -318,10 +320,6 @@ class _TraceClass(bt2_user_attrs._WithUserAttrs, _TraceClassConst):
             bt2_utils._check_str(item)
 
         ptr = native_bt.field_location_create(self._ptr, root_scope.value, items)
-
-        if ptr is None:
-            raise bt2_error._MemoryError("could not create field location")
-
         return bt2_field_location._FieldLocationConst._create_from_ptr(ptr)
 
     # Field class creation methods.

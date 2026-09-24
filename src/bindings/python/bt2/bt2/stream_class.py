@@ -68,7 +68,7 @@ class _StreamClassConst(
     _clock_class_cls = property(lambda _: bt2_clock_class._ClockClassConst)
 
     def __getitem__(self, key: int) -> bt2_event_class._EventClassConst:
-        bt2_utils._check_int64(key)
+        bt2_utils._check_uint64(key)
         ec_ptr = self._borrow_event_class_ptr_by_id(self._ptr, key)
 
         if ec_ptr is None:

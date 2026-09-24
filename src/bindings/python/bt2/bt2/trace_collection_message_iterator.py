@@ -12,7 +12,6 @@ from collections import namedtuple
 
 from bt2 import mip as bt2_mip
 from bt2 import port as bt2_port
-from bt2 import error as bt2_error
 from bt2 import graph as bt2_graph
 from bt2 import utils as bt2_utils
 from bt2 import value as bt2_value
@@ -279,45 +278,17 @@ def source_component_specs_from_auto_source_component_specs(
     else:
         bt2_utils._check_type(plugin_set, bt2_plugin._PluginSet)
 
-    res_ptr = native_bt.bt2_auto_discover_source_components(
-        inputs._ptr, log_levels._ptr, plugin_set._ptr
-    )
-
-    if res_ptr is None:
-        raise bt2_error._MemoryError("cannot auto discover source components")
-
-    res = bt2_value._create_from_ptr(res_ptr)
-
-    assert type(res) is bt2_value.MapValue
-    assert "status" in res
-
-    status = res["status"]
-    bt2_utils._handle_func_status(status, "cannot auto-discover source components")
-
     comp_specs = []
-    comp_specs_raw = res["results"]
-    assert type(comp_specs_raw) is bt2_value.ArrayValue
-
     used_input_indices = set()
 
-    for comp_spec_raw in comp_specs_raw:
-        assert type(comp_spec_raw) is bt2_value.ArrayValue
-        assert len(comp_spec_raw) == 4
-
-        plugin_name = comp_spec_raw[0]
-        assert type(plugin_name) is bt2_value.StringValue
-        plugin_name = str(plugin_name)
-
-        class_name = comp_spec_raw[1]
-        assert type(class_name) is bt2_value.StringValue
-        class_name = str(class_name)
-
-        comp_inputs = comp_spec_raw[2]
-        assert type(comp_inputs) is bt2_value.ArrayValue
-
-        comp_orig_indices = comp_spec_raw[3]
-        assert type(comp_orig_indices)
-
+    for (
+        plugin_name,
+        class_name,
+        comp_inputs,
+        comp_orig_indices,
+    ) in native_bt.auto_discover_source_components(
+        inputs._ptr, log_levels._ptr, plugin_set._ptr
+    ):
         params = bt2_value.MapValue()
         logging_level = bt2_logging.LoggingLevel.NONE
         obj = None

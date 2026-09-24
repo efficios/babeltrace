@@ -344,7 +344,6 @@ def _del_global_name(name):
 
 
 # remove private module names from the package
-_del_global_name("_native_bt")
 _del_global_name("clock_class")
 _del_global_name("clock_snapshot")
 _del_global_name("component")
@@ -387,18 +386,3 @@ del _del_global_name
 
 # remove sys module name from the package
 del sys
-
-
-def _init_and_register_exit():
-    import atexit
-
-    from bt2 import native_bt
-
-    atexit.register(native_bt.bt2_exit_handler)
-    native_bt.bt2_init_from_bt2()
-
-
-_init_and_register_exit()
-
-# remove private `_init_and_register_exit` name from the package
-del _init_and_register_exit

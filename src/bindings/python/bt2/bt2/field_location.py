@@ -5,6 +5,7 @@
 import enum
 import typing
 
+from bt2 import utils as bt2_utils
 from bt2 import object as bt2_object
 from bt2 import native_bt
 
@@ -33,7 +34,9 @@ class _FieldLocationConst(bt2_object._SharedObject, typing.Sequence[str]):
         return native_bt.field_location_get_item_count(self._ptr)
 
     def __getitem__(self, index: int) -> str:
-        if index >= len(self):
+        bt2_utils._check_int(index)
+
+        if index < 0 or index >= len(self):
             raise IndexError("field location object index is out of range")
 
         return native_bt.field_location_get_item_by_index(self._ptr, index)

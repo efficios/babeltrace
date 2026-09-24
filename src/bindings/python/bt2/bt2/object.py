@@ -53,9 +53,9 @@ _UniqueObjectT = typing.TypeVar("_UniqueObjectT", bound="_UniqueObject")
 class _UniqueObject(_BaseObject):
     # Create a _UniqueObject.
     #
-    #   - ptr: SWIG Object, pointer to the unique object.
-    #   - owner_ptr: SWIG Object, pointer to the owner of the unique
-    #     object.  A new reference is acquired.
+    #   - ptr: `native_bt.PtrObj` object, pointer to the unique object.
+    #   - owner_ptr: `native_bt.PtrObj` object, pointer to the owner of
+    #     the unique object.  A new reference is acquired.
     #   - owner_get_ref: Callback to get a reference on the owner
     #   - owner_put_ref: Callback to put a reference on the owner.
 

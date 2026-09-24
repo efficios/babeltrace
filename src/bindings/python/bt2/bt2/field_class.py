@@ -120,16 +120,11 @@ class _BitArrayFieldClassConst(
         self, value_as_integer: int
     ) -> typing.List[_BitArrayFieldClassFlagConst]:
         bt2_utils._check_mip_ge(self, "Bit array field class flags", 1)
-        bt2_utils._check_int64(value_as_integer)
-        (
-            status,
-            labels,
-        ) = native_bt.field_class_bit_array_get_active_flag_labels_for_value_as_integer(
-            self._ptr, value_as_integer
-        )
-        bt2_utils._handle_func_status(
-            status,
-            f"cannot get active flag labels for value {value_as_integer}",
+        bt2_utils._check_uint64(value_as_integer)
+        labels = (
+            native_bt.field_class_bit_array_get_active_flag_labels_for_value_as_integer(
+                self._ptr, value_as_integer
+            )
         )
         return [self[label] for label in labels]
 
@@ -215,6 +210,8 @@ class _IntegerFieldClassConst(_FieldClassConst):
 
 class _IntegerFieldClass(_FieldClass, _IntegerFieldClassConst):
     def _set_field_value_range(self, size):
+        bt2_utils._check_int(size)
+
         if size < 1 or size > 64:
             raise ValueError(f"Value is outside valid range [1, 64] ({size})")
 
@@ -323,10 +320,7 @@ class _EnumerationFieldClassConst(
     ) -> typing.List[_EnumerationFieldClassMapping]:
         self._check_int_type(value)
 
-        status, labels = self._get_mapping_labels_for_value(self._ptr, value)
-        bt2_utils._handle_func_status(
-            status, f"cannot get mapping labels for value {value}"
-        )
+        labels = self._get_mapping_labels_for_value(self._ptr, value)
         return [self[label] for label in labels]
 
     def __iter__(self) -> typing.Iterator[str]:
