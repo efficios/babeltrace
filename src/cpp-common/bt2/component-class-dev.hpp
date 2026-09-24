@@ -1399,28 +1399,28 @@ protected:
 
 namespace internal {
 
-template <typename UserComponentT, typename CompClsBridgeT, typename LibSpecCompClsPtrT,
-          typename AsCompClsFuncT, typename SetInitMethodFuncT, typename SetFinalizeMethodFuncT,
+template <typename CompClsBridgeT, typename LibSpecCompClsPtrT, typename AsCompClsFuncT,
+          typename SetInitMethodFuncT, typename SetFinalizeMethodFuncT,
           typename SetGetSupportedMipVersionsMethodFuncT, typename SetQueryMethodFuncT>
 void setCompClsCommonProps(
-    LibSpecCompClsPtrT * const libSpecCompClsPtr, AsCompClsFuncT&& asCompClsFunc,
+    LibSpecCompClsPtrT * const libSpecCompClsPtr, const bt2c::CStringView descr,
+    const bt2c::CStringView help, AsCompClsFuncT&& asCompClsFunc,
     SetInitMethodFuncT&& setInitMethodFunc, SetFinalizeMethodFuncT&& setFinalizeMethodFunc,
     SetGetSupportedMipVersionsMethodFuncT&& setGetSupportedMipVersionsMethodFunc,
     SetQueryMethodFuncT&& setQueryMethodFunc)
 {
     const auto libCompClsPtr = asCompClsFunc(libSpecCompClsPtr);
 
-    if (UserComponentT::description != nullptr) {
-        const auto status =
-            bt_component_class_set_description(libCompClsPtr, UserComponentT::description);
+    if (descr) {
+        const auto status = bt_component_class_set_description(libCompClsPtr, descr);
 
         if (status == BT_COMPONENT_CLASS_SET_DESCRIPTION_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
     }
 
-    if (UserComponentT::help != nullptr) {
-        if (bt_component_class_set_help(libCompClsPtr, UserComponentT::help) ==
+    if (help) {
+        if (bt_component_class_set_help(libCompClsPtr, help) ==
             BT_COMPONENT_CLASS_SET_HELP_STATUS_MEMORY_ERROR) {
             throw MemoryError {};
         }
@@ -1495,7 +1495,9 @@ bt_message_iterator_class *createLibMsgIterCls()
 }
 
 template <typename UserComponentT>
-bt_component_class_source *createSourceCompCls()
+bt_component_class_source *createSourceCompCls(const bt2c::CStringView name,
+                                               const bt2c::CStringView description,
+                                               const bt2c::CStringView help)
 {
     static_assert(std::is_base_of_v<
                       UserSourceComponent<UserComponentT, typename UserComponentT::MessageIterator,
@@ -1508,8 +1510,7 @@ bt_component_class_source *createSourceCompCls()
     using MsgIterClsBridge = internal::MsgIterClsBridge<typename UserComponentT::MessageIterator>;
 
     const auto libMsgIterClsPtr = createLibMsgIterCls<MsgIterClsBridge>();
-    const auto libCompClsPtr =
-        bt_component_class_source_create(UserComponentT::name, libMsgIterClsPtr);
+    const auto libCompClsPtr = bt_component_class_source_create(name, libMsgIterClsPtr);
 
     bt_message_iterator_class_put_ref(libMsgIterClsPtr);
 
@@ -1517,8 +1518,8 @@ bt_component_class_source *createSourceCompCls()
         throw MemoryError {};
     }
 
-    setCompClsCommonProps<UserComponentT, CompClsBridge>(
-        libCompClsPtr, bt_component_class_source_as_component_class,
+    setCompClsCommonProps<CompClsBridge>(
+        libCompClsPtr, description, help, bt_component_class_source_as_component_class,
         bt_component_class_source_set_initialize_method,
         bt_component_class_source_set_finalize_method,
         bt_component_class_source_set_get_supported_mip_versions_method,
@@ -1535,7 +1536,9 @@ bt_component_class_source *createSourceCompCls()
 }
 
 template <typename UserComponentT>
-bt_component_class_filter *createFilterCompCls()
+bt_component_class_filter *createFilterCompCls(const bt2c::CStringView name,
+                                               const bt2c::CStringView description,
+                                               const bt2c::CStringView help)
 {
     static_assert(std::is_base_of_v<
                       UserFilterComponent<UserComponentT, typename UserComponentT::MessageIterator,
@@ -1548,8 +1551,7 @@ bt_component_class_filter *createFilterCompCls()
     using MsgIterClsBridge = internal::MsgIterClsBridge<typename UserComponentT::MessageIterator>;
 
     const auto libMsgIterClsPtr = createLibMsgIterCls<MsgIterClsBridge>();
-    const auto libCompClsPtr =
-        bt_component_class_filter_create(UserComponentT::name, libMsgIterClsPtr);
+    const auto libCompClsPtr = bt_component_class_filter_create(name, libMsgIterClsPtr);
 
     bt_message_iterator_class_put_ref(libMsgIterClsPtr);
 
@@ -1557,8 +1559,8 @@ bt_component_class_filter *createFilterCompCls()
         throw MemoryError {};
     }
 
-    setCompClsCommonProps<UserComponentT, CompClsBridge>(
-        libCompClsPtr, bt_component_class_filter_as_component_class,
+    setCompClsCommonProps<CompClsBridge>(
+        libCompClsPtr, description, help, bt_component_class_filter_as_component_class,
         bt_component_class_filter_set_initialize_method,
         bt_component_class_filter_set_finalize_method,
         bt_component_class_filter_set_get_supported_mip_versions_method,
@@ -1582,7 +1584,9 @@ bt_component_class_filter *createFilterCompCls()
 }
 
 template <typename UserComponentT>
-bt_component_class_sink *createSinkCompCls()
+bt_component_class_sink *createSinkCompCls(const bt2c::CStringView name,
+                                           const bt2c::CStringView description,
+                                           const bt2c::CStringView help)
 {
     static_assert(
         std::is_base_of_v<UserSinkComponent<UserComponentT, typename UserComponentT::InitData,
@@ -1592,15 +1596,14 @@ bt_component_class_sink *createSinkCompCls()
 
     using CompClsBridge = internal::SinkCompClsBridge<UserComponentT>;
 
-    const auto libCompClsPtr =
-        bt_component_class_sink_create(UserComponentT::name, CompClsBridge::consume);
+    const auto libCompClsPtr = bt_component_class_sink_create(name, CompClsBridge::consume);
 
     if (!libCompClsPtr) {
         throw MemoryError {};
     }
 
-    setCompClsCommonProps<UserComponentT, CompClsBridge>(
-        libCompClsPtr, bt_component_class_sink_as_component_class,
+    setCompClsCommonProps<CompClsBridge>(
+        libCompClsPtr, description, help, bt_component_class_sink_as_component_class,
         bt_component_class_sink_set_initialize_method, bt_component_class_sink_set_finalize_method,
         bt_component_class_sink_set_get_supported_mip_versions_method,
         bt_component_class_sink_set_query_method);
@@ -1626,8 +1629,53 @@ bt_component_class_sink *createSinkCompCls()
 
 /*!
 @brief
+    Creates a libbabeltrace2 component class named \bt_p{name}
+    from the C++ component class \bt_p{UserComponentT}.
+
+This version ignores the static \c name, \c description, and \c help
+members of \bt_p{UserComponentT}, if any.
+
+@tparam UserComponentT
+    Component class which inherits bt2::UserSourceComponent,
+    bt2::UserFilterComponent, or bt2::UserSinkComponent.
+
+@param[in] name
+    Name of the component class to create.
+@param[in] description
+    Description of the component class to create, or \c nullptr
+    to not set any description.
+@param[in] help
+    Help text of the component class to create, or \c nullptr
+    to not set any help text.
+
+@returns
+    Component class wrapper.
+*/
+template <typename UserComponentT>
+auto createComponentClass(const bt2c::CStringView name, const bt2c::CStringView description = {},
+                          const bt2c::CStringView help = {})
+{
+    if constexpr (UserComponentT::type() == ComponentClassType::Source) {
+        return SourceComponentClass::Shared::createWithoutRef(
+            internal::createSourceCompCls<UserComponentT>(name, description, help));
+    } else if constexpr (UserComponentT::type() == ComponentClassType::Filter) {
+        return FilterComponentClass::Shared::createWithoutRef(
+            internal::createFilterCompCls<UserComponentT>(name, description, help));
+    } else {
+        static_assert(UserComponentT::type() == ComponentClassType::Sink);
+        return SinkComponentClass::Shared::createWithoutRef(
+            internal::createSinkCompCls<UserComponentT>(name, description, help));
+    }
+}
+
+/*!
+@brief
     Creates a libbabeltrace2 component class
     from the C++ component class \bt_p{UserComponentT}.
+
+The name, description, and help text of the created component class
+are the static \c name, \c description, and \c help members of
+\bt_p{UserComponentT}.
 
 @tparam UserComponentT
     Component class which inherits bt2::UserSourceComponent,
@@ -1639,17 +1687,8 @@ bt_component_class_sink *createSinkCompCls()
 template <typename UserComponentT>
 auto createComponentClass()
 {
-    if constexpr (UserComponentT::type() == ComponentClassType::Source) {
-        return SourceComponentClass::Shared::createWithoutRef(
-            internal::createSourceCompCls<UserComponentT>());
-    } else if constexpr (UserComponentT::type() == ComponentClassType::Filter) {
-        return FilterComponentClass::Shared::createWithoutRef(
-            internal::createFilterCompCls<UserComponentT>());
-    } else {
-        static_assert(UserComponentT::type() == ComponentClassType::Sink);
-        return SinkComponentClass::Shared::createWithoutRef(
-            internal::createSinkCompCls<UserComponentT>());
-    }
+    return createComponentClass<UserComponentT>(UserComponentT::name, UserComponentT::description,
+                                                UserComponentT::help);
 }
 
 } /* namespace bt2 */
