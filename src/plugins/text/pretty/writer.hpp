@@ -1306,21 +1306,21 @@ private:
             break;
 
         case bt2::FieldClassType::StaticArray:
-        case bt2::FieldClassType::DynamicArrayWithoutLength:
-        case bt2::FieldClassType::DynamicArrayWithLength:
+        case bt2::FieldClassType::DynamicArrayWithoutLengthField:
+        case bt2::FieldClassType::DynamicArrayWithLengthField:
             this->_writeArrayField(field, writeNames);
             break;
 
-        case bt2::FieldClassType::OptionWithoutSelector:
-        case bt2::FieldClassType::OptionWithBoolSelector:
-        case bt2::FieldClassType::OptionWithUnsignedIntegerSelector:
-        case bt2::FieldClassType::OptionWithSignedIntegerSelector:
+        case bt2::FieldClassType::OptionWithoutSelectorField:
+        case bt2::FieldClassType::OptionWithBoolSelectorField:
+        case bt2::FieldClassType::OptionWithUnsignedIntegerSelectorField:
+        case bt2::FieldClassType::OptionWithSignedIntegerSelectorField:
             this->_writeOptionField(field, writeNames);
             break;
 
-        case bt2::FieldClassType::VariantWithoutSelector:
-        case bt2::FieldClassType::VariantWithUnsignedIntegerSelector:
-        case bt2::FieldClassType::VariantWithSignedIntegerSelector:
+        case bt2::FieldClassType::VariantWithoutSelectorField:
+        case bt2::FieldClassType::VariantWithUnsignedIntegerSelectorField:
+        case bt2::FieldClassType::VariantWithSignedIntegerSelectorField:
             this->_writeVariantField(field, writeNames);
             break;
 
