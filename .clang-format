@@ -83,33 +83,36 @@ ForEachMacros: [
 ]
 IncludeBlocks: Regroup
 IncludeCategories:
-  # Python
-  - Regex: '^(<Python\.h>|"py-common/py-common\.h(pp)?")$'
+  # Python (always first, as its own group)
+  - Regex: '^<Python\.h>$'
     Priority: 1
+  # Python common headers (include `Python.h`)
+  - Regex: '^"py-common/py-common\.h(pp)?"$'
+    Priority: 2
   # Babeltrace 2 public headers
   - Regex: '^<babeltrace2/.+>$'
-    Priority: 4
+    Priority: 5
   # System C headers
   - Regex: '^<.+\.h>$'
-    Priority: 3
+    Priority: 4
   # System C++ headers
   - Regex: '^<.+>$'
-    Priority: 2
+    Priority: 3
   # Logging headers
   - Regex: '^"(logging\.hpp|logging/comp-logging\.h|logging/log\.h)"$'
-    Priority: 5
+    Priority: 6
   # Common headers
   - Regex: '^"(argpar|autodisc|common|compat|cpp-common|ctfser|fd-cache|param-parse|py-common|logging|string-format)/.+"$'
-    Priority: 6
+    Priority: 7
   # Plugins common headers
   - Regex: '^"plugins/common/.+"$'
-    Priority: 7
+    Priority: 8
   # tap header file
   - Regex: '^"(tap/)?tap\.h"$'
-    Priority: 9
+    Priority: 10
   # The rest (local headers)
   - Regex: '.+'
-    Priority: 8
+    Priority: 9
 IncludeIsMainRegex: "please_dont_do_that"
 IndentAccessModifiers: false
 IndentCaseBlocks: false
