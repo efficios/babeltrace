@@ -15,6 +15,7 @@
 #include "component-class-dev.hpp"
 #include "component-class.hpp"
 #include "component-port.hpp"
+#include "connection.hpp"
 #include "exc.hpp"
 #include "shared-object.hpp"
 #include "value.hpp"
@@ -139,10 +140,12 @@ public:
                                   std::forward<InitDataT>(initData), params, loggingLevel);
     }
 
-    Graph connectPorts(const ConstOutputPort outputPort, const ConstInputPort inputPort) const
+    ConstConnection connectPorts(const ConstOutputPort outputPort,
+                                 const ConstInputPort inputPort) const
     {
+        const bt_connection *libObjPtr = nullptr;
         const auto status = bt_graph_connect_ports(this->libObjPtr(), outputPort.libObjPtr(),
-                                                   inputPort.libObjPtr(), nullptr);
+                                                   inputPort.libObjPtr(), &libObjPtr);
 
         if (status == BT_GRAPH_CONNECT_PORTS_STATUS_ERROR) {
             throw Error {};
@@ -150,7 +153,7 @@ public:
             throw MemoryError {};
         }
 
-        return *this;
+        return ConstConnection {libObjPtr};
     }
 
     Graph runOnce() const
