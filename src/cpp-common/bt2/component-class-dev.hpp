@@ -1460,6 +1460,22 @@ bt_message_iterator_class *createLibMsgIterCls()
         BT_ASSERT(status == BT_MESSAGE_ITERATOR_CLASS_SET_METHOD_STATUS_OK);
     }
 
+    {
+        const auto status = bt_message_iterator_class_set_seek_beginning_methods(
+            libMsgIterClsPtr, MsgIterClsBridgeT::seekBeginning,
+            MsgIterClsBridgeT::canSeekBeginning);
+
+        BT_ASSERT(status == BT_MESSAGE_ITERATOR_CLASS_SET_METHOD_STATUS_OK);
+    }
+
+    {
+        const auto status = bt_message_iterator_class_set_seek_ns_from_origin_methods(
+            libMsgIterClsPtr, MsgIterClsBridgeT::seekNsFromOrigin,
+            MsgIterClsBridgeT::canSeekNsFromOrigin);
+
+        BT_ASSERT(status == BT_MESSAGE_ITERATOR_CLASS_SET_METHOD_STATUS_OK);
+    }
+
     return libMsgIterClsPtr;
 }
 
