@@ -66,8 +66,8 @@ Counter::~Counter()
     this->_tryPrintLast();
 }
 
-void Counter::_getSupportedMipVersions(bt2::SelfComponentClass, bt2::ConstValue, bt2::LoggingLevel,
-                                       const bt2::UnsignedIntegerRangeSet ranges)
+void Counter::_getSupportedMipVersions(bt2::SelfComponentClass, bt2::ConstValue, void *,
+                                       bt2::LoggingLevel, const bt2::UnsignedIntegerRangeSet ranges)
 {
     ranges.addRange(0, 1);
 }

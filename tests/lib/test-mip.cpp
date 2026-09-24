@@ -28,7 +28,7 @@ public:
         return false;
     }
 
-    static void _getSupportedMipVersions(bt2::SelfComponentClass, bt2::ConstMapValue,
+    static void _getSupportedMipVersions(bt2::SelfComponentClass, bt2::ConstMapValue, void *,
                                          bt2::LoggingLevel,
                                          const bt2::UnsignedIntegerRangeSet ranges)
     {

@@ -96,13 +96,14 @@ public:
 
     static bt_component_class_get_supported_mip_versions_method_status
     getSupportedMipVersions(typename TypesT::LibSelfCompCls * const libSelfCompClsPtr,
-                            const bt_value * const libParamsPtr, void *,
+                            const bt_value * const libParamsPtr, void * const initData,
                             const bt_logging_level logLevel,
                             bt_integer_range_set_unsigned * const libSupportedVersionsPtr) noexcept
     {
         try {
             UserCompClsT::getSupportedMipVersions(
                 SelfComponentClass {libSelfCompClsPtr}, ConstMapValue {libParamsPtr},
+                static_cast<typename UserCompClsT::InitData *>(initData),
                 static_cast<LoggingLevel>(logLevel),
                 UnsignedIntegerRangeSet {libSupportedVersionsPtr});
             return BT_COMPONENT_CLASS_GET_SUPPORTED_MIP_VERSIONS_METHOD_STATUS_OK;

@@ -24,7 +24,7 @@ public:
     ~Counter();
 
 private:
-    static void _getSupportedMipVersions(bt2::SelfComponentClass, bt2::ConstValue,
+    static void _getSupportedMipVersions(bt2::SelfComponentClass, bt2::ConstValue, void *,
                                          bt2::LoggingLevel, bt2::UnsignedIntegerRangeSet ranges);
     void _graphIsConfigured();
     bool _consume();

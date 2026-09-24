@@ -23,7 +23,7 @@ public:
     explicit Comp(bt2::SelfFilterComponent selfComp, bt2::ConstMapValue params, void *);
 
 protected:
-    static void _getSupportedMipVersions(bt2::SelfComponentClass, bt2::ConstValue,
+    static void _getSupportedMipVersions(bt2::SelfComponentClass, bt2::ConstValue, void *,
                                          bt2::LoggingLevel, bt2::UnsignedIntegerRangeSet ranges);
 
 private:

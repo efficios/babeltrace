@@ -34,8 +34,8 @@ Comp::Comp(const bt2::SelfFilterComponent selfComp, const bt2::ConstMapValue par
     BT_CPPLOGI("Initialized component.");
 }
 
-void Comp::_getSupportedMipVersions(bt2::SelfComponentClass, bt2::ConstValue, bt2::LoggingLevel,
-                                    const bt2::UnsignedIntegerRangeSet ranges)
+void Comp::_getSupportedMipVersions(bt2::SelfComponentClass, bt2::ConstValue, void *,
+                                    bt2::LoggingLevel, const bt2::UnsignedIntegerRangeSet ranges)
 {
     ranges.addRange(0, 1);
 }

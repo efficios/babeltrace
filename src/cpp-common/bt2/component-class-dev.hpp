@@ -269,10 +269,12 @@ public:
     }
 
     static void getSupportedMipVersions(const SelfComponentClass selfCompCls,
-                                        const ConstMapValue params, const LoggingLevel loggingLevel,
+                                        const ConstMapValue params, InitDataT * const initData,
+                                        const LoggingLevel loggingLevel,
                                         const UnsignedIntegerRangeSet ranges)
     {
-        UserComponentT::_getSupportedMipVersions(selfCompCls, params, loggingLevel, ranges);
+        UserComponentT::_getSupportedMipVersions(selfCompCls, params, initData, loggingLevel,
+                                                 ranges);
     }
 
     void outputPortConnected(const SelfComponentOutputPort outputPort,
@@ -336,6 +338,8 @@ protected:
         Self component class wrapper.
     @param[in] params
         Initialization parameters.
+    @param[in] initData
+        Custom initialization data.
     @param[in] loggingLevel
         Logging level.
     @param[in] ranges
@@ -343,6 +347,7 @@ protected:
     */
     static void _getSupportedMipVersions(SelfComponentClass selfCompCls __attribute__((unused)),
                                          ConstMapValue params __attribute__((unused)),
+                                         InitDataT *initData __attribute__((unused)),
                                          LoggingLevel loggingLevel __attribute__((unused)),
                                          const UnsignedIntegerRangeSet ranges)
     {
@@ -495,10 +500,12 @@ public:
     }
 
     static void getSupportedMipVersions(const SelfComponentClass selfCompCls,
-                                        const ConstMapValue params, const LoggingLevel loggingLevel,
+                                        const ConstMapValue params, InitDataT * const initData,
+                                        const LoggingLevel loggingLevel,
                                         const UnsignedIntegerRangeSet ranges)
     {
-        UserComponentT::_getSupportedMipVersions(selfCompCls, params, loggingLevel, ranges);
+        UserComponentT::_getSupportedMipVersions(selfCompCls, params, initData, loggingLevel,
+                                                 ranges);
     }
 
     void inputPortConnected(const SelfComponentInputPort inputPort,
@@ -568,6 +575,8 @@ protected:
         Self component class wrapper.
     @param[in] params
         Initialization parameters.
+    @param[in] initData
+        Custom initialization data.
     @param[in] loggingLevel
         Logging level.
     @param[in] ranges
@@ -575,6 +584,7 @@ protected:
     */
     static void _getSupportedMipVersions(SelfComponentClass selfCompCls __attribute__((unused)),
                                          ConstMapValue params __attribute__((unused)),
+                                         InitDataT *initData __attribute__((unused)),
                                          LoggingLevel loggingLevel __attribute__((unused)),
                                          const UnsignedIntegerRangeSet ranges)
     {
@@ -781,10 +791,12 @@ public:
     }
 
     static void getSupportedMipVersions(const SelfComponentClass selfCompCls,
-                                        const ConstMapValue params, const LoggingLevel loggingLevel,
+                                        const ConstMapValue params, InitDataT * const initData,
+                                        const LoggingLevel loggingLevel,
                                         const UnsignedIntegerRangeSet ranges)
     {
-        UserComponentT::_getSupportedMipVersions(selfCompCls, params, loggingLevel, ranges);
+        UserComponentT::_getSupportedMipVersions(selfCompCls, params, initData, loggingLevel,
+                                                 ranges);
     }
 
     void graphIsConfigured()
@@ -858,6 +870,8 @@ protected:
         Self component class wrapper.
     @param[in] params
         Initialization parameters.
+    @param[in] initData
+        Custom initialization data.
     @param[in] loggingLevel
         Logging level.
     @param[in] ranges
@@ -865,6 +879,7 @@ protected:
     */
     static void _getSupportedMipVersions(SelfComponentClass selfCompCls __attribute__((unused)),
                                          ConstMapValue params __attribute__((unused)),
+                                         InitDataT *initData __attribute__((unused)),
                                          LoggingLevel loggingLevel __attribute__((unused)),
                                          const UnsignedIntegerRangeSet ranges)
     {

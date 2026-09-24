@@ -364,8 +364,8 @@ Comp::Comp(const bt2::SelfSinkComponent selfComp, const bt2::ConstMapValue param
     }
 }
 
-void Comp::_getSupportedMipVersions(bt2::SelfComponentClass, bt2::ConstValue, bt2::LoggingLevel,
-                                    const bt2::UnsignedIntegerRangeSet ranges)
+void Comp::_getSupportedMipVersions(bt2::SelfComponentClass, bt2::ConstValue, void *,
+                                    bt2::LoggingLevel, const bt2::UnsignedIntegerRangeSet ranges)
 {
     ranges.addRange(0, 1);
 }
