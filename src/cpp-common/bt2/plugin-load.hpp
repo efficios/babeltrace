@@ -38,6 +38,29 @@ findPlugin(const bt2c::CStringView name, const bool findInStdEnvVar = true,
     return ConstPlugin::Shared::createWithoutRef(plugin);
 }
 
+inline ConstPluginSet::Shared findAllPlugins(const bool findInStdEnvVar = true,
+                                             const bool findInUserDir = true,
+                                             const bool findInSysDir = true,
+                                             const bool findInStatic = true,
+                                             const bool failOnLoadError = false)
+{
+    const bt_plugin_set *pluginSet;
+
+    switch (bt_plugin_find_all(findInStdEnvVar, findInUserDir, findInSysDir, findInStatic,
+                               failOnLoadError, &pluginSet)) {
+    case BT_PLUGIN_FIND_ALL_STATUS_OK:
+        return ConstPluginSet::Shared::createWithoutRef(pluginSet);
+    case BT_PLUGIN_FIND_ALL_STATUS_NOT_FOUND:
+        return ConstPluginSet::Shared {};
+    case BT_PLUGIN_FIND_ALL_STATUS_MEMORY_ERROR:
+        throw MemoryError {};
+    case BT_PLUGIN_FIND_ALL_STATUS_ERROR:
+        throw Error {};
+    }
+
+    bt_common_abort();
+}
+
 inline ConstPluginSet::Shared findAllPluginsFromFile(const bt2c::CStringView path,
                                                      const bool failOnLoadError)
 {
