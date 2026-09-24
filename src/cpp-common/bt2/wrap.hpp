@@ -12,6 +12,7 @@
 #include "clock-class.hpp"
 #include "clock-snapshot.hpp"
 #include "component-port.hpp"
+#include "connection.hpp"
 #include "error.hpp"
 #include "field-class.hpp"
 #include "field-location.hpp"
@@ -124,6 +125,11 @@ inline ConstInputPort wrap(const bt_port_input * const libObjPtr) noexcept
 inline ConstOutputPort wrap(const bt_port_output * const libObjPtr) noexcept
 {
     return ConstOutputPort {libObjPtr};
+}
+
+inline ConstConnection wrap(const bt_connection * const libObjPtr) noexcept
+{
+    return ConstConnection {libObjPtr};
 }
 
 inline ConstUnsignedEnumerationFieldClassMapping

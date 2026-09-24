@@ -165,6 +165,7 @@ cpp_common_libcpp_common_la_SOURCES = \
 	cpp-common/bt2/component-class-dev.hpp \
 	cpp-common/bt2/component-class.hpp \
 	cpp-common/bt2/component-port.hpp \
+	cpp-common/bt2/connection.hpp \
 	cpp-common/bt2/graph.hpp \
 	cpp-common/bt2/error.hpp \
 	cpp-common/bt2/exc.hpp \
