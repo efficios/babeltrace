@@ -252,13 +252,48 @@ AM_CONDITIONAL([HAVE_FLEX], [test "x$have_flex" = "xyes"])
 # Always check for python, we will fail later if some features require it and
 # it's unavailable.
 AM_PATH_PYTHON([3.6], [
-  AE_PATH_PYTHON_MODULES([PYTHON])
+  # Python program which prints the path, relative to the installation
+  # prefix, of the installation directory named after its last
+  # argument (`purelib` or `platlib`) of the installation scheme of the
+  # selected Python interpreter for a given prefix.
+  #
+  # Starting with Python 3.10, the default scheme on Debian is
+  # `posix_local`, a Debian-specific scheme based on `posix_prefix`, but
+  # with an added `local` component. As `$prefix` must be used verbatim,
+  # use `posix_prefix` instead of `posix_local`.
+  bt_python_install_dir_prog='
+import os
+import sys
+import sysconfig
+
+scheme = "posix_prefix" if os.name == "posix" else "nt"
+
+if hasattr(sysconfig, "get_preferred_scheme"):
+    scheme = sysconfig.get_preferred_scheme("prefix")
+
+    if scheme == "posix_local":
+        scheme = "posix_prefix"
+
+base = os.path.abspath(os.sep + "base")
+path = sysconfig.get_path(sys.argv.pop(), scheme, vars=dict(base=base, platbase=base))
+print(os.path.relpath(path, base).replace(os.sep, "/"))
+'
 
   # pythondir is the path where extra modules are to be installed
-  pythondir=$PYTHON_PREFIX/$PYTHON_MODULES_PATH
+  pythondir=$PYTHON_PREFIX/`$PYTHON -c "$bt_python_install_dir_prog" purelib`
 
-  # pyexecdir is the path that contains shared objects used by the extra modules
-  pyexecdir=$PYTHON_EXEC_PREFIX/$PYTHON_MODULES_PATH
+  # pyexecdir is the path where extra modules containing shared objects
+  # are to be installed
+  pyexecdir=$PYTHON_EXEC_PREFIX/`$PYTHON -c "$bt_python_install_dir_prog" platlib`
+
+  # Suffix of the file name of a native extension module for the
+  # selected Python interpreter (for example,
+  # `.cpython-314-x86_64-linux-gnu.so`).
+  AS_IF([test "x$PYTHON_EXT_SUFFIX" = "x"], [
+    AC_MSG_CHECKING([Python native extension module file name suffix])
+    PYTHON_EXT_SUFFIX=`$PYTHON -c 'import sysconfig; print(sysconfig.get_config_var("EXT_SUFFIX"))'`
+    AC_MSG_RESULT([$PYTHON_EXT_SUFFIX])
+  ])
 
   # If no PYTHON_CONFIG was specified by the user, try to find it, starting
   # with the one specific to the configured python version.
@@ -364,6 +399,7 @@ AC_CHECK_LIB([c], [posix_fallocate],
 AC_ARG_VAR([PYTHON_INCLUDE], [Include flags for Python, bypassing ‘python-config’])
 AC_ARG_VAR([PYTHON_LDFLAGS], [Linker flags for Python, bypassing ‘python-config’])
 AC_ARG_VAR([PYTHON_CONFIG], [Path to ‘python-config’])
+AC_ARG_VAR([PYTHON_EXT_SUFFIX], [Python native extension module file name suffix, bypassing ‘sysconfig’])
 
 # BABELTRACE_PLUGINS_DIR: Plugins directory
 AC_ARG_VAR([BABELTRACE_PLUGINS_DIR], [built-in plugins install directory [‘LIBDIR/babeltrace2/plugins’]])
@@ -590,14 +626,6 @@ AS_IF([test -n "$PYTHON_CONFIG"], [have_python_dev=yes], [have_python_dev=no])
 AM_CONDITIONAL([HAVE_PYTHON], [test "x$have_python" = xyes])
 AM_CONDITIONAL([HAVE_PYTHON_DEV], [test "x$have_python_dev" = xyes])
 
-AS_IF([test "x$have_python" = xyes], [
-  AX_COMPARE_VERSION(["$PYTHON_VERSION"], [ge], ["3.12"], [
-    have_python_312_or_greater=yes
-  ])
-])
-
-AM_CONDITIONAL([HAVE_PYTHON_312_OR_GREATER], [test "x$have_python_312_or_greater" = xyes])
-
 # Tests require Python bindings and pytest >= 7.0.0
 AE_IF_FEATURE_ENABLED([tests], [
   AS_IF([test "x$have_python" = "xno"], [
@@ -646,28 +674,14 @@ AC_SUBST([HAVE_VENDOR_PYTEST])
 # {fmt} library
 AE_IF_FEATURE_ENABLED([vendor-fmt], [
   AC_MSG_NOTICE([using in-tree {fmt}])
-  ENABLE_VENDOR_FMT=1
 ], [
   PKG_CHECK_MODULES([FMT], [fmt >= 10.1.1], [],
     [AC_MSG_ERROR([{fmt} >= 10.1.1 is required. Use ‘--enable-vendor-fmt’ to build and use the in-tree {fmt}.])])
-  ENABLE_VENDOR_FMT=0
 ])
-
-AC_SUBST([ENABLE_VENDOR_FMT])
 
 AS_IF([AE_IS_FEATURE_ENABLED([python-bindings]) || AE_IS_FEATURE_ENABLED([python-plugins])], [
   AS_IF([test "x$have_python_dev" = xno], [
     AC_MSG_ERROR([Cannot find a suitable ‘python-config’. You can override the ‘python-config’ path with the ‘PYTHON_CONFIG’ environment variable.])
-  ])
-
-  AX_COMPARE_VERSION(["$PYTHON_VERSION"], [ge], ["3.12"], [
-    AC_MSG_CHECKING([for python setuptools])
-    AS_IF(["$PYTHON" -c "import setuptools" 2>/dev/null], [
-      AC_MSG_RESULT([yes])
-    ], [
-      AC_MSG_RESULT([no])
-      AC_MSG_ERROR([Python >= 3.12 removed ‘distutils’, the ‘setuptools’ module needs to be installed for the selected interpreter.])
-    ])
   ])
 ])
 
@@ -979,8 +993,8 @@ AC_CONFIG_FILES([
   src/babeltrace2-ctf-writer.pc
   src/babeltrace2.pc
   src/bindings/python/bt2/bt2/version.py
+  src/bindings/python/bt2/dist-info/METADATA
   src/bindings/python/bt2/Makefile
-  src/bindings/python/bt2/setup.py
   src/cli/Makefile
   src/Makefile
   tests/Makefile

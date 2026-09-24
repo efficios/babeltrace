@@ -1,0 +1,10 @@
+Metadata-Version: 2.1
+Name: bt2
+Version: @PACKAGE_VERSION@
+Summary: Babeltrace 2 Python Bindings
+Home-page: https://babeltrace.org/
+License: MIT
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: Programming Language :: Python :: 3
+Classifier: Topic :: System :: Logging

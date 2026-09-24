@@ -1,0 +1,8 @@
+version = 1
+
+# Distribution metadata files can't contain comments.
+[[annotations]]
+path = "dist-info/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2017-2026 EfficiOS, Inc."
+SPDX-License-Identifier = "MIT"

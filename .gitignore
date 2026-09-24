@@ -45,14 +45,12 @@ stamp-h1
 *.egg-info
 __pycache__
 *.py[cod]
-/src/bindings/python/bt2/dist
-/src/bindings/python/bt2/setup.py
 /src/bindings/python/bt2/bt2/native_bt.cpp
 /src/bindings/python/bt2/bt2/native_bt.d
 /src/bindings/python/bt2/bt2/native_bt.py
 /src/bindings/python/bt2/bt2/version.py
 /src/bindings/python/bt2/build/
-/src/bindings/python/bt2/installed_files.txt
+/src/bindings/python/bt2/dist-info/METADATA
 
 # Temporary pytest files
 .pytest_cache/
