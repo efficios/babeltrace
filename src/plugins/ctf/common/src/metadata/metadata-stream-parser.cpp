@@ -920,9 +920,9 @@ private:
             std::invoke([&fieldLoc] {
                 switch (*fieldLoc.origin()) {
                 case Scope::CommonEventRecordCtx:
-                    return bt2::ConstFieldLocation::Scope::CommonEventContext;
+                    return bt2::ConstFieldLocation::Scope::EventCommonContext;
                 case Scope::SpecEventRecordCtx:
-                    return bt2::ConstFieldLocation::Scope::SpecificEventContext;
+                    return bt2::ConstFieldLocation::Scope::EventSpecificContext;
                 case Scope::EventRecordPayload:
                     return bt2::ConstFieldLocation::Scope::EventPayload;
                 default:

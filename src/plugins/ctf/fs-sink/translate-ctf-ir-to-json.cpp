@@ -362,10 +362,10 @@ nljson jsonFieldLocFromIr(const bt2::ConstFieldLocation irFieldLoc)
              case bt2::ConstFieldLocation::Scope::PacketContext:
                  return jsonstr::pktCtx;
 
-             case bt2::ConstFieldLocation::Scope::CommonEventContext:
+             case bt2::ConstFieldLocation::Scope::EventCommonContext:
                  return jsonstr::eventRecordCommonCtx;
 
-             case bt2::ConstFieldLocation::Scope::SpecificEventContext:
+             case bt2::ConstFieldLocation::Scope::EventSpecificContext:
                  return jsonstr::eventRecordSpecCtx;
 
              case bt2::ConstFieldLocation::Scope::EventPayload:

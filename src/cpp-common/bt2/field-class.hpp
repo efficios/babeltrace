@@ -15,6 +15,7 @@
 
 #include "common/assert.h"
 #include "cpp-common/bt2c/c-string-view.hpp"
+#include "cpp-common/vendor/wise-enum/wise_enum.h"
 
 #include "borrowed-object-iterator.hpp"
 #include "borrowed-object.hpp"
@@ -143,36 +144,35 @@ class CommonStreamClass;
 template <typename LibObjT>
 class CommonTraceClass;
 
-enum class FieldClassType : std::uint64_t
-{
-    Bool = BT_FIELD_CLASS_TYPE_BOOL,
-    BitArray = BT_FIELD_CLASS_TYPE_BIT_ARRAY,
-    UnsignedInteger = BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER,
-    SignedInteger = BT_FIELD_CLASS_TYPE_SIGNED_INTEGER,
-    UnsignedEnumeration = BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION,
-    SignedEnumeration = BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION,
-    SinglePrecisionReal = BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL,
-    DoublePrecisionReal = BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL,
-    String = BT_FIELD_CLASS_TYPE_STRING,
-    Structure = BT_FIELD_CLASS_TYPE_STRUCTURE,
-    StaticArray = BT_FIELD_CLASS_TYPE_STATIC_ARRAY,
-    DynamicArrayWithoutLength = BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD,
-    DynamicArrayWithLength = BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD,
-    OptionWithoutSelector = BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD,
-    OptionWithBoolSelector = BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD,
-    OptionWithUnsignedIntegerSelector =
-        BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD,
-    OptionWithSignedIntegerSelector = BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD,
-    VariantWithoutSelector = BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD,
-    VariantWithUnsignedIntegerSelector =
-        BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD,
-    VariantWithSignedIntegerSelector =
-        BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD,
-    StaticBlob = BT_FIELD_CLASS_TYPE_STATIC_BLOB,
-    DynamicBlob = BT_FIELD_CLASS_TYPE_DYNAMIC_BLOB,
-    DynamicBlobWithoutLengthField = BT_FIELD_CLASS_TYPE_DYNAMIC_BLOB_WITHOUT_LENGTH_FIELD,
-    DynamicBlobWithLengthField = BT_FIELD_CLASS_TYPE_DYNAMIC_BLOB_WITH_LENGTH_FIELD,
-};
+/* clang-format off */
+
+WISE_ENUM_CLASS((FieldClassType, std::uint64_t),
+    (Bool,                                  BT_FIELD_CLASS_TYPE_BOOL),
+    (BitArray,                              BT_FIELD_CLASS_TYPE_BIT_ARRAY),
+    (UnsignedInteger,                       BT_FIELD_CLASS_TYPE_UNSIGNED_INTEGER),
+    (SignedInteger,                         BT_FIELD_CLASS_TYPE_SIGNED_INTEGER),
+    (UnsignedEnumeration,                   BT_FIELD_CLASS_TYPE_UNSIGNED_ENUMERATION),
+    (SignedEnumeration,                     BT_FIELD_CLASS_TYPE_SIGNED_ENUMERATION),
+    (SinglePrecisionReal,                   BT_FIELD_CLASS_TYPE_SINGLE_PRECISION_REAL),
+    (DoublePrecisionReal,                   BT_FIELD_CLASS_TYPE_DOUBLE_PRECISION_REAL),
+    (String,                                BT_FIELD_CLASS_TYPE_STRING),
+    (Structure,                             BT_FIELD_CLASS_TYPE_STRUCTURE),
+    (StaticArray,                           BT_FIELD_CLASS_TYPE_STATIC_ARRAY),
+    (DynamicArrayWithoutLength,             BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITHOUT_LENGTH_FIELD),
+    (DynamicArrayWithLength,                BT_FIELD_CLASS_TYPE_DYNAMIC_ARRAY_WITH_LENGTH_FIELD),
+    (OptionWithoutSelector,                 BT_FIELD_CLASS_TYPE_OPTION_WITHOUT_SELECTOR_FIELD),
+    (OptionWithBoolSelector,                BT_FIELD_CLASS_TYPE_OPTION_WITH_BOOL_SELECTOR_FIELD),
+    (OptionWithUnsignedIntegerSelector,     BT_FIELD_CLASS_TYPE_OPTION_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD),
+    (OptionWithSignedIntegerSelector,       BT_FIELD_CLASS_TYPE_OPTION_WITH_SIGNED_INTEGER_SELECTOR_FIELD),
+    (VariantWithoutSelector,                BT_FIELD_CLASS_TYPE_VARIANT_WITHOUT_SELECTOR_FIELD),
+    (VariantWithUnsignedIntegerSelector,    BT_FIELD_CLASS_TYPE_VARIANT_WITH_UNSIGNED_INTEGER_SELECTOR_FIELD),
+    (VariantWithSignedIntegerSelector,      BT_FIELD_CLASS_TYPE_VARIANT_WITH_SIGNED_INTEGER_SELECTOR_FIELD),
+    (StaticBlob,                            BT_FIELD_CLASS_TYPE_STATIC_BLOB),
+    (DynamicBlob,                           BT_FIELD_CLASS_TYPE_DYNAMIC_BLOB),
+    (DynamicBlobWithoutLengthField,         BT_FIELD_CLASS_TYPE_DYNAMIC_BLOB_WITHOUT_LENGTH_FIELD),
+    (DynamicBlobWithLengthField,            BT_FIELD_CLASS_TYPE_DYNAMIC_BLOB_WITH_LENGTH_FIELD))
+
+/* clang-format on */
 
 template <typename LibObjT>
 class CommonFieldClass : public BorrowedObject<LibObjT>
@@ -632,13 +632,15 @@ struct TypeDescr<ConstBitArrayFieldClass> : public BitArrayFieldClassTypeDescr
 
 } /* namespace internal */
 
-enum class DisplayBase
-{
-    Binary = BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_BINARY,
-    Octal = BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_OCTAL,
-    Decimal = BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL,
-    Hexadecimal = BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_HEXADECIMAL,
-};
+/* clang-format off */
+
+WISE_ENUM_CLASS(DisplayBase,
+    (Binary,        BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_BINARY),
+    (Octal,         BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_OCTAL),
+    (Decimal,       BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_DECIMAL),
+    (Hexadecimal,   BT_FIELD_CLASS_INTEGER_PREFERRED_DISPLAY_BASE_HEXADECIMAL))
+
+/* clang-format on */
 
 template <typename LibObjT>
 class CommonIntegerFieldClass : public CommonFieldClass<LibObjT>

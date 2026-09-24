@@ -10,6 +10,7 @@
 #include <babeltrace2/babeltrace.h>
 
 #include "common/macros.h"
+#include "cpp-common/vendor/wise-enum/wise_enum.h"
 
 namespace bt2 {
 
@@ -17,16 +18,18 @@ namespace bt2 {
 BT_DIAG_PUSH
 BT_DIAG_IGNORE_SHADOW
 
-enum class LoggingLevel
-{
-    Trace = BT_LOGGING_LEVEL_TRACE,
-    Debug = BT_LOGGING_LEVEL_DEBUG,
-    Info = BT_LOGGING_LEVEL_INFO,
-    Warning = BT_LOGGING_LEVEL_WARNING,
-    Error = BT_LOGGING_LEVEL_ERROR,
-    Fatal = BT_LOGGING_LEVEL_FATAL,
-    None = BT_LOGGING_LEVEL_NONE,
-};
+/* clang-format off */
+
+WISE_ENUM_CLASS(LoggingLevel,
+    (Trace,     BT_LOGGING_LEVEL_TRACE),
+    (Debug,     BT_LOGGING_LEVEL_DEBUG),
+    (Info,      BT_LOGGING_LEVEL_INFO),
+    (Warning,   BT_LOGGING_LEVEL_WARNING),
+    (Error,     BT_LOGGING_LEVEL_ERROR),
+    (Fatal,     BT_LOGGING_LEVEL_FATAL),
+    (None,      BT_LOGGING_LEVEL_NONE))
+
+/* clang-format on */
 
 BT_DIAG_POP
 

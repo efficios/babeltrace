@@ -16,6 +16,7 @@
 
 #include "common/assert.h"
 #include "cpp-common/bt2c/c-string-view.hpp"
+#include "cpp-common/vendor/wise-enum/wise_enum.h"
 
 #include "borrowed-object.hpp"
 #include "component-class.hpp"
@@ -46,24 +47,26 @@ class ConstMessageIteratorErrorCause;
 BT_DIAG_PUSH
 BT_DIAG_IGNORE_SHADOW
 
+/* clang-format off */
+
 /*!
 @brief
     Error cause actor type.
 */
-enum class ErrorCauseActorType
-{
+WISE_ENUM_CLASS(ErrorCauseActorType,
     /// Unknown.
-    Unknown = BT_ERROR_CAUSE_ACTOR_TYPE_UNKNOWN,
+    (Unknown,           BT_ERROR_CAUSE_ACTOR_TYPE_UNKNOWN),
 
     /// Component.
-    Component = BT_ERROR_CAUSE_ACTOR_TYPE_COMPONENT,
+    (Component,         BT_ERROR_CAUSE_ACTOR_TYPE_COMPONENT),
 
     /// Component class.
-    ComponentClass = BT_ERROR_CAUSE_ACTOR_TYPE_COMPONENT_CLASS,
+    (ComponentClass,    BT_ERROR_CAUSE_ACTOR_TYPE_COMPONENT_CLASS),
 
     /// Message iterator.
-    MessageIterator = BT_ERROR_CAUSE_ACTOR_TYPE_MESSAGE_ITERATOR,
-};
+    (MessageIterator,   BT_ERROR_CAUSE_ACTOR_TYPE_MESSAGE_ITERATOR))
+
+/* clang-format on */
 
 BT_DIAG_POP
 

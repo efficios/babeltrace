@@ -18,6 +18,7 @@
 #include "common/macros.h"
 #include "cpp-common/bt2c/c-string-view.hpp"
 #include "cpp-common/bt2s/span.hpp"
+#include "cpp-common/vendor/wise-enum/wise_enum.h"
 
 #include "borrowed-object.hpp"
 #include "clock-class.hpp"
@@ -901,24 +902,26 @@ using DepStructFc = DepType<LibObjT, StructureFieldClass, ConstStructureFieldCla
 BT_DIAG_PUSH
 BT_DIAG_IGNORE_SHADOW
 
-enum class EventClassLogLevel
-{
-    Emergency = BT_EVENT_CLASS_LOG_LEVEL_EMERGENCY,
-    Alert = BT_EVENT_CLASS_LOG_LEVEL_ALERT,
-    Critical = BT_EVENT_CLASS_LOG_LEVEL_CRITICAL,
-    Error = BT_EVENT_CLASS_LOG_LEVEL_ERROR,
-    Warning = BT_EVENT_CLASS_LOG_LEVEL_WARNING,
-    Notice = BT_EVENT_CLASS_LOG_LEVEL_NOTICE,
-    Info = BT_EVENT_CLASS_LOG_LEVEL_INFO,
-    DebugSystem = BT_EVENT_CLASS_LOG_LEVEL_DEBUG_SYSTEM,
-    DebugProgram = BT_EVENT_CLASS_LOG_LEVEL_DEBUG_PROGRAM,
-    DebugProcess = BT_EVENT_CLASS_LOG_LEVEL_DEBUG_PROCESS,
-    DebugModule = BT_EVENT_CLASS_LOG_LEVEL_DEBUG_MODULE,
-    DebugUnit = BT_EVENT_CLASS_LOG_LEVEL_DEBUG_UNIT,
-    DebugFunction = BT_EVENT_CLASS_LOG_LEVEL_DEBUG_FUNCTION,
-    DebugLine = BT_EVENT_CLASS_LOG_LEVEL_DEBUG_LINE,
-    Debug = BT_EVENT_CLASS_LOG_LEVEL_DEBUG,
-};
+/* clang-format off */
+
+WISE_ENUM_CLASS(EventClassLogLevel,
+    (Emergency,     BT_EVENT_CLASS_LOG_LEVEL_EMERGENCY),
+    (Alert,         BT_EVENT_CLASS_LOG_LEVEL_ALERT),
+    (Critical,      BT_EVENT_CLASS_LOG_LEVEL_CRITICAL),
+    (Error,         BT_EVENT_CLASS_LOG_LEVEL_ERROR),
+    (Warning,       BT_EVENT_CLASS_LOG_LEVEL_WARNING),
+    (Notice,        BT_EVENT_CLASS_LOG_LEVEL_NOTICE),
+    (Info,          BT_EVENT_CLASS_LOG_LEVEL_INFO),
+    (DebugSystem,   BT_EVENT_CLASS_LOG_LEVEL_DEBUG_SYSTEM),
+    (DebugProgram,  BT_EVENT_CLASS_LOG_LEVEL_DEBUG_PROGRAM),
+    (DebugProcess,  BT_EVENT_CLASS_LOG_LEVEL_DEBUG_PROCESS),
+    (DebugModule,   BT_EVENT_CLASS_LOG_LEVEL_DEBUG_MODULE),
+    (DebugUnit,     BT_EVENT_CLASS_LOG_LEVEL_DEBUG_UNIT),
+    (DebugFunction, BT_EVENT_CLASS_LOG_LEVEL_DEBUG_FUNCTION),
+    (DebugLine,     BT_EVENT_CLASS_LOG_LEVEL_DEBUG_LINE),
+    (Debug,         BT_EVENT_CLASS_LOG_LEVEL_DEBUG))
+
+/* clang-format on */
 
 BT_DIAG_POP
 

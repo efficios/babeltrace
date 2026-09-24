@@ -10,6 +10,7 @@
 #include <babeltrace2/babeltrace.h>
 
 #include "cpp-common/bt2c/c-string-view.hpp"
+#include "cpp-common/vendor/wise-enum/wise_enum.h"
 
 #include "borrowed-object.hpp"
 #include "shared-object.hpp"
@@ -32,12 +33,14 @@ struct ComponentClassRefFuncs final
 
 } /* namespace internal */
 
-enum class ComponentClassType
-{
-    Source = BT_COMPONENT_CLASS_TYPE_SOURCE,
-    Filter = BT_COMPONENT_CLASS_TYPE_FILTER,
-    Sink = BT_COMPONENT_CLASS_TYPE_SINK,
-};
+/* clang-format off */
+
+WISE_ENUM_CLASS(ComponentClassType,
+    (Source,    BT_COMPONENT_CLASS_TYPE_SOURCE),
+    (Filter,    BT_COMPONENT_CLASS_TYPE_FILTER),
+    (Sink,      BT_COMPONENT_CLASS_TYPE_SINK))
+
+/* clang-format on */
 
 template <typename LibObjT>
 class CommonSourceComponentClass;

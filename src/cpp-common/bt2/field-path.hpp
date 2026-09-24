@@ -22,12 +22,14 @@ namespace bt2 {
 
 class ConstIndexFieldPathItem;
 
-enum class FieldPathItemType
-{
-    Index = BT_FIELD_PATH_ITEM_TYPE_INDEX,
-    CurrentArrayElement = BT_FIELD_PATH_ITEM_TYPE_CURRENT_ARRAY_ELEMENT,
-    CurrentOptionContent = BT_FIELD_PATH_ITEM_TYPE_CURRENT_OPTION_CONTENT,
-};
+/* clang-format off */
+
+WISE_ENUM_CLASS(FieldPathItemType,
+    (Index,                 BT_FIELD_PATH_ITEM_TYPE_INDEX),
+    (CurrentArrayElement,   BT_FIELD_PATH_ITEM_TYPE_CURRENT_ARRAY_ELEMENT),
+    (CurrentOptionContent,  BT_FIELD_PATH_ITEM_TYPE_CURRENT_OPTION_CONTENT))
+
+/* clang-format on */
 
 class ConstFieldPathItem : public BorrowedObject<const bt_field_path_item>
 {

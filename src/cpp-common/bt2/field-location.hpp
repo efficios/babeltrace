@@ -12,6 +12,7 @@
 #include <babeltrace2/babeltrace.h>
 
 #include "cpp-common/bt2c/c-string-view.hpp"
+#include "cpp-common/vendor/wise-enum/wise_enum.h"
 
 #include "borrowed-object.hpp"
 #include "shared-object.hpp"
@@ -40,13 +41,15 @@ public:
     using Shared =
         SharedObject<ConstFieldLocation, const bt_field_location, internal::FieldLocationRefFuncs>;
 
-    enum class Scope
-    {
-        PacketContext = BT_FIELD_LOCATION_SCOPE_PACKET_CONTEXT,
-        CommonEventContext = BT_FIELD_LOCATION_SCOPE_EVENT_COMMON_CONTEXT,
-        SpecificEventContext = BT_FIELD_LOCATION_SCOPE_EVENT_SPECIFIC_CONTEXT,
-        EventPayload = BT_FIELD_LOCATION_SCOPE_EVENT_PAYLOAD,
-    };
+    /* clang-format off */
+
+    WISE_ENUM_CLASS_MEMBER(Scope,
+        (PacketContext,         BT_FIELD_LOCATION_SCOPE_PACKET_CONTEXT),
+        (EventCommonContext,    BT_FIELD_LOCATION_SCOPE_EVENT_COMMON_CONTEXT),
+        (EventSpecificContext,  BT_FIELD_LOCATION_SCOPE_EVENT_SPECIFIC_CONTEXT),
+        (EventPayload,          BT_FIELD_LOCATION_SCOPE_EVENT_PAYLOAD))
+
+    /* clang-format on */
 
     explicit ConstFieldLocation(const LibObjPtr libObjPtr) noexcept
         : _ThisBorrowedObject {libObjPtr}
