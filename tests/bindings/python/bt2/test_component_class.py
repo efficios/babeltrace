@@ -191,7 +191,7 @@ class TestUserQuery:
                 pass
 
             @classmethod
-            def _user_query(cls, priv_query_exec, obj, params):
+            def _user_query(cls, priv_query_exec, obj, params, method_obj):
                 raise ValueError
 
         with pytest.raises(bt2._Error):

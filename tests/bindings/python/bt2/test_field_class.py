@@ -1313,7 +1313,7 @@ class _TestVarWithIntSel(_TestVar):
         sub_fc = def_tc.create_string_field_class()
 
         with pytest.raises(TypeError):
-            fc.append_option(fc, sub_fc, invalid_ranges)
+            fc.append_option("str", sub_fc, invalid_ranges)
 
     def test_iadd(self, def_tc, fc, ranges_1, ranges_2, ranges_3):
         a_fc = def_tc.create_single_precision_real_field_class()
@@ -1385,19 +1385,19 @@ class _TestVarWithIntSel(_TestVar):
             == bt2.FieldPathScope.PACKET_CONTEXT
         )
 
-    def test_append_opt_invalid_name(self, def_tc, fc):
+    def test_append_opt_invalid_name(self, def_tc, fc, ranges_1):
         sub_fc = def_tc.create_string_field_class()
         with pytest.raises(TypeError):
-            fc.append_option(fc, 23, sub_fc)
+            fc.append_option(23, sub_fc, ranges_1)
 
-    def test_append_opt_invalid_fc(self, fc):
+    def test_append_opt_invalid_fc(self, fc, ranges_1):
         with pytest.raises(TypeError):
-            fc.append_option(fc, "yes", object())
+            fc.append_option("yes", object(), ranges_1)
 
     def test_append_opt_invalid_ranges(self, def_tc, fc):
         sub_fc = def_tc.create_string_field_class()
         with pytest.raises(TypeError):
-            fc.append_option(fc, sub_fc, "lel")
+            fc.append_option("yes", sub_fc, "lel")
 
     def test_append_opt_dup_name(self, def_tc, fc, ranges_1, ranges_2):
         sub_fc_1 = def_tc.create_string_field_class()

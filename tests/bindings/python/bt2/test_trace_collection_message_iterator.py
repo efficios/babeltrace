@@ -167,7 +167,7 @@ def test_create_wrong_end_type(three_events_intersect_trace_dir):
                     "ctf", "fs", str(three_events_intersect_trace_dir)
                 )
             ],
-            begin="lel",
+            end="lel",
         )
 
 

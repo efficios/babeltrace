@@ -77,10 +77,15 @@ def test_sink_ctf_fs_succeed(
         ),
     )
 
-    # Read back the converted trace using `sink.text.details` and compare
+    # Read back the converted trace using `sink.text.details`
+    # and compare.
+    #
+    # The expectation doesn't depend on the CTF version: the output of
+    # `sink.text.details` must be the same whatever the version of the
+    # written trace.
     btu.convert_sink_text_details_test(
         out_trace_dir,
-        btu.this_src_dir(__file__) / f"trace-{name}-ctf{ctf_version}.expect",
+        btu.this_src_dir(__file__) / f"trace-{name}.expect",
         details_params={
             "with-uuid": False,
             "with-uid": False,

@@ -1,0 +1,19 @@
+Trace class:
+  Stream class `the-sc` (Namespace `the-ns`, UID `the-uid`, ID 0):
+    Supports packets: No
+    Supports discarded events: No
+    Supports discarded packets: No
+    Event class `the-ec` (ID 0):
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream beginning:
+  Name: the-stream
+  Class name: the-sc
+  Trace `the-trace` (Namespace `the-ns`, UID `the-uid`):
+    Stream (ID 0, Class ID 0)
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Event `the-ec` (Class ID 0):
+
+{Trace 0, Stream class ID 0, Stream ID 0}
+Stream end

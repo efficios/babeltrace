@@ -118,15 +118,13 @@ EXTRA_DIST = \
 	plugins/flt.utils.muxer/test_succeed_muxer.py \
 	plugins/flt.utils.trimmer/test_succeed_trimmer.py \
 	plugins/sink.ctf.fs/succeed/test_succeed_sink_ctf.py \
-	plugins/sink.ctf.fs/succeed/trace-double-ctf1.expect \
-	plugins/sink.ctf.fs/succeed/trace-double-ctf2.expect \
-	plugins/sink.ctf.fs/succeed/trace-float-ctf1.expect \
-	plugins/sink.ctf.fs/succeed/trace-float-ctf2.expect \
-	plugins/sink.ctf.fs/succeed/trace-meta-variant-no-underscore-ctf1.expect \
-	plugins/sink.ctf.fs/succeed/trace-meta-variant-one-underscore-ctf1.expect \
-	plugins/sink.ctf.fs/succeed/trace-meta-variant-reserved-keywords-ctf1.expect \
-	plugins/sink.ctf.fs/succeed/trace-meta-variant-same-with-underscore-ctf1.expect \
-	plugins/sink.ctf.fs/succeed/trace-meta-variant-two-underscores-ctf1.expect \
+	plugins/sink.ctf.fs/succeed/trace-double.expect \
+	plugins/sink.ctf.fs/succeed/trace-float.expect \
+	plugins/sink.ctf.fs/succeed/trace-meta-variant-no-underscore.expect \
+	plugins/sink.ctf.fs/succeed/trace-meta-variant-one-underscore.expect \
+	plugins/sink.ctf.fs/succeed/trace-meta-variant-reserved-keywords.expect \
+	plugins/sink.ctf.fs/succeed/trace-meta-variant-same-with-underscore.expect \
+	plugins/sink.ctf.fs/succeed/trace-meta-variant-two-underscores.expect \
 	plugins/sink.ctf.fs/test_assume_single_trace.py \
 	plugins/sink.ctf.fs/test_clock_classes.py \
 	plugins/sink.ctf.fs/test_create_lttng_index.py \
@@ -148,9 +146,6 @@ EXTRA_DIST = \
 	plugins/sink.text.details/default-without-data-without-metadata.expect \
 	plugins/sink.text.details/default-without-metadata-mip0.expect \
 	plugins/sink.text.details/default-without-metadata-mip1.expect \
-	plugins/sink.text.details/default-without-names-ctf1-mip0.expect \
-	plugins/sink.text.details/default-without-names-ctf1-mip1.expect \
-	plugins/sink.text.details/default-without-names-ctf2-mip1.expect \
 	plugins/sink.text.details/default-without-time-ctf1-mip0.expect \
 	plugins/sink.text.details/default-without-time-ctf1-mip1.expect \
 	plugins/sink.text.details/default-without-time-ctf2-mip1.expect \
@@ -160,6 +155,15 @@ EXTRA_DIST = \
 	plugins/sink.text.details/default-without-uuid-ctf1-mip0.expect \
 	plugins/sink.text.details/default-without-uuid-ctf1-mip1.expect \
 	plugins/sink.text.details/default-without-uuid-ctf2-mip1.expect \
+	plugins/sink.text.details/names-mip0.expect \
+	plugins/sink.text.details/names-mip1.expect \
+	plugins/sink.text.details/names-without-names-mip0.expect \
+	plugins/sink.text.details/names-without-names-mip1.expect \
+	plugins/sink.text.details/names-without-stream-class-name-mip0.expect \
+	plugins/sink.text.details/names-without-stream-class-name-mip1.expect \
+	plugins/sink.text.details/names-without-stream-class-namespace-mip1.expect \
+	plugins/sink.text.details/names-without-stream-name-mip1.expect \
+	plugins/sink.text.details/names-without-uid-mip1.expect \
 	plugins/sink.text.details/no-packet-context.expect \
 	plugins/sink.text.details/test_succeed_details.py \
 	plugins/sink.text.pretty/stderr/conftest.py \
@@ -233,7 +237,6 @@ EXTRA_DIST = \
 	plugins/sink.text.pretty/succeed/real-field-single-100.5.mctf \
 	plugins/sink.text.pretty/succeed/real-field-single-neg-3.25.mctf \
 	plugins/sink.text.pretty/succeed/scopes-all-four-named.mctf \
-	plugins/sink.text.pretty/succeed/scopes-common-only-2.mctf \
 	plugins/sink.text.pretty/succeed/scopes-common-only.mctf \
 	plugins/sink.text.pretty/succeed/scopes-payload-only.mctf \
 	plugins/sink.text.pretty/succeed/scopes-pkt-and-payload-no-names.mctf \
