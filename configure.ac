@@ -196,7 +196,29 @@ AX_CHECK_LINK_FLAG([-Wl,-z,notext],[
 ##                 ##
 
 AM_PROG_AR
+AC_PROG_GREP
 AC_PROG_MAKE_SET
+
+# GNU Make is required: the `Makefile.am` files use GNU Make features.
+#
+# Check `${MAKE-make}`, the same command that the Automake checks and
+# `config.status` run.
+AC_CACHE_CHECK([whether ${MAKE-make} is GNU Make], [bt_cv_prog_make_is_gnu], [
+  AS_IF([${MAKE-make} --version 2>/dev/null | $GREP -i "gnu make" >/dev/null], [
+    bt_cv_prog_make_is_gnu=yes
+  ], [
+    bt_cv_prog_make_is_gnu=no
+  ])
+])
+
+AS_IF([test "x$bt_cv_prog_make_is_gnu" != "xyes"], [
+  AC_MSG_ERROR([dnl
+GNU Make is required to build Babeltrace. If it's available under
+another name (for example, ‘gmake’), then set the ‘MAKE’ variable to
+that name when running this script, and use that name to build.
+  ])
+])
+
 AC_PROG_MKDIR_P
 AC_PROG_LN_S
 AC_PROG_SED
@@ -1030,6 +1052,7 @@ done
 ]
 
 AE_PPRINT_PROP_STRING([Target architecture], $target_arch)
+AE_PPRINT_PROP_STRING([GNU Make command], [${MAKE-make}])
 
 AS_ECHO
 AE_PPRINT_SUBTITLE([Dependencies])
