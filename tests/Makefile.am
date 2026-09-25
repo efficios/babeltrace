@@ -921,8 +921,6 @@ EXTRA_DIST = \
 	plugins/src.ctf.lttng-live/base.json \
 	plugins/src.ctf.lttng-live/cli-base-2.15.expect \
 	plugins/src.ctf.lttng-live/cli-base.expect \
-	plugins/src.ctf.lttng-live/cli-list-sessions-2.15.expect \
-	plugins/src.ctf.lttng-live/cli-list-sessions.expect \
 	plugins/src.ctf.lttng-live/cli-multi-domains-2.15.expect \
 	plugins/src.ctf.lttng-live/cli-multi-domains.expect \
 	plugins/src.ctf.lttng-live/conftest.py \
@@ -933,7 +931,6 @@ EXTRA_DIST = \
 	plugins/src.ctf.lttng-live/list-sessions.json \
 	plugins/src.ctf.lttng-live/lttng_live_server.py \
 	plugins/src.ctf.lttng-live/multi-domains-2.15.json \
-	plugins/src.ctf.lttng-live/multi-domains-inverse-2.15.json \
 	plugins/src.ctf.lttng-live/multi-domains-inverse.json \
 	plugins/src.ctf.lttng-live/multi-domains.json \
 	plugins/src.ctf.lttng-live/new-streams.expect \
