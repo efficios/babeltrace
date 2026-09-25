@@ -100,13 +100,13 @@ def shared_lib_path(path: pathlib.Path) -> pathlib.Path:
         return path.with_suffix(f"{path.suffix}.so")
 
 
-# Cached set of standard and test utils (from `tests/utils/python`) plugins,
-# loaded lazily and only once by plugin_set().
+# Cached set of standard plugins, loaded lazily and only once
+# by plugin_set().
 _plugin_set: Optional[bt2._PluginSet] = None
 
 
-# Returns the cached set of standard and test utils plugins, loading it lazily
-# (and only once) with bt2.find_plugins() on the first call.
+# Returns the cached set of standard plugins, loading it lazily (and
+# only once) with bt2.find_plugins() on the first call.
 #
 # Pass the result to any `bt2.TraceCollectionMessageIterator` or other
 # TCMI interface accepting a `plugin_set` parameter to avoid reloading
@@ -124,14 +124,44 @@ def plugin_set() -> bt2._PluginSet:
     return _plugin_set
 
 
-# Returns the standard plugin named `name`, or `None` if there's no
-# such plugin.
+# Cached set of test utility plugins (from `tests/utils/python`), loaded
+# lazily and only once by _test_utils_plugin_set().
+_test_utils_plugin_set_cache: Optional[bt2._PluginSet] = None
+
+
+# Returns the cached set of test utility plugins, loading it lazily (and
+# only once) with bt2.find_plugins_in_path() on the first call.
 #
-# Unlike bt2.find_plugin(), this function loads the standard plugins
-# lazily (and only once) through plugin_set(), getting `name` from the
-# cached set instead of reloading the plugins on each call.
+# `tests/utils/python` isn't part of `BABELTRACE_PLUGIN_PATH` (see
+# `utils/env.sh`): otherwise, each `babeltrace2` CLI run would load the
+# Python plugin provider only to find those plugins.
+def _test_utils_plugin_set() -> bt2._PluginSet:
+    global _test_utils_plugin_set_cache
+
+    if _test_utils_plugin_set_cache is None:
+        path = this_src_dir(__file__)
+        _logger.info(f"Loading test utility plugins from `{path}`")
+        _test_utils_plugin_set_cache = bt2.find_plugins_in_path(str(path))
+
+        if _test_utils_plugin_set_cache is None:
+            raise RuntimeError(f"cannot find any plugin in `{path}`")
+
+    return _test_utils_plugin_set_cache
+
+
+# Returns the standard or test utility plugin named `name`, or `None` if
+# there's no such plugin.
+#
+# Unlike bt2.find_plugin(), this function loads the plugins lazily (and
+# only once) through plugin_set() and _test_utils_plugin_set(), getting
+# `name` from the cached sets instead of reloading the plugins on
+# each call.
 def plugin_by_name(name: str) -> Optional[bt2._Plugin]:
     for plugin in plugin_set():
+        if plugin.name == name:
+            return plugin
+
+    for plugin in _test_utils_plugin_set():
         if plugin.name == name:
             return plugin
 
