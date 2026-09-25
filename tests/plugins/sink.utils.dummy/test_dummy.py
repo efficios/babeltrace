@@ -100,6 +100,9 @@ def test_comp_cls_available(dummy_comp_cls):
 
 # Verifies that a `sink.utils.dummy` component accepts no parameters
 # (the `params` argument left to its default).
+#
+# This also verifies that it consumes a stream that contains only stream
+# beginning and stream end messages.
 def test_accepts_no_params(dummy_comp_cls):
     btu.convert(
         bt2.ComponentSpec(_Src, obj=_Scenario.EMPTY_STREAM),
@@ -149,15 +152,6 @@ def test_consumes_all_msg_types(dummy_comp_cls, mip_version):
         bt2.ComponentSpec(_Src, obj=_Scenario.ALL_MSGS),
         btu.SinkComponentSpec(dummy_comp_cls),
         mip_version=mip_version,
-    )
-
-
-# Verifies that a `sink.utils.dummy` component consumes a stream that
-# contains only stream beginning and stream end messages.
-def test_empty_stream(dummy_comp_cls):
-    btu.convert(
-        bt2.ComponentSpec(_Src, obj=_Scenario.EMPTY_STREAM),
-        btu.SinkComponentSpec(dummy_comp_cls),
     )
 
 
