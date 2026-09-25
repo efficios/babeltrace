@@ -2150,12 +2150,10 @@ def _lttng_live_server_process_target(
 # process boundaries.
 #
 # Offers wait() to wait for the completion of the server (when the
-# viewer client disconnects) and stop() to terminate the process.
+# viewer client disconnects) and close() to terminate the process.
 #
 # The `port`, `base_url`, and `session_urls` properties and the
 # session_url() method are available once start() returns.
-#
-# Use as a context manager to automatically handle waiting and stopping.
 class LttngLiveServerProcess:
     def __init__(
         self,
