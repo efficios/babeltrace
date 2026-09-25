@@ -75,13 +75,6 @@ def this_src_dir(source_file: Union[pathlib.Path, str]) -> pathlib.Path:
     return pathlib.Path(source_file).resolve().parent
 
 
-# Directory containing the `bt2` Python package considering the root
-# build directory `build_root_dir` (the build directory containing the
-# `tests` directory).
-def bt2_package_dir(build_root_dir: pathlib.Path) -> pathlib.Path:
-    return build_root_dir / "src/bindings/python/bt2/uninstalled"
-
-
 # Returns the executable file path from `path`, appending `.exe`
 # on MinGW if not already present.
 def exe_path(path: pathlib.Path) -> pathlib.Path:
@@ -825,48 +818,3 @@ def tcmi_events(*args: Any, **kwargs: Any) -> List[Any]:
     )
 
     return [m.event for m in msgs if isinstance(m, bt2._EventMessageConst)]
-
-
-# Component class type for find_comp_cls_in_path().
-class CompClsType(enum.Enum):
-    SOURCE = "src"
-    FILTER = "flt"
-    SINK = "sink"
-
-
-# Finds and returns a component class named `comp_cls_name` of type
-# `comp_cls_type` within a plugin named `plugin_name` found by searching
-# `plugin_path`.
-#
-# Raises `RuntimeError` if no such plugin or component class exists.
-def find_comp_cls_in_path(
-    plugin_path: pathlib.Path,
-    plugin_name: str,
-    comp_cls_type: CompClsType,
-    comp_cls_name: str,
-) -> _AnyCompClsT:
-    _logger.info(
-        f"Finding `{comp_cls_type.value}.{plugin_name}.{comp_cls_name}` in `{plugin_path}`"
-    )
-    plugins = bt2.find_plugins_in_path(str(plugin_path))
-
-    if plugins is None:
-        raise RuntimeError(f"Cannot find any plugin in path `{plugin_path}`")
-
-    for plugin in typing.cast(Iterable[Any], plugins):
-        if plugin.name == plugin_name:
-            if comp_cls_type == CompClsType.SOURCE:
-                comp_classes = plugin.source_component_classes
-            elif comp_cls_type == CompClsType.FILTER:
-                comp_classes = plugin.filter_component_classes
-            else:
-                comp_classes = plugin.sink_component_classes
-
-            if comp_cls_name not in comp_classes:
-                raise RuntimeError(
-                    f"Cannot find component class `{comp_cls_name}` in plugin `{plugin_name}` from `{plugin_path}`"
-                )
-
-            return typing.cast("_AnyCompClsT", comp_classes[comp_cls_name])
-
-    raise RuntimeError(f"Cannot find plugin `{plugin_name}` in path `{plugin_path}`")

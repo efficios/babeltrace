@@ -1530,10 +1530,6 @@ Event collection::
     `tcmi_events()` collects and returns all event messages from a
     `bt2.TraceCollectionMessageIterator`.
 
-Component class lookup::
-    `CompClsType` enumeration and `find_comp_cls_in_path()` finds a
-    component class within a plugin found by searching a given path.
-
 === `bt_tests_cli_utils` module
 
 `tests/utils/python/bt_tests_cli_utils.py` is a common CLI testing
