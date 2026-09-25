@@ -629,7 +629,8 @@ typedef void (*bt_plugin_provider_finalize_func)(
 */
 extern bt_bool
 bt_plugin_provider_create_all_from_file_options_get_fail_on_load_error(
-		const bt_plugin_provider_create_all_from_file_options *options);
+		const bt_plugin_provider_create_all_from_file_options *options)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -779,7 +780,8 @@ typedef bt_plugin_provider_create_all_from_file_func_status
 */
 extern bt_bool
 bt_plugin_provider_create_all_from_static_options_get_fail_on_load_error(
-		const bt_plugin_provider_create_all_from_static_options *options);
+		const bt_plugin_provider_create_all_from_static_options *options)
+		__BT_NOEXCEPT;
 
 /*!
 @brief

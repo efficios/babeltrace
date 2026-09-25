@@ -672,7 +672,8 @@ See the \ref api-tir-trace-prop-uid "UID" property.
 @sa bt_trace_get_uid() &mdash;
     Returns the UID of a trace.
 */
-extern bt_trace_set_uid_status bt_trace_set_uid(bt_trace *trace, const char *uid);
+extern bt_trace_set_uid_status bt_trace_set_uid(bt_trace *trace,
+		const char *uid) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -701,7 +702,7 @@ If \bt_p{trace} has no UID, then this function returns \c NULL.
 @sa bt_trace_set_uid() &mdash;
     Sets the UID of a trace.
 */
-extern const char *bt_trace_get_uid(const bt_trace *trace);
+extern const char *bt_trace_get_uid(const bt_trace *trace) __BT_NOEXCEPT;
 
 /*!
 @brief

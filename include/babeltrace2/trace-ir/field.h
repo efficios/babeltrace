@@ -1219,7 +1219,7 @@ extern void bt_field_string_clear(bt_field *field) __BT_NOEXCEPT;
 @bt_pre_is_blob_field{field}
 @bt_pre_field_with_mip{field, 1}
 */
-extern uint64_t bt_field_blob_get_length(const bt_field *field);
+extern uint64_t bt_field_blob_get_length(const bt_field *field) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1250,7 +1250,7 @@ extern uint64_t bt_field_blob_get_length(const bt_field *field);
 @sa bt_field_blob_get_data_const() &mdash;
     Returns the readable data of a BLOB field.
 */
-extern uint8_t *bt_field_blob_get_data(bt_field *field);
+extern uint8_t *bt_field_blob_get_data(bt_field *field) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1278,7 +1278,8 @@ extern uint8_t *bt_field_blob_get_data(bt_field *field);
 @sa bt_field_blob_get_data() &mdash;
     Returns the writable data of a BLOB field.
 */
-extern const uint8_t *bt_field_blob_get_data_const(const bt_field *field);
+extern const uint8_t *bt_field_blob_get_data_const(const bt_field *field)
+		__BT_NOEXCEPT;
 
 /*!
 @brief
@@ -1323,7 +1324,7 @@ typedef enum bt_field_blob_dynamic_set_length_status {
 @bt_pre_field_with_mip{field, 1}
 */
 extern bt_field_blob_dynamic_set_length_status bt_field_blob_dynamic_set_length(
-		bt_field *field, uint64_t length);
+		bt_field *field, uint64_t length) __BT_NOEXCEPT;
 
 /*! @} */
 

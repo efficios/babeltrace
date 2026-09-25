@@ -4225,7 +4225,7 @@ property values:
 */
 extern bt_field_class *bt_field_class_array_dynamic_without_length_field_location_create(
 		bt_trace_class *trace_class,
-		bt_field_class *element_field_class);
+		bt_field_class *element_field_class) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -4293,7 +4293,7 @@ property values:
 extern bt_field_class *bt_field_class_array_dynamic_with_length_field_location_create(
 		bt_trace_class *trace_class,
 		bt_field_class *element_field_class,
-		const bt_field_location *length_field_location);
+		const bt_field_location *length_field_location) __BT_NOEXCEPT;
 
 /*!
 @brief
@@ -4359,7 +4359,7 @@ with bt_field_class_array_dynamic_with_length_field_location_create().
 */
 extern const bt_field_location *
 bt_field_class_array_dynamic_with_length_field_borrow_length_field_location_const(
-		const bt_field_class *field_class);
+		const bt_field_class *field_class) __BT_NOEXCEPT;
 
 /*! @} */
 
@@ -6164,7 +6164,7 @@ bt_field_class_variant_with_selector_field_location_integer_signed_create().
 */
 extern const bt_field_location *
 bt_field_class_variant_with_selector_field_borrow_selector_field_location_const(
-		const bt_field_class *field_class);
+		const bt_field_class *field_class) __BT_NOEXCEPT;
 
 /*! @} */
 
