@@ -140,12 +140,6 @@ public:
     {
     }
 
-    explicit RunInCondTrigger(const Type type, const std::string& condId,
-                              const std::string_view nameSuffix = {})
-        : RunInCondTrigger {RunInT {}, type, condId, nameSuffix}
-    {
-    }
-
     void operator()() noexcept override
     {
         runIn(_mRunIn, _mGraphMipVersion);
@@ -173,9 +167,7 @@ public:
 
     void onCompInit(const bt2::SelfComponent self) override
     {
-        if (_mOnCompInitFunc) {
-            _mOnCompInitFunc(self);
-        }
+        _mOnCompInitFunc(self);
     }
 
 private:
