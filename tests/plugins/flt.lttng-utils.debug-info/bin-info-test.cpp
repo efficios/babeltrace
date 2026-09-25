@@ -11,6 +11,8 @@
 #define BT_LOG_OUTPUT_LEVEL ((bt_logging_level) BT_LOG_WARNING)
 #define BT_LOG_TAG          "TEST/BIN-INFO"
 #include <lttng-utils/debug-info/bin-info.hpp>
+#include <memory>
+#include <string>
 
 #include <glib.h>
 #include <inttypes.h>
@@ -22,6 +24,7 @@
 
 #include "common/assert.h"
 #include "common/macros.h"
+#include "cpp-common/bt2c/glib-up.hpp"
 
 #include "catch2/catch_test_macros.hpp"
 
@@ -55,7 +58,7 @@ struct TestConfig
     uint64_t func_foo_tp_offset;
     uint64_t func_foo_tp_line_no;
     uint64_t debug_link_crc;
-    gchar *debug_info_dir;
+    std::string debug_info_dir;
     uint8_t build_id[BUILD_ID_HEX_LEN];
     uint64_t func_foo_printf_addr;
     uint64_t func_foo_tp_addr;
@@ -103,8 +106,10 @@ TestConfig load_config()
 {
     TestConfig cfg {};
 
-    cfg.debug_info_dir = g_strdup(getenv("BIN_INFO_DATA_DIR"));
-    REQUIRE(cfg.debug_info_dir != nullptr);
+    const char * const debug_info_dir = getenv("BIN_INFO_DATA_DIR");
+
+    REQUIRE(debug_info_dir != nullptr);
+    cfg.debug_info_dir = debug_info_dir;
 
     cfg.func_foo_addr = env_to_uint64("BIN_INFO_FOO_ADDR");
     cfg.func_foo_printf_offset = env_to_uint64("BIN_INFO_PRINTF_OFFSET");
@@ -145,7 +150,7 @@ void subtest_has_address(struct bin_info *bin, uint64_t addr)
     CHECK(ret == 0);
 }
 
-void subtest_lookup_function_name(struct bin_info *bin, uint64_t addr, char *func_name)
+void subtest_lookup_function_name(struct bin_info *bin, uint64_t addr, const char *func_name)
 {
     int ret;
     char *_func_name = NULL;
@@ -187,31 +192,83 @@ void subtest_lookup_source_location(struct bin_info *bin, uint64_t addr, uint64_
     }
 }
 
+/*
+ * Initialized file descriptor cache, finalized on destruction.
+ */
+class FdCache final
+{
+public:
+    FdCache()
+    {
+        REQUIRE(bt_fd_cache_init(&_mFdc, BT_LOG_OUTPUT_LEVEL) == 0);
+    }
+
+    FdCache(const FdCache&) = delete;
+    FdCache& operator=(const FdCache&) = delete;
+
+    ~FdCache()
+    {
+        bt_fd_cache_fini(&_mFdc);
+    }
+
+    bt_fd_cache *fdc() noexcept
+    {
+        return &_mFdc;
+    }
+
+private:
+    bt_fd_cache _mFdc;
+};
+
+struct BinInfoDeleter final
+{
+    void operator()(bin_info * const bin) noexcept
+    {
+        bin_info_destroy(bin);
+    }
+};
+
+/*
+ * Test configuration and binary information of the shared object
+ * within the `dirName` directory of the test data directory.
+ */
+class BinInfoFixture final
+{
+public:
+    explicit BinInfoFixture(const char * const dirName)
+    {
+        REQUIRE(bin_info_init(BT_LOG_OUTPUT_LEVEL, NULL) == 0);
+
+        const bt2c::GCharUP dataDir {g_build_filename(cfg.debug_info_dir.c_str(), dirName, NULL)};
+        const bt2c::GCharUP binPath {
+            g_build_filename(cfg.debug_info_dir.c_str(), dirName, SO_NAME, NULL)};
+
+        _mBin.reset(bin_info_create(_mFdCache.fdc(), binPath.get(), SO_LOW_ADDR, SO_MEMSZ, true,
+                                    dataDir.get(), NULL, BT_LOG_OUTPUT_LEVEL, NULL));
+        REQUIRE(_mBin);
+    }
+
+    bin_info *bin() const noexcept
+    {
+        return _mBin.get();
+    }
+
+    TestConfig cfg = load_config();
+
+private:
+    FdCache _mFdCache;
+    std::unique_ptr<bin_info, BinInfoDeleter> _mBin;
+};
+
 } /* namespace */
 
 TEST_CASE("ELF only")
 {
-    TestConfig cfg = load_config();
+    BinInfoFixture fixture {ELF_DIR_NAME};
+    auto& cfg = fixture.cfg;
+    const auto bin = fixture.bin();
     int ret;
-    char *data_dir, *bin_path;
-    struct bin_info *bin = NULL;
     struct source_location *src_loc = NULL;
-    struct bt_fd_cache fdc;
-
-    ret = bin_info_init(BT_LOG_OUTPUT_LEVEL, NULL);
-    REQUIRE(ret == 0);
-
-    data_dir = g_build_filename(cfg.debug_info_dir, ELF_DIR_NAME, NULL);
-    bin_path = g_build_filename(cfg.debug_info_dir, ELF_DIR_NAME, SO_NAME, NULL);
-    REQUIRE(data_dir);
-    REQUIRE(bin_path);
-
-    ret = bt_fd_cache_init(&fdc, BT_LOG_OUTPUT_LEVEL);
-    REQUIRE(ret == 0);
-
-    bin = bin_info_create(&fdc, bin_path, SO_LOW_ADDR, SO_MEMSZ, true, data_dir, NULL,
-                          BT_LOG_OUTPUT_LEVEL, NULL);
-    REQUIRE(bin);
 
     /* Test bin_info_has_address */
     subtest_has_address(bin, cfg.func_foo_printf_addr);
@@ -224,35 +281,13 @@ TEST_CASE("ELF only")
     CHECK(ret == -1);
 
     source_location_destroy(src_loc);
-    bin_info_destroy(bin);
-    bt_fd_cache_fini(&fdc);
-    g_free(data_dir);
-    g_free(bin_path);
-    g_free(cfg.debug_info_dir);
 }
 
 TEST_CASE("DWARF bundled in SO file")
 {
-    TestConfig cfg = load_config();
-    int ret;
-    char *data_dir, *bin_path;
-    struct bin_info *bin = NULL;
-    struct bt_fd_cache fdc;
-
-    ret = bin_info_init(BT_LOG_OUTPUT_LEVEL, NULL);
-    REQUIRE(ret == 0);
-
-    data_dir = g_build_filename(cfg.debug_info_dir, DWARF_DIR_NAME, NULL);
-    bin_path = g_build_filename(cfg.debug_info_dir, DWARF_DIR_NAME, SO_NAME, NULL);
-    REQUIRE(data_dir);
-    REQUIRE(bin_path);
-
-    ret = bt_fd_cache_init(&fdc, BT_LOG_OUTPUT_LEVEL);
-    REQUIRE(ret == 0);
-
-    bin = bin_info_create(&fdc, bin_path, SO_LOW_ADDR, SO_MEMSZ, true, data_dir, NULL,
-                          BT_LOG_OUTPUT_LEVEL, NULL);
-    REQUIRE(bin);
+    BinInfoFixture fixture {DWARF_DIR_NAME};
+    auto& cfg = fixture.cfg;
+    const auto bin = fixture.bin();
 
     /* Test bin_info_has_address */
     subtest_has_address(bin, cfg.func_foo_printf_addr);
@@ -267,39 +302,17 @@ TEST_CASE("DWARF bundled in SO file")
     /* Test source location lookup - inlined function */
     subtest_lookup_source_location(bin, cfg.func_foo_tp_addr, cfg.func_foo_tp_line_no,
                                    FUNC_FOO_FILENAME);
-
-    bin_info_destroy(bin);
-    bt_fd_cache_fini(&fdc);
-    g_free(data_dir);
-    g_free(bin_path);
-    g_free(cfg.debug_info_dir);
 }
 
 TEST_CASE("Separate DWARF via build ID")
 {
-    TestConfig cfg = load_config();
+    BinInfoFixture fixture {BUILDID_DIR_NAME};
+    auto& cfg = fixture.cfg;
+    const auto bin = fixture.bin();
     int ret;
-    char *data_dir, *bin_path;
-    struct bin_info *bin = NULL;
-    struct bt_fd_cache fdc;
     uint8_t invalid_build_id[BUILD_ID_HEX_LEN] = {0xa3, 0xfd, 0x8b, 0xff, 0x45, 0xe1, 0xa9,
                                                   0x32, 0x15, 0xdd, 0x6d, 0xaa, 0xd5, 0x53,
                                                   0x98, 0x7e, 0xaf, 0xd4, 0x0c, 0xbb};
-
-    ret = bin_info_init(BT_LOG_OUTPUT_LEVEL, NULL);
-    REQUIRE(ret == 0);
-
-    data_dir = g_build_filename(cfg.debug_info_dir, BUILDID_DIR_NAME, NULL);
-    bin_path = g_build_filename(cfg.debug_info_dir, BUILDID_DIR_NAME, SO_NAME, NULL);
-    REQUIRE(data_dir);
-    REQUIRE(bin_path);
-
-    ret = bt_fd_cache_init(&fdc, BT_LOG_OUTPUT_LEVEL);
-    REQUIRE(ret == 0);
-
-    bin = bin_info_create(&fdc, bin_path, SO_LOW_ADDR, SO_MEMSZ, true, data_dir, NULL,
-                          BT_LOG_OUTPUT_LEVEL, NULL);
-    REQUIRE(bin);
 
     /* Test setting invalid build_id */
     ret = bin_info_set_build_id(bin, invalid_build_id, BUILD_ID_HEX_LEN);
@@ -318,36 +331,14 @@ TEST_CASE("Separate DWARF via build ID")
     /* Test source location lookup */
     subtest_lookup_source_location(bin, cfg.func_foo_printf_addr, cfg.func_foo_printf_line_no,
                                    FUNC_FOO_FILENAME);
-
-    bin_info_destroy(bin);
-    bt_fd_cache_fini(&fdc);
-    g_free(data_dir);
-    g_free(bin_path);
-    g_free(cfg.debug_info_dir);
 }
 
 TEST_CASE("Separate DWARF via debug link")
 {
-    TestConfig cfg = load_config();
+    BinInfoFixture fixture {DEBUGLINK_DIR_NAME};
+    auto& cfg = fixture.cfg;
+    const auto bin = fixture.bin();
     int ret;
-    char *data_dir, *bin_path;
-    struct bin_info *bin = NULL;
-    struct bt_fd_cache fdc;
-
-    ret = bin_info_init(BT_LOG_OUTPUT_LEVEL, NULL);
-    REQUIRE(ret == 0);
-
-    data_dir = g_build_filename(cfg.debug_info_dir, DEBUGLINK_DIR_NAME, NULL);
-    bin_path = g_build_filename(cfg.debug_info_dir, DEBUGLINK_DIR_NAME, SO_NAME, NULL);
-    REQUIRE(data_dir);
-    REQUIRE(bin_path);
-
-    ret = bt_fd_cache_init(&fdc, BT_LOG_OUTPUT_LEVEL);
-    REQUIRE(ret == 0);
-
-    bin = bin_info_create(&fdc, bin_path, SO_LOW_ADDR, SO_MEMSZ, true, data_dir, NULL,
-                          BT_LOG_OUTPUT_LEVEL, NULL);
-    REQUIRE(bin);
 
     /* Test setting debug link */
     ret = bin_info_set_debug_link(bin, DEBUG_NAME, cfg.debug_link_crc);
@@ -362,10 +353,4 @@ TEST_CASE("Separate DWARF via debug link")
     /* Test source location lookup */
     subtest_lookup_source_location(bin, cfg.func_foo_printf_addr, cfg.func_foo_printf_line_no,
                                    FUNC_FOO_FILENAME);
-
-    bin_info_destroy(bin);
-    bt_fd_cache_fini(&fdc);
-    g_free(data_dir);
-    g_free(bin_path);
-    g_free(cfg.debug_info_dir);
 }
