@@ -25,7 +25,8 @@ void runTest(const char * const paramsStr,
 
     REQUIRE(err);
 
-    const auto params = bt2::ConstMapValue {bt_param_parse(paramsStr, err)}.shared();
+    const auto params =
+        bt2::ConstMapValue::Shared::createWithoutRef(bt_param_parse(paramsStr, err));
     gchar *validateError = nullptr;
     const auto status = bt_param_validation_validate(params->libObjPtr(), entries, &validateError);
 
