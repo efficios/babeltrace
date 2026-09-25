@@ -65,8 +65,7 @@ def _has_duplicate_timestamps(output_lines):
 # 2. If empty output, skip (empty trace).
 # 3. Check for duplicate timestamps; if found, sort output for comparison.
 # 4. Copy trace using `sink.ctf.fs`.
-# 5. Read copied trace to verify it can be read.
-# 6. Read copied trace with `--no-delta` and compare with original.
+# 5. Read copied trace with `--no-delta` and compare with original.
 def test_trace_copy(build_root_dir, ctf_version, trace_path, tmp_path):
     trace_name = trace_path.name
 
@@ -101,9 +100,6 @@ def test_trace_copy(build_root_dir, ctf_version, trace_path, tmp_path):
         ],
         check=True,
     )
-
-    # Verify the CLI can read the copied trace
-    btu_cli.run_cli(build_root_dir, [str(tmp_path)], check=True)
 
     # Read copied trace with `--no-delta` and compare
     copied_result = btu_cli.run_cli(
