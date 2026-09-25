@@ -67,34 +67,29 @@ def test_generated_trace_simple(build_root_dir, expect_dir, tmp_path):
     )
 
 
-# Test that traces exist in both CTF 1.8 and CTF 2
-@pytest.mark.parametrize(["ctf_version", "mip_version"], _CTF_MIP_COMBOS)
-@pytest.mark.parametrize(
-    "trace_name",
-    [
-        "smalltrace",
-        "2packets",
-        "barectf-event-before-packet",
-        "session-rotation",
-        "lttng-tracefile-rotation",
-        "array-align-elem",
-        "struct-array-align-elem",
-        "meta-ctx-sequence",
-    ],
-)
-def test_trace(ctf_traces_dir, expect_dir, trace_name, ctf_version, mip_version):
-    btu.convert_sink_text_details_test(
-        ctf_traces_dir / str(ctf_version) / "succeed" / trace_name,
-        _find_expect_file(expect_dir, trace_name, ctf_version, mip_version),
-        details_params={"with-trace-name": False, "with-stream-name": False},
-        mip_version=mip_version,
-    )
+# Traces which exist in both CTF 1.8 and CTF 2, tested with each valid
+# CTF/MIP combination.
+_MULTI_CTF_VERSION_TRACE_NAMES = [
+    "smalltrace",
+    "2packets",
+    "barectf-event-before-packet",
+    "session-rotation",
+    "lttng-tracefile-rotation",
+    "array-align-elem",
+    "struct-array-align-elem",
+    "meta-ctx-sequence",
+]
 
 
-# Test that traces existing in only one CTF version.
 @pytest.mark.parametrize(
     ["trace_name", "ctf_version", "mip_version"],
     [
+        pytest.param(trace_name, *combo.values, id=f"{trace_name}-{combo.id}")
+        for trace_name in _MULTI_CTF_VERSION_TRACE_NAMES
+        for combo in _CTF_MIP_COMBOS
+    ]
+    + [
+        # Traces which exist in a single CTF version
         pytest.param(
             "meta-clk-cls-before-trace-cls",
             2,
@@ -105,9 +100,7 @@ def test_trace(ctf_traces_dir, expect_dir, trace_name, ctf_version, mip_version)
         pytest.param("def-clk-freq", 1, 1, id="def-clk-freq-ctf-1.8-mip-1"),
     ],
 )
-def test_trace_single_ctf_version(
-    ctf_traces_dir, expect_dir, trace_name, ctf_version, mip_version
-):
+def test_trace(ctf_traces_dir, expect_dir, trace_name, ctf_version, mip_version):
     btu.convert_sink_text_details_test(
         ctf_traces_dir / str(ctf_version) / "succeed" / trace_name,
         _find_expect_file(expect_dir, trace_name, ctf_version, mip_version),
