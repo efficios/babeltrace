@@ -6,6 +6,7 @@
  * Trace IR Reference Count test
  */
 
+#include <cstdint>
 #include <optional>
 
 #include <babeltrace2-ctf-writer/clock.h>
@@ -265,34 +266,35 @@ TEST_CASE("Trace IR reference counting")
 
 namespace {
 
+/*
+ * Unsigned integer members of the event payload of the
+ * "CTF writer user" test case.
+ */
+struct WriterIntegerMember final
+{
+    const char *name;
+    unsigned int size;
+    std::uint64_t val;
+};
+
+constexpr WriterIntegerMember writerIntegerMembers[] = {
+    {"payload_8", 8, 10},
+    {"payload_16", 16, 20},
+    {"payload_32", 32, 30},
+};
+
 bt_ctf_field_type *createWriterIntegerStruct()
 {
     const auto structure = bt_ctf_field_type_structure_create();
 
     REQUIRE(structure);
 
-    {
-        auto ui8 = bt_ctf_field_type_integer_create(8);
+    for (const auto& member : writerIntegerMembers) {
+        auto ft = bt_ctf_field_type_integer_create(member.size);
 
-        REQUIRE(ui8);
-        REQUIRE(bt_ctf_field_type_structure_add_field(structure, ui8, "payload_8") == 0);
-        BT_CTF_OBJECT_PUT_REF_AND_RESET(ui8);
-    }
-
-    {
-        auto ui16 = bt_ctf_field_type_integer_create(16);
-
-        REQUIRE(ui16);
-        REQUIRE(bt_ctf_field_type_structure_add_field(structure, ui16, "payload_16") == 0);
-        BT_CTF_OBJECT_PUT_REF_AND_RESET(ui16);
-    }
-
-    {
-        auto ui32 = bt_ctf_field_type_integer_create(32);
-
-        REQUIRE(ui32);
-        REQUIRE(bt_ctf_field_type_structure_add_field(structure, ui32, "payload_32") == 0);
-        BT_CTF_OBJECT_PUT_REF_AND_RESET(ui32);
+        REQUIRE(ft);
+        REQUIRE(bt_ctf_field_type_structure_add_field(structure, ft, member.name) == 0);
+        BT_CTF_OBJECT_PUT_REF_AND_RESET(ft);
     }
 
     return structure;
@@ -350,27 +352,11 @@ TEST_CASE("CTF writer user")
 
     REQUIRE(event);
 
-    {
-        auto field = bt_ctf_event_get_payload(event, "payload_8");
+    for (const auto& member : writerIntegerMembers) {
+        auto field = bt_ctf_event_get_payload(event, member.name);
 
         REQUIRE(field);
-        REQUIRE(bt_ctf_field_integer_unsigned_set_value(field, 10) == 0);
-        BT_CTF_OBJECT_PUT_REF_AND_RESET(field);
-    }
-
-    {
-        auto field = bt_ctf_event_get_payload(event, "payload_16");
-
-        REQUIRE(field);
-        REQUIRE(bt_ctf_field_integer_unsigned_set_value(field, 20) == 0);
-        BT_CTF_OBJECT_PUT_REF_AND_RESET(field);
-    }
-
-    {
-        auto field = bt_ctf_event_get_payload(event, "payload_32");
-
-        REQUIRE(field);
-        REQUIRE(bt_ctf_field_integer_unsigned_set_value(field, 30) == 0);
+        REQUIRE(bt_ctf_field_integer_unsigned_set_value(field, member.val) == 0);
         BT_CTF_OBJECT_PUT_REF_AND_RESET(field);
     }
 
