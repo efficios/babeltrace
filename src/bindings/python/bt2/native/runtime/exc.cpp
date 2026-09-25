@@ -8,7 +8,9 @@
 
 #include "py-common/py-common.h"
 
+#include <algorithm>
 #include <new>
+#include <vector>
 
 #include <babeltrace2/babeltrace.h>
 
@@ -61,28 +63,42 @@ void setBt2PyErr(const char * const name, const char * const msg) noexcept
 
 /*
  * Moves the libbabeltrace2 error which the `bt2._Error` exception
- * `pyExc` wraps back as the error of the current thread, and returns
- * the formatted traceback and message of `pyExc`, or `nullptr`
- * on error.
+ * `pyExc` wraps back as the error of the current thread,
+ * returning true.
  *
- * Excludes the causes of the wrapped error from the returned string:
- * they're already part of the error of the current thread.
+ * Returns false, doing nothing, if `pyExc` doesn't wrap an error
+ * anymore: this happens when Python code raises the same `bt2._Error`
+ * exception again after this module already moved its error back.
  */
-bt2c::GStringUP restoreBt2ErrorAndFormat(PyObject& pyExc, PyObject * const pyExcTb,
-                                         const int logLevel) noexcept
+bool restoreBt2Error(PyObject& pyExc) noexcept
 {
-    {
-        const PyObjUP pyErrPtr {PyObject_GetAttrString(&pyExc, "_ptr")};
+    const PyObjUP pyErrPtr {PyObject_GetAttrString(&pyExc, "_ptr")};
 
-        BT_ASSERT(pyErrPtr);
+    BT_ASSERT(pyErrPtr);
 
-        /* Steal the error: `bt2._Error` doesn't release it anymore */
-        const auto ret = PyObject_SetAttrString(&pyExc, "_ptr", Py_None);
-
-        BT_ASSERT(ret == 0);
-        bt_current_thread_move_error(libObjPtrFromPtrObj<const bt_error>(*pyErrPtr));
+    if (pyErrPtr.get() == Py_None) {
+        return false;
     }
 
+    /* Steal the error: `bt2._Error` doesn't release it anymore */
+    const auto ret = PyObject_SetAttrString(&pyExc, "_ptr", Py_None);
+
+    BT_ASSERT(ret == 0);
+    bt_current_thread_move_error(libObjPtrFromPtrObj<const bt_error>(*pyErrPtr));
+    return true;
+}
+
+/*
+ * Returns the formatted traceback `pyExcTb` and message of the
+ * `bt2._Error` exception `pyExc` of which restoreBt2Error() moved the
+ * error back, or `nullptr` on error.
+ *
+ * Excludes the causes of the moved error from the returned string:
+ * they're already part of the error of the current thread.
+ */
+bt2c::GStringUP formatRestoredBt2Error(PyObject& pyExc, PyObject * const pyExcTb,
+                                       const int logLevel) noexcept
+{
     bt2c::GStringUP str {bt_py_common_format_tb(pyExcTb, logLevel)};
 
     if (!str) {
@@ -100,46 +116,86 @@ bt2c::GStringUP restoreBt2ErrorAndFormat(PyObject& pyExc, PyObject * const pyExc
 }
 
 /*
+ * Returns the exceptions of the chain ending with `pyExc`, following
+ * their `__cause__` attribute, from the oldest.
+ *
+ * Stops at the first exception which is already part of the chain:
+ * `raise exc from exc` is valid Python, for example.
+ */
+std::vector<PyObjUP> pyExcChain(PyObject& pyExc)
+{
+    std::vector<PyObjUP> chain;
+
+    for (auto pyCurExc = newPyObjUp(pyExc); pyCurExc;) {
+        if (std::any_of(chain.begin(), chain.end(), [&pyCurExc](const PyObjUP& pyChainExc) {
+                return pyChainExc.get() == pyCurExc.get();
+            })) {
+            break;
+        }
+
+        PyObjUP pyExcCause {PyException_GetCause(pyCurExc.get())};
+
+        chain.push_back(std::move(pyCurExc));
+        pyCurExc = std::move(pyExcCause);
+    }
+
+    std::reverse(chain.begin(), chain.end());
+    return chain;
+}
+
+/*
  * Appends one cause per exception of the chain ending with `pyExc`,
  * from the oldest, to the error of the current thread using the actor
  * of `logger`.
+ *
+ * First moves the libbabeltrace2 error which the oldest `bt2._Error`
+ * exception of the chain wraps back as the error of the current thread,
+ * if any: moving an error replaces the current one, therefore this must
+ * happen before appending any cause.
  *
  * `pyBt2ErrType` is the `bt2._Error` Python type.
  */
 void appendCausesFromPyExcChain(const bt2c::Logger& logger, PyObject& pyExc,
                                 PyObject& pyBt2ErrType) noexcept
 {
-    const PyObjUP pyExcCause {PyException_GetCause(&pyExc)};
+    const auto chain = pyExcChain(pyExc);
+    PyObject *pyRestoredExc = nullptr;
 
-    /* Oldest first */
-    if (pyExcCause) {
-        appendCausesFromPyExcChain(logger, *pyExcCause, pyBt2ErrType);
+    for (const auto& pyChainExc : chain) {
+        if (PyErr_GivenExceptionMatches(pyChainExc.get(), &pyBt2ErrType) &&
+            restoreBt2Error(*pyChainExc)) {
+            pyRestoredExc = pyChainExc.get();
+            break;
+        }
     }
 
-    const PyObjUP pyExcTb {PyException_GetTraceback(&pyExc)};
     const auto logLevel = static_cast<int>(logger.level());
-    bt2c::GStringUP str;
 
-    if (PyErr_GivenExceptionMatches(&pyExc, &pyBt2ErrType)) {
-        /*
-         * Never raised with a (Python) cause: moving its error back
-         * must happen before appending any other cause.
-         */
-        BT_ASSERT(!pyExcCause);
-        str = restoreBt2ErrorAndFormat(pyExc, pyExcTb.get(), logLevel);
-    } else {
-        const PyObjUP pyExcType {PyObject_Type(&pyExc)};
+    for (const auto& pyChainExc : chain) {
+        const PyObjUP pyExcTb {PyException_GetTraceback(pyChainExc.get())};
+        bt2c::GStringUP str;
 
-        str.reset(
-            bt_py_common_format_exception(pyExcType.get(), &pyExc, pyExcTb.get(), logLevel, false));
+        if (pyChainExc.get() == pyRestoredExc) {
+            str = formatRestoredBt2Error(*pyChainExc, pyExcTb.get(), logLevel);
+        } else {
+            /*
+             * This includes any other `bt2._Error` exception: its
+             * string contains the causes of the error it wraps (or used
+             * to wrap).
+             */
+            const PyObjUP pyExcType {PyObject_Type(pyChainExc.get())};
+
+            str.reset(bt_py_common_format_exception(pyExcType.get(), pyChainExc.get(),
+                                                    pyExcTb.get(), logLevel, false));
+        }
+
+        if (!str) {
+            /* The formatting function logs itself */
+            continue;
+        }
+
+        logger.appendCauseStr(__FILE__, __LINE__, "", str->str);
     }
-
-    if (!str) {
-        /* The formatting function logs itself */
-        return;
-    }
-
-    logger.appendCauseStr(__FILE__, __LINE__, "", str->str);
 }
 
 } /* namespace */

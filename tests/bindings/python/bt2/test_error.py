@@ -50,6 +50,57 @@ class _SinkWithExceptionChaining(bt2._UserSinkComponent):
             raise ValueError("oops") from e
 
 
+class _SinkWithErrorCausedByOtherExc(bt2._UserSinkComponent):
+    def __init__(self, config, params, obj):
+        self._in = self._add_input_port("in")
+
+    def _user_graph_is_configured(self):
+        self._iter = self._create_message_iterator(self._in)
+
+    def _user_consume(self):
+        try:
+            next(self._iter)
+        except bt2._Error as e:
+            raise e from ValueError("extra context")
+
+
+class _SinkWithSelfCausedExc(bt2._UserSinkComponent):
+    def __init__(self, config, params, obj):
+        self._add_input_port("in")
+
+    def _user_consume(self):
+        exc = ValueError("caused by itself")
+        raise exc from exc
+
+
+# Appends the `bt2._Error` exception it catches to the list `obj`
+# before raising it again.
+class _SinkKeepingError(bt2._UserSinkComponent):
+    def __init__(self, config, params, obj):
+        self._in = self._add_input_port("in")
+        self._errors = obj
+
+    def _user_graph_is_configured(self):
+        self._iter = self._create_message_iterator(self._in)
+
+    def _user_consume(self):
+        try:
+            next(self._iter)
+        except bt2._Error as e:
+            self._errors.append(e)
+            raise
+
+
+# Raises the `bt2._Error` exception `obj`.
+class _SinkRaisingError(bt2._UserSinkComponent):
+    def __init__(self, config, params, obj):
+        self._add_input_port("in")
+        self._error = obj
+
+    def _user_consume(self):
+        raise self._error
+
+
 class _SinkWithFailingQuery(bt2._UserSinkComponent):
     def _user_consume(self):
         pass
@@ -59,11 +110,11 @@ class _SinkWithFailingQuery(bt2._UserSinkComponent):
         raise ValueError("Query is failing")
 
 
-def _run_failing_graph(source_cc, sink_cc):
+def _run_failing_graph(source_cc, sink_cc, sink_obj=None):
     with pytest.raises(bt2._Error) as exc_info:
         graph = bt2.Graph()
         src_comp = graph.add_component(source_cc, "src")
-        sink_comp = graph.add_component(sink_cc, "snk")
+        sink_comp = graph.add_component(sink_cc, "snk", obj=sink_obj)
         graph.connect_ports(src_comp.output_ports["out"], sink_comp.input_ports["in"])
         graph.run()
 
@@ -139,6 +190,58 @@ def test_exc_chaining():
     assert exc[3].component_class_name == "_SinkWithExceptionChaining"
     assert "ValueError: oops" in exc[3].message
     assert isinstance(exc[4], bt2._ErrorCause)
+
+
+# Test that if we do:
+#
+#     try:
+#         ...
+#     except bt2._Error as exc:
+#         raise exc from ValueError('extra context')
+#
+# then we still get the causes of the original `bt2._Error`, followed
+# with one cause per exception of the chain, from the oldest.
+def test_exc_chaining_error_caused_by_other_exc():
+    exc = _run_failing_graph(_SrcWithFailingIter, _SinkWithErrorCausedByOtherExc)
+    assert len(exc) == 5
+    assert isinstance(exc[0], bt2._MessageIteratorErrorCause)
+    assert exc[0].component_class_name == "_SrcWithFailingIter"
+    assert "ValueError: User message iterator is failing" in exc[0].message
+    assert isinstance(exc[1], bt2._ErrorCause)
+    assert isinstance(exc[2], bt2._ComponentErrorCause)
+    assert exc[2].component_class_name == "_SinkWithErrorCausedByOtherExc"
+    assert "ValueError: extra context" in exc[2].message
+    assert isinstance(exc[3], bt2._ComponentErrorCause)
+    assert exc[3].component_class_name == "_SinkWithErrorCausedByOtherExc"
+    assert "bt2._Error" in exc[3].message
+    assert isinstance(exc[4], bt2._ErrorCause)
+
+
+# Test that an exception which is its own cause (`raise exc from exc`)
+# becomes a single cause.
+def test_exc_chaining_self_caused_exc():
+    exc = _run_failing_graph(_SrcWithFailingIter, _SinkWithSelfCausedExc)
+    assert len(exc) == 2
+    assert isinstance(exc[0], bt2._ComponentErrorCause)
+    assert exc[0].component_class_name == "_SinkWithSelfCausedExc"
+    assert "ValueError: caused by itself" in exc[0].message
+    assert isinstance(exc[1], bt2._ErrorCause)
+
+
+# Test that raising a `bt2._Error` exception again, once the error it
+# wrapped is already back to libbabeltrace2, makes a regular cause which
+# contains the causes of that error as text.
+def test_raise_error_again():
+    errors = []
+    _run_failing_graph(_SrcWithFailingIter, _SinkKeepingError, errors)
+    assert len(errors) == 1
+    exc = _run_failing_graph(_SrcWithFailingIter, _SinkRaisingError, errors[0])
+    assert len(exc) == 2
+    assert isinstance(exc[0], bt2._ComponentErrorCause)
+    assert exc[0].component_class_name == "_SinkRaisingError"
+    assert "_Error" in exc[0].message
+    assert "User message iterator is failing" in exc[0].message
+    assert isinstance(exc[1], bt2._ErrorCause)
 
 
 def test_unknown_error_cause():
