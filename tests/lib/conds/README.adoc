@@ -120,7 +120,8 @@ No suitable group exists::
     function in `conds-triggers.hpp`, and call it from `main()` in
     `conds-triggers.cpp`.
 +
-List the new file in `tests/lib/Makefile.am`.
+List the new file in `lib_conds_conds_triggers_bin_SOURCES` of
+`tests/Makefile.am`.
 --
 
 Don't add triggers directly to `main()`: every trigger lives in some
