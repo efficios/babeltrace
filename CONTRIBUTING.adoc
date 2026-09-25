@@ -1471,8 +1471,8 @@ The following session-scoped fixtures are available to all tests
 and fixtures:
 
 Path fixtures::
-    `src_root_dir`, `src_tests_dir`, `build_root_dir`,
-    `build_tests_dir`, `common_data_dir`, and `ctf_traces_dir`.
+    `src_tests_dir`, `build_root_dir`, `common_data_dir`, and
+    `ctf_traces_dir`.
 
 Component class fixtures::
     `muxer_comp_cls`, `sink_ctf_comp_cls`, `src_ctf_comp_cls`,

@@ -127,11 +127,6 @@ def pytest_collection_modifyitems(
 
 
 @pytest.fixture(scope="session")
-def src_root_dir() -> pathlib.Path:
-    return _src_root_dir()
-
-
-@pytest.fixture(scope="session")
 def src_tests_dir() -> pathlib.Path:
     return _src_tests_dir()
 
@@ -139,11 +134,6 @@ def src_tests_dir() -> pathlib.Path:
 @pytest.fixture(scope="session")
 def build_root_dir(request: pytest.FixtureRequest) -> pathlib.Path:
     return btu.config_build_root_dir(request.config)
-
-
-@pytest.fixture(scope="session")
-def build_tests_dir(request: pytest.FixtureRequest) -> pathlib.Path:
-    return _config_build_tests_dir(request.config)
 
 
 @pytest.fixture(scope="session")
