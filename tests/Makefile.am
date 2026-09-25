@@ -952,6 +952,12 @@ EXTRA_DIST = \
 
 AM_CPPFLAGS += -I$(top_srcdir)/tests/utils
 
+# Link test programs directly instead of behind a libtool wrapper
+# script: the tests start them thousands of times.
+#
+# libtool ignores this flag when linking a library.
+AM_LDFLAGS += -no-install
+
 if ENABLE_VENDOR_CATCH2
 AM_CPPFLAGS += -I$(top_srcdir)/tests/utils/catch2
 CATCH2_LDADD = utils/catch2/libcatch2.la
