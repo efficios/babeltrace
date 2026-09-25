@@ -777,6 +777,13 @@ def convert_sink_text_details_test(
             assert output == old_expected
 
 
+# Returns the root build directory (the build directory containing the
+# `tests` directory) which the root `conftest.py` sets on the pytest
+# configuration object `config`.
+def config_build_root_dir(config: object) -> pathlib.Path:
+    return getattr(config, "build_root_dir")
+
+
 # Returns the build directory equivalent to the source directory
 # containing `source_file`.
 #
@@ -785,7 +792,7 @@ def convert_sink_text_details_test(
 #
 # Typical usage examples:
 #
-#     build_dir_of_source_file(config.build_root_dir, __file__)
+#     build_dir_of_source_file(config_build_root_dir(config), __file__)
 #
 # For example, if `source_file` is
 # `/path/to/babeltrace/tests/meow/mix/test_lel.py`, then this function

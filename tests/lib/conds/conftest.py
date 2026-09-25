@@ -18,12 +18,6 @@ import bt_tests_utils as btu
 _logger = logging.getLogger(__name__)
 
 
-# Helper function to access dynamic `config` attribute while satisfying
-# the type checker.
-def _config_build_root_dir(config: pytest.Config) -> pathlib.Path:
-    return getattr(config, "build_root_dir")
-
-
 # Condition trigger descriptor (base).
 class _CondTriggerDescriptor:
     def __init__(self, trigger_name: str, cond_id: str):
@@ -105,7 +99,7 @@ class _CondTriggerTestItem(pytest.Item):
 
         try:
             result = btu.run(
-                _config_build_root_dir(self.config),
+                btu.config_build_root_dir(self.config),
                 self._conds_triggers_bin,
                 ["run", self._descriptor.trigger_name],
                 timeout=timeout,
@@ -142,7 +136,9 @@ class _CondTriggersTestFile(pytest.File):
         # Build the path to the `conds-triggers` binary and make sure
         # it exists.
         conds_triggers_bin = btu.exe_path(
-            btu.build_dir_of_source_file(_config_build_root_dir(self.config), __file__)
+            btu.build_dir_of_source_file(
+                btu.config_build_root_dir(self.config), __file__
+            )
             / "conds-triggers.bin"
         )
 
@@ -162,7 +158,7 @@ class _CondTriggersTestFile(pytest.File):
         for descriptor in _cond_trigger_descriptors_from_json(
             tjson.loads(
                 btu.run(
-                    _config_build_root_dir(self.config),
+                    btu.config_build_root_dir(self.config),
                     conds_triggers_bin,
                     ["list"],
                 ).stdout,

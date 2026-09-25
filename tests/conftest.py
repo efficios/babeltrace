@@ -40,10 +40,6 @@ _logger = logging.getLogger(__name__)
 
 
 # Helper functions to access/set dynamic config attributes (satisfies type checker)
-def _config_build_root_dir(config: pytest.Config) -> pathlib.Path:
-    return getattr(config, "build_root_dir")
-
-
 def _set_config_build_root_dir(config: pytest.Config, path: pathlib.Path) -> None:
     setattr(config, "build_root_dir", path)
 
@@ -72,7 +68,7 @@ def _set_config_build_root_tests_dirs(config: pytest.Config) -> None:
         # Default to the root source directory (in-tree build)
         _set_config_build_root_dir(config, _src_root_dir())
 
-    setattr(config, "build_tests_dir", _config_build_root_dir(config) / "tests")
+    setattr(config, "build_tests_dir", btu.config_build_root_dir(config) / "tests")
 
 
 def _log_env_var(name: str) -> None:
@@ -83,7 +79,9 @@ def _log_env_var(name: str) -> None:
 def pytest_sessionstart(session: pytest.Session) -> None:
     _logger.info("pytest_sessionstart():")
     _logger.info(f"  Root source directory: `{_src_root_dir()}`")
-    _logger.info(f"  Root build directory: `{_config_build_root_dir(session.config)}`")
+    _logger.info(
+        f"  Root build directory: `{btu.config_build_root_dir(session.config)}`"
+    )
     _logger.info(
         f"  `tests` build directory: `{_config_build_tests_dir(session.config)}`"
     )
@@ -140,7 +138,7 @@ def src_tests_dir() -> pathlib.Path:
 
 @pytest.fixture(scope="session")
 def build_root_dir(request: pytest.FixtureRequest) -> pathlib.Path:
-    return _config_build_root_dir(request.config)
+    return btu.config_build_root_dir(request.config)
 
 
 @pytest.fixture(scope="session")
@@ -338,7 +336,7 @@ class _Catch2TestFile(pytest.File):
 
         # List test names from Catch2.
         _logger.info(f"Listing Catch2 test case names from `{test_binary}`")
-        build_root_dir = _config_build_root_dir(self.config)
+        build_root_dir = btu.config_build_root_dir(self.config)
         result = btu.run(
             build_root_dir,
             test_binary,

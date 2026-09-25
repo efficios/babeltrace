@@ -38,7 +38,7 @@ class _CounterMctfItem(btu_mctf.MCtfTestItem):
                 cli_args.append(btu_cli.CliParams(counter_params))
 
         actual_output = btu_cli.run_cli(
-            typing.cast(pathlib.Path, getattr(self.config, "build_root_dir")),
+            btu.config_build_root_dir(self.config),
             cli_args,
             check=True,
         ).stdout.strip()

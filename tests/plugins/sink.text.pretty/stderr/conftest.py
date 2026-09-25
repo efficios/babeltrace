@@ -4,7 +4,6 @@
 # pyright: strict, reportMissingTypeStubs=false, reportPrivateUsage=false
 
 import re
-import typing
 import pathlib
 from typing import Any, Dict, ClassVar, FrozenSet
 
@@ -32,7 +31,7 @@ class _StderrMctfItem(btu_mctf.MCtfTestItem):
             pretty_params.update(btu.params_from_part(non_ctf_parts["@params"].content))
 
         actual_stderr = btu_cli.run_cli(
-            typing.cast(pathlib.Path, getattr(self.config, "build_root_dir")),
+            btu.config_build_root_dir(self.config),
             [
                 "-c",
                 "src.ctf.fs",
