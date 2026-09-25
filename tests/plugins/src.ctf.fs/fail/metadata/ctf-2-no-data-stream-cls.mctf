@@ -1,0 +1,13 @@
+--- metadata
+[
+{
+  "type": "preamble",
+  "version": 2
+},
+{
+  "type": "trace-class"
+}
+]
+
+--- @error
+Missing data stream class fragment in metadata stream.
