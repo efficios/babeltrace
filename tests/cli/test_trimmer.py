@@ -14,145 +14,87 @@ def _count_output_lines(stdout):
     return len(stdout.strip().split("\n"))
 
 
-@pytest.mark.parametrize(
-    ["expected_event_count", "cli_args"],
-    [
-        pytest.param(
-            18,
-            ["--clock-gmt", "--begin", "17:48:17.587029529"],
-            id="begin-gmt-relative",
-        ),
-        pytest.param(
-            9,
-            ["--clock-gmt", "--end", "17:48:17.588680018"],
-            id="end-gmt-relative",
-        ),
-        pytest.param(
-            7,
-            [
-                "--clock-gmt",
-                "--begin",
-                "17:48:17.587029529",
-                "--end",
-                "17:48:17.588680018",
-            ],
-            id="begin-and-end-gmt-relative",
-        ),
-        pytest.param(
-            0,
-            ["--clock-gmt", "--begin", "18:48:17.587029529"],
-            id="begin-out-of-range-gmt-relative",
-        ),
-        pytest.param(
-            0,
-            ["--clock-gmt", "--end", "16:48:17.588680018"],
-            id="end-out-of-range-gmt-relative",
-        ),
-        pytest.param(
-            18,
-            ["--clock-gmt", "--begin", "2012-10-29 17:48:17.587029529"],
-            id="begin-gmt-absolute",
-        ),
-        pytest.param(
-            9,
-            ["--clock-gmt", "--end", "2012-10-29 17:48:17.588680018"],
-            id="end-gmt-absolute",
-        ),
-        pytest.param(
-            7,
-            [
-                "--clock-gmt",
-                "--begin",
-                "2012-10-29 17:48:17.587029529",
-                "--end",
-                "2012-10-29 17:48:17.588680018",
-            ],
-            id="begin-and-end-gmt-absolute",
-        ),
-        pytest.param(
-            0,
-            ["--clock-gmt", "--begin", "2012-10-29 18:48:17.587029529"],
-            id="begin-out-of-range-gmt-absolute",
-        ),
-        pytest.param(
-            0,
-            ["--clock-gmt", "--end", "2012-10-29 16:48:17.588680018"],
-            id="end-out-of-range-gmt-absolute-1",
-        ),
-    ],
-)
-def test_trimmer_success_gmt(
-    ctf_traces_dir, build_root_dir, expected_event_count, cli_args
-):
+# Environment variables to make the local time zone EST (UTC-05:00).
+#
+# See <https://www.gnu.org/software/libc/manual/html_node/TZ-Variable.html>
+# to learn more.
+_EST_ENV = {"TZ": "EST5"}
+
+
+# Runs the CLI on the `wk-heartbeat-u` trace with the additional
+# arguments `cli_args` and returns the number of printed events.
+def _trimmed_event_count(ctf_traces_dir, build_root_dir, cli_args, extra_env=None):
     result = btu_cli.run_cli(
         build_root_dir,
         [str(ctf_traces_dir / "1/succeed/wk-heartbeat-u")] + cli_args,
         check=True,
+        extra_env=extra_env,
     )
-    assert _count_output_lines(result.stdout) == expected_event_count
+    return _count_output_lines(result.stdout)
 
 
+_BEGIN = "48:17.587029529"
+_END = "48:17.588680018"
+
+
+# Trims with `--begin` and/or `--end`, relative (time only) or absolute
+# (date and time), with either the GMT or the EST time zone.
+#
+# `begin` and `end` are `(hour, rest)` pairs, `hour` being a GMT hour.
+@pytest.mark.parametrize("absolute", [False, True], ids=["relative", "absolute"])
+@pytest.mark.parametrize(
+    ["tz_args", "tz_env", "hour_offset"],
+    [
+        pytest.param(["--clock-gmt"], None, 0, id="gmt"),
+        pytest.param([], _EST_ENV, -5, id="est"),
+    ],
+)
+@pytest.mark.parametrize(
+    ["expected_event_count", "begin", "end"],
+    [
+        pytest.param(18, (17, _BEGIN), None, id="begin"),
+        pytest.param(9, None, (17, _END), id="end"),
+        pytest.param(7, (17, _BEGIN), (17, _END), id="begin-and-end"),
+        pytest.param(0, (18, _BEGIN), None, id="begin-out-of-range"),
+        pytest.param(0, None, (16, _END), id="end-out-of-range"),
+    ],
+)
+def test_trimmer_range(
+    ctf_traces_dir,
+    build_root_dir,
+    absolute,
+    tz_args,
+    tz_env,
+    hour_offset,
+    expected_event_count,
+    begin,
+    end,
+):
+    def fmt_time(time):
+        hour, rest = time
+        text = "{:02}:{}".format(hour + hour_offset, rest)
+        return "2012-10-29 " + text if absolute else text
+
+    cli_args = list(tz_args)
+
+    if begin is not None:
+        cli_args += ["--begin", fmt_time(begin)]
+
+    if end is not None:
+        cli_args += ["--end", fmt_time(end)]
+
+    assert (
+        _trimmed_event_count(ctf_traces_dir, build_root_dir, cli_args, tz_env)
+        == expected_event_count
+    )
+
+
+# Various format tests (using EST timezone). We sometimes apply a clock
+# offset to make the events of the trace span two different seconds or
+# minutes.
 @pytest.mark.parametrize(
     ["expected_event_count", "cli_args"],
     [
-        pytest.param(
-            18,
-            ["--begin", "12:48:17.587029529"],
-            id="begin-est-relative",
-        ),
-        pytest.param(
-            9,
-            ["--end", "12:48:17.588680018"],
-            id="end-est-relative",
-        ),
-        pytest.param(
-            7,
-            ["--begin", "12:48:17.587029529", "--end", "12:48:17.588680018"],
-            id="begin-and-end-est-relative",
-        ),
-        pytest.param(
-            0,
-            ["--begin", "13:48:17.587029529"],
-            id="begin-out-of-range-est-relative",
-        ),
-        pytest.param(
-            0,
-            ["--end", "11:48:17.588680018"],
-            id="end-out-of-range-est-relative",
-        ),
-        pytest.param(
-            18,
-            ["--begin", "2012-10-29 12:48:17.587029529"],
-            id="begin-est-absolute",
-        ),
-        pytest.param(
-            9,
-            ["--end", "12:48:17.588680018"],
-            id="end-est-absolute",
-        ),
-        pytest.param(
-            7,
-            [
-                "--begin",
-                "2012-10-29 12:48:17.587029529",
-                "--end",
-                "2012-10-29 12:48:17.588680018",
-            ],
-            id="begin-and-end-est-absolute",
-        ),
-        pytest.param(
-            0,
-            ["--begin", "2012-10-29 13:48:17.587029529"],
-            id="begin-out-of-range-est-absolute",
-        ),
-        pytest.param(
-            0,
-            ["--end", "2012-10-29 11:48:17.588680018"],
-            id="end-out-of-range-est-absolute",
-        ),
-        # Various format tests (using EST timezone). We sometimes apply a
-        # clock offset to make the events of the trace span two different
-        # seconds or minutes.
         pytest.param(
             13,
             ["--begin=2012-10-29 12:48:17.588"],
@@ -189,33 +131,13 @@ def test_trimmer_success_gmt(
         ),
     ],
 )
-def test_trimmer_success_est(
+def test_trimmer_formats(
     ctf_traces_dir, build_root_dir, expected_event_count, cli_args
 ):
-    # EST relative timestamp tests.
-    #
-    # NOTE: The POSIX notation is a bit weird. The libc documentation
-    # sheds some light on this:
-    #
-    # > The offset specifies the time value you must add to the local
-    # > time to get a Coordinated Universal Time value. It has syntax
-    # > like `[+|-]hh[:mm[:ss]]`. This is positive if the local time
-    # > zone is west of the Prime Meridian and negative if it is east.
-    # > The hour must be between 0 and 24, and the minute and seconds
-    # > between 0 and 59.
-    #
-    # This is why we use `EST5` to simulate an effective UTC-05:00 time.
-    #
-    # See
-    # <https://www.gnu.org/software/libc/manual/html_node/TZ-Variable.html>
-    # to learn more.
-    result = btu_cli.run_cli(
-        build_root_dir,
-        [str(ctf_traces_dir / "1/succeed/wk-heartbeat-u")] + cli_args,
-        check=True,
-        extra_env={"TZ": "EST5"},
+    assert (
+        _trimmed_event_count(ctf_traces_dir, build_root_dir, cli_args, _EST_ENV)
+        == expected_event_count
     )
-    assert _count_output_lines(result.stdout) == expected_event_count
 
 
 @pytest.mark.parametrize(
@@ -316,7 +238,7 @@ def test_trimmer_failure(ctf_traces_dir, build_root_dir, cli_args):
         build_root_dir,
         [str(ctf_traces_dir / "1/succeed/wk-heartbeat-u")] + cli_args,
         check=False,
-        extra_env={"TZ": "EST5", "BABELTRACE_FLT_UTILS_TRIMMER_LOG_LEVEL": "E"},
+        extra_env={**_EST_ENV, "BABELTRACE_FLT_UTILS_TRIMMER_LOG_LEVEL": "E"},
     )
     assert result.returncode != 0
     assert _count_output_lines(result.stdout) == 0
