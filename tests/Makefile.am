@@ -1524,6 +1524,6 @@ plugins_flt_lttng_utils_debug_info_bin_info_test_bin_LDADD = \
 endif # ENABLE_DEBUG_INFO
 
 check-local:
-	source $(builddir)/utils/env.sh && \
+	$(builddir)/utils/run-in-env.sh \
 	bt-pytest $${BT_TESTS_PYTEST_EXTRA_ARGS:-} \
 		-vv -rA --capture=tee-sys --log-cli-level=INFO "$(srcdir)"
