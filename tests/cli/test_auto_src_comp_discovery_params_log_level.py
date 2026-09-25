@@ -16,6 +16,70 @@ def plugin_dir(common_data_dir):
 @pytest.mark.parametrize(
     ["cli_args", "expected"],
     [
+        # Apply log level to two components from one non-option argument.
+        pytest.param(
+            lambda plugin_dir: [
+                str(plugin_dir / "dir-ab"),
+                "--log-level=DEBUG",
+                btu_cli.CliParams({"what": "log-level"}),
+            ],
+            """
+            TestSourceA: LoggingLevel.DEBUG
+            TestSourceB: LoggingLevel.DEBUG
+            """,
+            id="log-level-two-components-from-one-non-option-arg",
+        ),
+        # Apply log level to two components from two distinct non-option
+        # arguments.
+        pytest.param(
+            lambda plugin_dir: [
+                str(plugin_dir / "dir-a"),
+                "--log-level=DEBUG",
+                btu_cli.CliParams({"what": "log-level"}),
+                str(plugin_dir / "dir-b"),
+                "--log-level=TRACE",
+                btu_cli.CliParams({"what": "log-level"}),
+            ],
+            """
+            TestSourceA: LoggingLevel.DEBUG
+            TestSourceB: LoggingLevel.TRACE
+            """,
+            id="log-level-two-non-option-args",
+        ),
+        # Apply log level to one component coming from one non-option argument
+        # and one component coming from two non-option arguments (1).
+        pytest.param(
+            lambda plugin_dir: [
+                str(plugin_dir / "dir-a"),
+                "--log-level=DEBUG",
+                btu_cli.CliParams({"what": "log-level"}),
+                str(plugin_dir / "dir-ab"),
+                "--log-level=TRACE",
+                btu_cli.CliParams({"what": "log-level"}),
+            ],
+            """
+            TestSourceA: LoggingLevel.TRACE
+            TestSourceB: LoggingLevel.TRACE
+            """,
+            id="log-level-one-and-two-non-option-args-1",
+        ),
+        # Apply log level to one component coming from one non-option argument
+        # and one component coming from two non-option arguments (2).
+        pytest.param(
+            lambda plugin_dir: [
+                str(plugin_dir / "dir-ab"),
+                "--log-level=DEBUG",
+                btu_cli.CliParams({"what": "log-level"}),
+                str(plugin_dir / "dir-a"),
+                "--log-level=TRACE",
+                btu_cli.CliParams({"what": "log-level"}),
+            ],
+            """
+            TestSourceA: LoggingLevel.TRACE
+            TestSourceB: LoggingLevel.DEBUG
+            """,
+            id="log-level-one-and-two-non-option-args-2",
+        ),
         # Apply parameters to two components from one non-option argument.
         pytest.param(
             lambda plugin_dir: [
@@ -26,7 +90,7 @@ def plugin_dir(common_data_dir):
             TestSourceA: test-allo="madame"
             TestSourceB: test-allo="madame"
             """,
-            id="two-components-from-one-non-option-arg",
+            id="params-two-components-from-one-non-option-arg",
         ),
         # Apply parameters to two components from two distinct
         # non-option arguments.
@@ -43,7 +107,7 @@ def plugin_dir(common_data_dir):
             TestSourceA: test-allo="madame"
             TestSourceB: test-bonjour="monsieur"
             """,
-            id="two-non-option-args",
+            id="params-two-non-option-args",
         ),
         # Apply parameters to one component coming from one non-option argument
         # and one component coming from two non-option arguments (1).
@@ -58,7 +122,7 @@ def plugin_dir(common_data_dir):
             TestSourceA: test-allo="madame", test-bonjour="monsieur"
             TestSourceB: test-bonjour="monsieur"
             """,
-            id="one-and-two-non-option-args-1",
+            id="params-one-and-two-non-option-args-1",
         ),
         # Apply parameters to one component coming from one non-option argument
         # and one component coming from two non-option arguments (2).
@@ -79,11 +143,11 @@ def plugin_dir(common_data_dir):
             TestSourceA: test-bonjour="monsieur", test-salut="les amis"
             TestSourceB: test-bonjour="madame", test-salut="les amis"
             """,
-            id="one-and-two-non-option-args-2",
+            id="params-one-and-two-non-option-args-2",
         ),
     ],
 )
-def test_params(build_root_dir, plugin_dir, cli_args, expected):
+def test_params_log_level(build_root_dir, plugin_dir, cli_args, expected):
     result = btu_cli.run_cli(
         build_root_dir,
         ["convert"] + cli_args(plugin_dir),
@@ -91,9 +155,10 @@ def test_params(build_root_dir, plugin_dir, cli_args, expected):
         check=True,
     )
 
-    # The instantiated components print their received parameters on stdout.
-    # The order in which the lines are printed is unpredictable (it depends
-    # on the order the filesystem is walked), so sort before comparing.
+    # The instantiated components print their received log level or
+    # parameters on stdout. The order in which the lines are printed is
+    # unpredictable (it depends on the order the filesystem is walked),
+    # so sort before comparing.
     actual = sorted(line for line in result.stdout.splitlines() if line.strip())
     expected = sorted(
         line.strip() for line in textwrap.dedent(expected).splitlines() if line.strip()
