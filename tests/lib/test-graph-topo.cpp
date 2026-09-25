@@ -214,120 +214,101 @@ class GraphTopoFixture
 {
 protected:
     explicit GraphTopoFixture()
+        : _mGraph {bt2::Graph::create(0)}
     {
         events.clear();
-    }
-
-    bt2::Graph::Shared _createGraph()
-    {
-        auto graph = bt2::Graph::create(0);
-
         REQUIRE(bt_graph_add_source_component_output_port_added_listener(
-                    graph->libObjPtr(), graphSrcOutputPortAdded, nullptr, nullptr) >= 0);
+                    _mGraph->libObjPtr(), graphSrcOutputPortAdded, nullptr, nullptr) >= 0);
         REQUIRE(bt_graph_add_sink_component_input_port_added_listener(
-                    graph->libObjPtr(), graphSinkInputPortAdded, nullptr, nullptr) >= 0);
-        return graph;
+                    _mGraph->libObjPtr(), graphSinkInputPortAdded, nullptr, nullptr) >= 0);
     }
 
-    bt2::ConstSourceComponent _createSrc(const bt2::Graph graph)
+    bt2::Graph::Shared _mGraph;
+};
+
+/*
+ * Graph topology fixture with a source and a sink component, not
+ * connected yet.
+ */
+class SrcSinkGraphTopoFixture : public GraphTopoFixture
+{
+protected:
+    explicit SrcSinkGraphTopoFixture()
+        : _mSrc {_mGraph->addComponent<TestSource>("src-comp")},
+          _mSink {_mGraph->addComponent<TestSink>("sink-comp")},
+          _mSrcDefPort {*_mSrc.outputPorts()["out"]},
+          _mSinkDefPort {*_mSink.inputPorts()["in"]}
     {
-        return graph.addComponent<TestSource>("src-comp");
     }
 
-    bt2::ConstSinkComponent _createSink(const bt2::Graph graph)
-    {
-        return graph.addComponent<TestSink>("sink-comp");
-    }
+    const bt2::ConstSourceComponent _mSrc;
+    const bt2::ConstSinkComponent _mSink;
+    const bt2::ConstOutputPort _mSrcDefPort;
+    const bt2::ConstInputPort _mSinkDefPort;
 };
 
 } /* namespace */
 
 TEST_CASE_METHOD(GraphTopoFixture, "Empty graph")
 {
-    const auto graph = this->_createGraph();
-
     CHECK(events.empty());
 }
 
-TEST_CASE_METHOD(GraphTopoFixture, "Simple")
+TEST_CASE_METHOD(SrcSinkGraphTopoFixture, "Simple")
 {
     currentTest = CurrentTest::Simple;
 
-    const auto graph = this->_createGraph();
-    const auto src = this->_createSrc(*graph);
-    const auto sink = this->_createSink(*graph);
-    const auto srcDefPort = *src.outputPorts()["out"];
-    const auto sinkDefPort = *sink.inputPorts()["in"];
-
-    graph->connectPorts(srcDefPort, sinkDefPort);
+    _mGraph->connectPorts(_mSrcDefPort, _mSinkDefPort);
     CHECK(events.size() == 4);
-    CHECK(hasEvent(Event::createGraphSrcOutputPortAdded(src, srcDefPort)));
-    CHECK(hasEvent(Event::createGraphSinkInputPortAdded(sink, sinkDefPort)));
-    CHECK(hasEvent(Event::createSrcCompOutputPortConnected(src, srcDefPort, sinkDefPort)));
-    CHECK(hasEvent(Event::createSinkCompInputPortConnected(sink, sinkDefPort, srcDefPort)));
+    CHECK(hasEvent(Event::createGraphSrcOutputPortAdded(_mSrc, _mSrcDefPort)));
+    CHECK(hasEvent(Event::createGraphSinkInputPortAdded(_mSink, _mSinkDefPort)));
+    CHECK(hasEvent(Event::createSrcCompOutputPortConnected(_mSrc, _mSrcDefPort, _mSinkDefPort)));
+    CHECK(hasEvent(Event::createSinkCompInputPortConnected(_mSink, _mSinkDefPort, _mSrcDefPort)));
 }
 
-TEST_CASE_METHOD(GraphTopoFixture, "Source port connected error")
+TEST_CASE_METHOD(SrcSinkGraphTopoFixture, "Source port connected error")
 {
     currentTest = CurrentTest::SrcPortConnectedError;
 
-    const auto graph = this->_createGraph();
-    const auto src = this->_createSrc(*graph);
-    const auto sink = this->_createSink(*graph);
-    const auto srcDefPort = *src.outputPorts()["out"];
-    const auto sinkDefPort = *sink.inputPorts()["in"];
-
-    CHECK_THROWS_AS(graph->connectPorts(srcDefPort, sinkDefPort), bt2::Error);
+    CHECK_THROWS_AS(_mGraph->connectPorts(_mSrcDefPort, _mSinkDefPort), bt2::Error);
     bt_current_thread_clear_error();
     CHECK(events.size() == 3);
-    CHECK(hasEvent(Event::createGraphSrcOutputPortAdded(src, srcDefPort)));
-    CHECK(hasEvent(Event::createGraphSinkInputPortAdded(sink, sinkDefPort)));
-    CHECK(hasEvent(Event::createSrcCompOutputPortConnected(src, srcDefPort, sinkDefPort)));
+    CHECK(hasEvent(Event::createGraphSrcOutputPortAdded(_mSrc, _mSrcDefPort)));
+    CHECK(hasEvent(Event::createGraphSinkInputPortAdded(_mSink, _mSinkDefPort)));
+    CHECK(hasEvent(Event::createSrcCompOutputPortConnected(_mSrc, _mSrcDefPort, _mSinkDefPort)));
 }
 
-TEST_CASE_METHOD(GraphTopoFixture, "Sink port connected error")
+TEST_CASE_METHOD(SrcSinkGraphTopoFixture, "Sink port connected error")
 {
     currentTest = CurrentTest::SinkPortConnectedError;
 
-    const auto graph = this->_createGraph();
-    const auto src = this->_createSrc(*graph);
-    const auto sink = this->_createSink(*graph);
-    const auto srcDefPort = *src.outputPorts()["out"];
-    const auto sinkDefPort = *sink.inputPorts()["in"];
-
-    CHECK_THROWS_AS(graph->connectPorts(srcDefPort, sinkDefPort), bt2::Error);
+    CHECK_THROWS_AS(_mGraph->connectPorts(_mSrcDefPort, _mSinkDefPort), bt2::Error);
     bt_current_thread_clear_error();
     CHECK(events.size() == 4);
-    CHECK(hasEvent(Event::createGraphSrcOutputPortAdded(src, srcDefPort)));
-    CHECK(hasEvent(Event::createGraphSinkInputPortAdded(sink, sinkDefPort)));
-    CHECK(hasEvent(Event::createSrcCompOutputPortConnected(src, srcDefPort, sinkDefPort)));
-    CHECK(hasEvent(Event::createSinkCompInputPortConnected(sink, sinkDefPort, srcDefPort)));
+    CHECK(hasEvent(Event::createGraphSrcOutputPortAdded(_mSrc, _mSrcDefPort)));
+    CHECK(hasEvent(Event::createGraphSinkInputPortAdded(_mSink, _mSinkDefPort)));
+    CHECK(hasEvent(Event::createSrcCompOutputPortConnected(_mSrc, _mSrcDefPort, _mSinkDefPort)));
+    CHECK(hasEvent(Event::createSinkCompInputPortConnected(_mSink, _mSinkDefPort, _mSrcDefPort)));
 }
 
-TEST_CASE_METHOD(GraphTopoFixture, "Source adds port in port connected")
+TEST_CASE_METHOD(SrcSinkGraphTopoFixture, "Source adds port in port connected")
 {
     currentTest = CurrentTest::SrcAddsPortInPortConnected;
 
-    const auto graph = this->_createGraph();
-    const auto src = this->_createSrc(*graph);
-    const auto sink = this->_createSink(*graph);
-    const auto srcDefPort = *src.outputPorts()["out"];
-    const auto sinkDefPort = *sink.inputPorts()["in"];
-
-    graph->connectPorts(srcDefPort, sinkDefPort);
+    _mGraph->connectPorts(_mSrcDefPort, _mSinkDefPort);
     CHECK(events.size() == 5);
-    CHECK(hasEvent(Event::createGraphSrcOutputPortAdded(src, srcDefPort)));
-    CHECK(hasEvent(Event::createGraphSinkInputPortAdded(sink, sinkDefPort)));
+    CHECK(hasEvent(Event::createGraphSrcOutputPortAdded(_mSrc, _mSrcDefPort)));
+    CHECK(hasEvent(Event::createGraphSinkInputPortAdded(_mSink, _mSinkDefPort)));
 
     const auto srcPortConnectedEvent =
-        Event::createSrcCompOutputPortConnected(src, srcDefPort, sinkDefPort);
+        Event::createSrcCompOutputPortConnected(_mSrc, _mSrcDefPort, _mSinkDefPort);
 
     CHECK(hasEvent(srcPortConnectedEvent));
 
     const auto graphPortAddedSrcEvent =
-        Event::createGraphSrcOutputPortAdded(src, *src.outputPorts()["hello"]);
+        Event::createGraphSrcOutputPortAdded(_mSrc, *_mSrc.outputPorts()["hello"]);
 
     CHECK(hasEvent(graphPortAddedSrcEvent));
-    CHECK(hasEvent(Event::createSinkCompInputPortConnected(sink, sinkDefPort, srcDefPort)));
+    CHECK(hasEvent(Event::createSinkCompInputPortConnected(_mSink, _mSinkDefPort, _mSrcDefPort)));
     CHECK(eventPos(srcPortConnectedEvent) < eventPos(graphPortAddedSrcEvent));
 }
