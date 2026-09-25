@@ -17,11 +17,6 @@
 
 namespace {
 
-bt2::ClockClass::Shared createClkCls(const bt2::SelfComponent selfComp)
-{
-    return selfComp.createClockClass();
-}
-
 /*
  * Creates a clock class and freezes it.
  *
@@ -69,7 +64,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
 
     triggers.emplace_back(makeRunInCompInitTrigger(
         [](const auto selfComp) {
-            bt_clock_class_get_namespace(createClkCls(selfComp)->libObjPtr());
+            bt_clock_class_get_namespace(selfComp.createClockClass()->libObjPtr());
         },
         CondTrigger::Type::Pre, "clock-class-get-namespace:mip-version-is-valid", 0));
 
@@ -83,7 +78,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
     addRunInCompInitTriggerPerMipVersion(
         triggers,
         [](const auto selfComp) {
-            const auto clkCls = createClkCls(selfComp);
+            const auto clkCls = selfComp.createClockClass();
 
             withCurrentThreadError([&] {
                 bt_clock_class_set_namespace(clkCls->libObjPtr(), "ns");
@@ -94,7 +89,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
     addRunInCompInitTriggerPerMipVersion(
         triggers,
         [](const auto selfComp) {
-            bt_clock_class_set_namespace(createClkCls(selfComp)->libObjPtr(), nullptr);
+            bt_clock_class_set_namespace(selfComp.createClockClass()->libObjPtr(), nullptr);
         },
         "clock-class-set-namespace:not-null:name");
 
@@ -107,7 +102,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
 
     triggers.emplace_back(makeRunInCompInitTrigger(
         [](const auto selfComp) {
-            bt_clock_class_set_namespace(createClkCls(selfComp)->libObjPtr(), "ns");
+            bt_clock_class_set_namespace(selfComp.createClockClass()->libObjPtr(), "ns");
         },
         CondTrigger::Type::Pre, "clock-class-set-namespace:mip-version-is-valid", 0));
 
@@ -127,7 +122,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
 
     triggers.emplace_back(makeRunInCompInitTrigger(
         [](const auto selfComp) {
-            const auto clkCls = createClkCls(selfComp);
+            const auto clkCls = selfComp.createClockClass();
 
             withCurrentThreadError([&] {
                 bt_clock_class_set_name(clkCls->libObjPtr(), "name");
@@ -137,7 +132,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
 
     triggers.emplace_back(makeRunInCompInitTrigger(
         [](const auto selfComp) {
-            bt_clock_class_set_name(createClkCls(selfComp)->libObjPtr(), nullptr);
+            bt_clock_class_set_name(selfComp.createClockClass()->libObjPtr(), nullptr);
         },
         CondTrigger::Type::Pre, "clock-class-set-name:not-null:name", 0));
 
@@ -157,7 +152,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
     addRunInCompInitTriggerPerMipVersion(
         triggers,
         [](const auto selfComp) {
-            const auto clkCls = createClkCls(selfComp);
+            const auto clkCls = selfComp.createClockClass();
 
             withCurrentThreadError([&] {
                 bt_clock_class_get_uid(clkCls->libObjPtr());
@@ -167,7 +162,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
 
     triggers.emplace_back(makeRunInCompInitTrigger(
         [](const auto selfComp) {
-            bt_clock_class_get_uid(createClkCls(selfComp)->libObjPtr());
+            bt_clock_class_get_uid(selfComp.createClockClass()->libObjPtr());
         },
         CondTrigger::Type::Pre, "clock-class-get-uid:mip-version-is-valid", 0));
 
@@ -181,7 +176,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
     addRunInCompInitTriggerPerMipVersion(
         triggers,
         [](const auto selfComp) {
-            const auto clkCls = createClkCls(selfComp);
+            const auto clkCls = selfComp.createClockClass();
 
             withCurrentThreadError([&] {
                 bt_clock_class_set_uid(clkCls->libObjPtr(), "uid");
@@ -192,7 +187,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
     addRunInCompInitTriggerPerMipVersion(
         triggers,
         [](const auto selfComp) {
-            bt_clock_class_set_uid(createClkCls(selfComp)->libObjPtr(), nullptr);
+            bt_clock_class_set_uid(selfComp.createClockClass()->libObjPtr(), nullptr);
         },
         "clock-class-set-uid:not-null:name");
 
@@ -205,7 +200,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
 
     triggers.emplace_back(makeRunInCompInitTrigger(
         [](const auto selfComp) {
-            bt_clock_class_set_uid(createClkCls(selfComp)->libObjPtr(), "uid");
+            bt_clock_class_set_uid(selfComp.createClockClass()->libObjPtr(), "uid");
         },
         CondTrigger::Type::Pre, "clock-class-set-uid:mip-version-is-valid", 0));
 
@@ -225,7 +220,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
 
     triggers.emplace_back(makeRunInCompInitTrigger(
         [](const auto selfComp) {
-            const auto clkCls = createClkCls(selfComp);
+            const auto clkCls = selfComp.createClockClass();
 
             withCurrentThreadError([&] {
                 bt_clock_class_set_description(clkCls->libObjPtr(), "descr");
@@ -235,7 +230,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
 
     triggers.emplace_back(makeRunInCompInitTrigger(
         [](const auto selfComp) {
-            bt_clock_class_set_description(createClkCls(selfComp)->libObjPtr(), nullptr);
+            bt_clock_class_set_description(selfComp.createClockClass()->libObjPtr(), nullptr);
         },
         CondTrigger::Type::Pre, "clock-class-set-description:not-null:description", 0));
 
@@ -267,13 +262,13 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
 
     triggers.emplace_back(makeRunInCompInitTrigger(
         [](const auto selfComp) {
-            bt_clock_class_set_frequency(createClkCls(selfComp)->libObjPtr(), 0);
+            bt_clock_class_set_frequency(selfComp.createClockClass()->libObjPtr(), 0);
         },
         CondTrigger::Type::Pre, "clock-class-set-frequency:valid-frequency", 0));
 
     triggers.emplace_back(makeRunInCompInitTrigger(
         [](const auto selfComp) {
-            const auto clkCls = createClkCls(selfComp);
+            const auto clkCls = selfComp.createClockClass();
 
             /*
              * Default frequency is 1 GHz; set offset cycles to a value
@@ -294,7 +289,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
     addRunInCompInitTriggerPerMipVersion(
         triggers,
         [](const auto selfComp) {
-            bt_clock_class_get_precision(createClkCls(selfComp)->libObjPtr());
+            bt_clock_class_get_precision(selfComp.createClockClass()->libObjPtr());
         },
         "clock-class-get-precision:mip-version-is-valid");
 
@@ -309,7 +304,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
 
     triggers.emplace_back(makeRunInCompInitTrigger(
         [](const auto selfComp) {
-            const auto clkCls = createClkCls(selfComp);
+            const auto clkCls = selfComp.createClockClass();
 
             withCurrentThreadError([&] {
                 std::uint64_t precision;
@@ -321,7 +316,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
 
     triggers.emplace_back(makeRunInCompInitTrigger(
         [](const auto selfComp) {
-            bt_clock_class_get_opt_precision(createClkCls(selfComp)->libObjPtr(), nullptr);
+            bt_clock_class_get_opt_precision(selfComp.createClockClass()->libObjPtr(), nullptr);
         },
         CondTrigger::Type::Pre, "clock-class-get-opt-precision:not-null:precision-output", 0));
 
@@ -340,7 +335,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
 
     triggers.emplace_back(makeRunInCompInitTrigger(
         [](const auto selfComp) {
-            bt_clock_class_set_precision(createClkCls(selfComp)->libObjPtr(), UINT64_C(-1));
+            bt_clock_class_set_precision(selfComp.createClockClass()->libObjPtr(), UINT64_C(-1));
         },
         CondTrigger::Type::Pre, "clock-class-set-precision:valid-precision", 0));
 
@@ -354,7 +349,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
     addRunInCompInitTriggerPerMipVersion(
         triggers,
         [](const auto selfComp) {
-            const auto clkCls = createClkCls(selfComp);
+            const auto clkCls = selfComp.createClockClass();
 
             withCurrentThreadError([&] {
                 bt_clock_class_set_accuracy(clkCls->libObjPtr(), 1);
@@ -371,14 +366,14 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
 
     triggers.emplace_back(makeRunInCompInitTrigger(
         [](const auto selfComp) {
-            bt_clock_class_set_accuracy(createClkCls(selfComp)->libObjPtr(), 1);
+            bt_clock_class_set_accuracy(selfComp.createClockClass()->libObjPtr(), 1);
         },
         CondTrigger::Type::Pre, "clock-class-set-accuracy:mip-version-is-valid", 0));
 
     addRunInCompInitTriggerPerMipVersion(
         triggers,
         [](const auto selfComp) {
-            bt_clock_class_set_accuracy(createClkCls(selfComp)->libObjPtr(), UINT64_C(-1));
+            bt_clock_class_set_accuracy(selfComp.createClockClass()->libObjPtr(), UINT64_C(-1));
         },
         "clock-class-set-accuracy:valid-accuracy");
 
@@ -394,7 +389,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
     addRunInCompInitTriggerPerMipVersion(
         triggers,
         [](const auto selfComp) {
-            const auto clkCls = createClkCls(selfComp);
+            const auto clkCls = selfComp.createClockClass();
 
             withCurrentThreadError([&] {
                 std::uint64_t accuracy;
@@ -408,14 +403,14 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
         [](const auto selfComp) {
             std::uint64_t accuracy;
 
-            bt_clock_class_get_accuracy(createClkCls(selfComp)->libObjPtr(), &accuracy);
+            bt_clock_class_get_accuracy(selfComp.createClockClass()->libObjPtr(), &accuracy);
         },
         CondTrigger::Type::Pre, "clock-class-get-accuracy:mip-version-is-valid", 0));
 
     addRunInCompInitTriggerPerMipVersion(
         triggers,
         [](const auto selfComp) {
-            bt_clock_class_get_accuracy(createClkCls(selfComp)->libObjPtr(), nullptr);
+            bt_clock_class_get_accuracy(selfComp.createClockClass()->libObjPtr(), nullptr);
         },
         "clock-class-get-accuracy:not-null:accuracy-output");
 
@@ -433,7 +428,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
         [](const auto selfComp) {
             std::uint64_t cycles;
 
-            bt_clock_class_get_offset(createClkCls(selfComp)->libObjPtr(), nullptr, &cycles);
+            bt_clock_class_get_offset(selfComp.createClockClass()->libObjPtr(), nullptr, &cycles);
         },
         CondTrigger::Type::Pre, "clock-class-get-offset:not-null:seconds-output", 0));
 
@@ -441,7 +436,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
         [](const auto selfComp) {
             std::int64_t seconds;
 
-            bt_clock_class_get_offset(createClkCls(selfComp)->libObjPtr(), &seconds, nullptr);
+            bt_clock_class_get_offset(selfComp.createClockClass()->libObjPtr(), &seconds, nullptr);
         },
         CondTrigger::Type::Pre, "clock-class-get-offset:not-null:cycles-output", 0));
 
@@ -461,7 +456,8 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
     triggers.emplace_back(makeRunInCompInitTrigger(
         [](const auto selfComp) {
             /* Default frequency is 1 GHz; provide an equal offset (cycles) */
-            bt_clock_class_set_offset(createClkCls(selfComp)->libObjPtr(), 0, UINT64_C(1000000000));
+            bt_clock_class_set_offset(selfComp.createClockClass()->libObjPtr(), 0,
+                                      UINT64_C(1000000000));
         },
         CondTrigger::Type::Pre, "clock-class-set-offset:offset-cycles-lt-frequency", 0));
 
@@ -475,7 +471,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
     addRunInCompInitTriggerPerMipVersion(
         triggers,
         [](const auto selfComp) {
-            const auto clkCls = createClkCls(selfComp);
+            const auto clkCls = selfComp.createClockClass();
 
             clkCls->origin("ns", "name", "uid");
             withCurrentThreadError([&] {
@@ -486,14 +482,14 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
 
     triggers.emplace_back(makeRunInCompInitTrigger(
         [](const auto selfComp) {
-            bt_clock_class_get_origin_namespace(createClkCls(selfComp)->libObjPtr());
+            bt_clock_class_get_origin_namespace(selfComp.createClockClass()->libObjPtr());
         },
         CondTrigger::Type::Pre, "clock-class-get-origin-namespace:mip-version-is-valid", 0));
 
     addRunInCompInitTriggerPerMipVersion(
         triggers,
         [](const auto selfComp) {
-            bt_clock_class_get_origin_namespace(createClkCls(selfComp)->libObjPtr());
+            bt_clock_class_get_origin_namespace(selfComp.createClockClass()->libObjPtr());
         },
         "clock-class-get-origin-namespace:clock-class-origin-is-custom");
 
@@ -507,7 +503,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
     addRunInCompInitTriggerPerMipVersion(
         triggers,
         [](const auto selfComp) {
-            const auto clkCls = createClkCls(selfComp);
+            const auto clkCls = selfComp.createClockClass();
 
             clkCls->origin("ns", "name", "uid");
             withCurrentThreadError([&] {
@@ -518,14 +514,14 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
 
     triggers.emplace_back(makeRunInCompInitTrigger(
         [](const auto selfComp) {
-            bt_clock_class_get_origin_name(createClkCls(selfComp)->libObjPtr());
+            bt_clock_class_get_origin_name(selfComp.createClockClass()->libObjPtr());
         },
         CondTrigger::Type::Pre, "clock-class-get-origin-name:mip-version-is-valid", 0));
 
     addRunInCompInitTriggerPerMipVersion(
         triggers,
         [](const auto selfComp) {
-            bt_clock_class_get_origin_name(createClkCls(selfComp)->libObjPtr());
+            bt_clock_class_get_origin_name(selfComp.createClockClass()->libObjPtr());
         },
         "clock-class-get-origin-name:clock-class-origin-is-custom");
 
@@ -539,7 +535,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
     addRunInCompInitTriggerPerMipVersion(
         triggers,
         [](const auto selfComp) {
-            const auto clkCls = createClkCls(selfComp);
+            const auto clkCls = selfComp.createClockClass();
 
             clkCls->origin("ns", "name", "uid");
             withCurrentThreadError([&] {
@@ -550,14 +546,14 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
 
     triggers.emplace_back(makeRunInCompInitTrigger(
         [](const auto selfComp) {
-            bt_clock_class_get_origin_uid(createClkCls(selfComp)->libObjPtr());
+            bt_clock_class_get_origin_uid(selfComp.createClockClass()->libObjPtr());
         },
         CondTrigger::Type::Pre, "clock-class-get-origin-uid:mip-version-is-valid", 0));
 
     addRunInCompInitTriggerPerMipVersion(
         triggers,
         [](const auto selfComp) {
-            bt_clock_class_get_origin_uid(createClkCls(selfComp)->libObjPtr());
+            bt_clock_class_get_origin_uid(selfComp.createClockClass()->libObjPtr());
         },
         "clock-class-get-origin-uid:clock-class-origin-is-custom");
 
@@ -570,7 +566,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
 
     triggers.emplace_back(makeRunInCompInitTrigger(
         [](const auto selfComp) {
-            const auto clkCls = createClkCls(selfComp);
+            const auto clkCls = selfComp.createClockClass();
 
             withCurrentThreadError([&] {
                 bt_clock_class_origin_is_unix_epoch(clkCls->libObjPtr());
@@ -587,7 +583,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
 
     triggers.emplace_back(makeRunInCompInitTrigger(
         [](const auto selfComp) {
-            const auto clkCls = createClkCls(selfComp);
+            const auto clkCls = selfComp.createClockClass();
 
             withCurrentThreadError([&] {
                 bt_clock_class_origin_is_known(clkCls->libObjPtr());
@@ -604,7 +600,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
 
     triggers.emplace_back(makeRunInCompInitTrigger(
         [](const auto selfComp) {
-            const auto clkCls = createClkCls(selfComp);
+            const auto clkCls = selfComp.createClockClass();
 
             withCurrentThreadError([&] {
                 bt_clock_class_set_origin_is_unix_epoch(clkCls->libObjPtr(), BT_TRUE);
@@ -628,7 +624,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
 
     triggers.emplace_back(makeRunInCompInitTrigger(
         [](const auto selfComp) {
-            const auto clkCls = createClkCls(selfComp);
+            const auto clkCls = selfComp.createClockClass();
 
             withCurrentThreadError([&] {
                 bt_clock_class_set_origin_unknown(clkCls->libObjPtr());
@@ -652,7 +648,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
     addRunInCompInitTriggerPerMipVersion(
         triggers,
         [](const auto selfComp) {
-            const auto clkCls = createClkCls(selfComp);
+            const auto clkCls = selfComp.createClockClass();
 
             withCurrentThreadError([&] {
                 bt_clock_class_set_origin(clkCls->libObjPtr(), "ns", "name", "uid");
@@ -670,21 +666,24 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
 
     triggers.emplace_back(makeRunInCompInitTrigger(
         [](const auto selfComp) {
-            bt_clock_class_set_origin(createClkCls(selfComp)->libObjPtr(), "ns", "name", "uid");
+            bt_clock_class_set_origin(selfComp.createClockClass()->libObjPtr(), "ns", "name",
+                                      "uid");
         },
         CondTrigger::Type::Pre, "clock-class-set-origin:mip-version-is-valid", 0));
 
     addRunInCompInitTriggerPerMipVersion(
         triggers,
         [](const auto selfComp) {
-            bt_clock_class_set_origin(createClkCls(selfComp)->libObjPtr(), "ns", nullptr, "uid");
+            bt_clock_class_set_origin(selfComp.createClockClass()->libObjPtr(), "ns", nullptr,
+                                      "uid");
         },
         "clock-class-set-origin:not-null:name");
 
     addRunInCompInitTriggerPerMipVersion(
         triggers,
         [](const auto selfComp) {
-            bt_clock_class_set_origin(createClkCls(selfComp)->libObjPtr(), "ns", "name", nullptr);
+            bt_clock_class_set_origin(selfComp.createClockClass()->libObjPtr(), "ns", "name",
+                                      nullptr);
         },
         "clock-class-set-origin:not-null:uid");
 
@@ -697,7 +696,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
 
     triggers.emplace_back(makeRunInCompInitTrigger(
         [](const auto selfComp) {
-            const auto clkCls = createClkCls(selfComp);
+            const auto clkCls = selfComp.createClockClass();
 
             withCurrentThreadError([&] {
                 bt_clock_class_set_origin_unix_epoch(clkCls->libObjPtr());
@@ -721,7 +720,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
     addRunInCompInitTriggerPerMipVersion(
         triggers,
         [](const auto selfComp) {
-            bt_clock_class_get_uuid(createClkCls(selfComp)->libObjPtr());
+            bt_clock_class_get_uuid(selfComp.createClockClass()->libObjPtr());
         },
         "clock-class-get-uuid:mip-version-is-valid");
 
@@ -736,7 +735,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
 
     triggers.emplace_back(makeRunInCompInitTrigger(
         [](const auto selfComp) {
-            bt_clock_class_set_uuid(createClkCls(selfComp)->libObjPtr(), nullptr);
+            bt_clock_class_set_uuid(selfComp.createClockClass()->libObjPtr(), nullptr);
         },
         CondTrigger::Type::Pre, "clock-class-set-uuid:not-null:uuid", 0));
 
@@ -753,13 +752,13 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
         [](const auto selfComp) {
             const bt2c::Uuid uuid;
 
-            bt_clock_class_set_uuid(createClkCls(selfComp)->libObjPtr(), uuid.data());
+            bt_clock_class_set_uuid(selfComp.createClockClass()->libObjPtr(), uuid.data());
         },
         "clock-class-set-uuid:mip-version-is-valid");
 
     triggers.emplace_back(makeRunInCompInitTrigger(
         [](const auto selfComp) {
-            const auto clkCls = createClkCls(selfComp);
+            const auto clkCls = selfComp.createClockClass();
 
             withCurrentThreadError([&] {
                 std::int64_t ns;
@@ -780,7 +779,7 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
 
     triggers.emplace_back(makeRunInCompInitTrigger(
         [](const auto selfComp) {
-            bt_clock_class_cycles_to_ns_from_origin(createClkCls(selfComp)->libObjPtr(), 0,
+            bt_clock_class_cycles_to_ns_from_origin(selfComp.createClockClass()->libObjPtr(), 0,
                                                     nullptr);
         },
         CondTrigger::Type::Pre, "clock-class-cycles-to-ns-from-origin:not-null:nanoseconds-output",
@@ -795,8 +794,8 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
 
     triggers.emplace_back(makeRunInCompInitTrigger(
         [](const auto selfComp) {
-            bt_clock_class_has_same_identity(createClkCls(selfComp)->libObjPtr(),
-                                             createClkCls(selfComp)->libObjPtr());
+            bt_clock_class_has_same_identity(selfComp.createClockClass()->libObjPtr(),
+                                             selfComp.createClockClass()->libObjPtr());
         },
         CondTrigger::Type::Pre, "clock-class-has-same-identity:mip-version-is-valid", 0));
 
@@ -815,14 +814,14 @@ void addClkClsPreCondsTriggers(CondTriggers& triggers)
 
     triggers.emplace_back(makeRunInCompInitTrigger(
         [](const auto selfComp) {
-            bt_clock_class_set_user_attributes(createClkCls(selfComp)->libObjPtr(), nullptr);
+            bt_clock_class_set_user_attributes(selfComp.createClockClass()->libObjPtr(), nullptr);
         },
         CondTrigger::Type::Pre,
         "clock-class-set-user-attributes:not-null:user-attributes-value-object", 0));
 
     triggers.emplace_back(makeRunInCompInitTrigger(
         [](const auto selfComp) {
-            bt_clock_class_set_user_attributes(createClkCls(selfComp)->libObjPtr(),
+            bt_clock_class_set_user_attributes(selfComp.createClockClass()->libObjPtr(),
                                                bt2::ArrayValue::create()->libObjPtr());
         },
         CondTrigger::Type::Pre, "clock-class-set-user-attributes:is-map-value:user-attributes", 0));
