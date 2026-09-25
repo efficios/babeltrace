@@ -333,7 +333,6 @@ EXTRA_DIST = \
 	plugins/sink.utils.counter/succeed/step-one.mctf \
 	plugins/sink.utils.counter/succeed/step-zero.mctf \
 	plugins/sink.utils.dummy/test_dummy.py \
-	plugins/src.ctf.fs/empty-event-record.expect \
 	plugins/src.ctf.fs/fail/conftest.py \
 	plugins/src.ctf.fs/fail/data/ctf-1.8-contiguous-pkts-different-stream-classes.mctf \
 	plugins/src.ctf.fs/fail/data/ctf-1.8-contiguous-pkts-different-stream-ids.mctf \
@@ -918,7 +917,6 @@ EXTRA_DIST = \
 	plugins/src.ctf.fs/test_query_metadata_info.py \
 	plugins/src.ctf.fs/test_query_support_info.py \
 	plugins/src.ctf.fs/test_query_trace_info.py \
-	plugins/src.ctf.fs/valid-events-then-invalid-events.expect \
 	plugins/src.ctf.lttng-live/base-2.15.json \
 	plugins/src.ctf.lttng-live/base.json \
 	plugins/src.ctf.lttng-live/cli-base-2.15.expect \
