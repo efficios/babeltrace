@@ -978,19 +978,42 @@ COMMON_TEST_LDADD = \
 	$(top_builddir)/src/common/libcommon.la \
 	$(top_builddir)/src/logging/liblogging.la
 
+CPP_COMMON_LIB_TEST_LDADD = \
+	$(top_builddir)/src/cpp-common/libcpp-common.la \
+	$(FMT_LDADD) \
+	$(top_builddir)/src/lib/libbabeltrace2.la \
+	$(COMMON_TEST_LDADD)
+
 LIB_COMMON_TEST_LDADD = \
 	utils/libtestcommon.la \
 	lib/utils/liblib-utils.la \
 	$(CATCH2_LDADD) \
 	$(top_builddir)/src/common/libcommon.la \
 	$(top_builddir)/src/logging/liblogging.la \
-	$(FMT_LDADD)
+	$(FMT_LDADD) \
+	$(top_builddir)/src/lib/libbabeltrace2.la
 
 # CTF trace generators common link flags
 GEN_TRACE_LDADD = \
 	$(top_builddir)/src/ctf-writer/libbabeltrace2-ctf-writer.la \
 	$(top_builddir)/src/common/libcommon.la \
 	$(top_builddir)/src/logging/liblogging.la
+
+# Test plugin and plugin provider common flags
+TEST_PLUGIN_LDFLAGS = \
+	$(AM_LDFLAGS) \
+	$(LT_NO_UNDEFINED) \
+	-rpath / -avoid-version -module $(LD_NOTEXT)
+
+TEST_PLUGIN_LIBADD = \
+	$(top_builddir)/src/lib/libbabeltrace2.la \
+	$(top_builddir)/src/common/libcommon.la \
+	$(top_builddir)/src/logging/liblogging.la
+
+# Defaults for a test program which doesn't specify its own sources
+# (single `.cpp` file named after the program) or libraries.
+AM_DEFAULT_SOURCE_EXT = .cpp
+LDADD = $(COMMON_TEST_LDADD)
 
 noinst_LTLIBRARIES =
 noinst_PROGRAMS =
@@ -1295,62 +1318,27 @@ utils_libtestcommon_la_SOURCES = \
 	utils/common.hpp
 
 noinst_PROGRAMS += cpp-common/test-c-string-view
-cpp_common_test_c_string_view_SOURCES = cpp-common/test-c-string-view.cpp
-cpp_common_test_c_string_view_LDADD = $(COMMON_TEST_LDADD)
-
 noinst_PROGRAMS += cpp-common/test-align
-cpp_common_test_align_SOURCES = cpp-common/test-align.cpp
-cpp_common_test_align_LDADD = $(COMMON_TEST_LDADD)
-
 noinst_PROGRAMS += cpp-common/test-data-len
-cpp_common_test_data_len_SOURCES = cpp-common/test-data-len.cpp
-cpp_common_test_data_len_LDADD = $(COMMON_TEST_LDADD)
-
 noinst_PROGRAMS += cpp-common/test-endian
-cpp_common_test_endian_SOURCES = cpp-common/test-endian.cpp
-cpp_common_test_endian_LDADD = $(COMMON_TEST_LDADD)
-
 noinst_PROGRAMS += cpp-common/test-join
-cpp_common_test_join_SOURCES = cpp-common/test-join.cpp
-cpp_common_test_join_LDADD = $(COMMON_TEST_LDADD)
 
 noinst_PROGRAMS += cpp-common/test-parse-json
-cpp_common_test_parse_json_SOURCES = cpp-common/test-parse-json.cpp
-cpp_common_test_parse_json_LDADD = \
-	$(top_builddir)/src/cpp-common/libcpp-common.la \
-	$(FMT_LDADD) \
-	$(top_builddir)/src/lib/libbabeltrace2.la \
-	$(COMMON_TEST_LDADD)
+cpp_common_test_parse_json_LDADD = $(CPP_COMMON_LIB_TEST_LDADD)
 
 noinst_PROGRAMS += cpp-common/test-prio-heap
-cpp_common_test_prio_heap_SOURCES = cpp-common/test-prio-heap.cpp
-cpp_common_test_prio_heap_LDADD = $(COMMON_TEST_LDADD)
-
 noinst_PROGRAMS += cpp-common/test-reverse-fixed-len-int-bits
-cpp_common_test_reverse_fixed_len_int_bits_SOURCES = cpp-common/test-reverse-fixed-len-int-bits.cpp
-cpp_common_test_reverse_fixed_len_int_bits_LDADD = $(COMMON_TEST_LDADD)
 
 noinst_PROGRAMS += cpp-common/test-uuid
-cpp_common_test_uuid_SOURCES = cpp-common/test-uuid.cpp
 cpp_common_test_uuid_LDADD = \
 	$(COMMON_TEST_LDADD) \
 	$(FMT_LDADD)
 
 noinst_PROGRAMS += cpp-common/test-unicode-conv
-cpp_common_test_unicode_conv_SOURCES = cpp-common/test-unicode-conv.cpp
-cpp_common_test_unicode_conv_LDADD = \
-	$(top_builddir)/src/cpp-common/libcpp-common.la \
-	$(FMT_LDADD) \
-	$(top_builddir)/src/lib/libbabeltrace2.la \
-	$(COMMON_TEST_LDADD)
+cpp_common_test_unicode_conv_LDADD = $(CPP_COMMON_LIB_TEST_LDADD)
 
 noinst_PROGRAMS += cpp-common/test-str-scanner
-cpp_common_test_str_scanner_SOURCES = cpp-common/test-str-scanner.cpp
-cpp_common_test_str_scanner_LDADD = \
-	$(top_builddir)/src/cpp-common/libcpp-common.la \
-	$(FMT_LDADD) \
-	$(top_builddir)/src/lib/libbabeltrace2.la \
-	$(COMMON_TEST_LDADD)
+cpp_common_test_str_scanner_LDADD = $(CPP_COMMON_LIB_TEST_LDADD)
 
 noinst_LTLIBRARIES += lib/utils/liblib-utils.la
 lib_utils_liblib_utils_la_SOURCES = \
@@ -1358,62 +1346,36 @@ lib_utils_liblib_utils_la_SOURCES = \
 	lib/utils/run-in.hpp
 
 noinst_PROGRAMS += lib/test-values
-lib_test_values_SOURCES = lib/test-values.cpp
-lib_test_values_LDADD = \
-	$(LIB_COMMON_TEST_LDADD) \
-	$(top_builddir)/src/lib/libbabeltrace2.la
+lib_test_values_LDADD = $(LIB_COMMON_TEST_LDADD)
 
 noinst_PROGRAMS += lib/test-trace-ir-ref
-lib_test_trace_ir_ref_SOURCES = lib/test-trace-ir-ref.cpp
 lib_test_trace_ir_ref_LDADD = \
 	$(LIB_COMMON_TEST_LDADD) \
-	$(top_builddir)/src/lib/libbabeltrace2.la \
 	$(top_builddir)/src/ctf-writer/libbabeltrace2-ctf-writer.la
 
 noinst_PROGRAMS += lib/test-graph-topo
-lib_test_graph_topo_SOURCES = lib/test-graph-topo.cpp
-lib_test_graph_topo_LDADD = \
-	$(LIB_COMMON_TEST_LDADD) \
-	$(top_builddir)/src/lib/libbabeltrace2.la
+lib_test_graph_topo_LDADD = $(LIB_COMMON_TEST_LDADD)
 
 noinst_PROGRAMS += lib/test-simple-sink
-lib_test_simple_sink_SOURCES = lib/test-simple-sink.cpp
-lib_test_simple_sink_LDADD = \
-	$(LIB_COMMON_TEST_LDADD) \
-	$(top_builddir)/src/lib/libbabeltrace2.la
+lib_test_simple_sink_LDADD = $(LIB_COMMON_TEST_LDADD)
 
 noinst_PROGRAMS += lib/test-remove-destruction-listener-in-destruction-listener
-lib_test_remove_destruction_listener_in_destruction_listener_SOURCES = lib/test-remove-destruction-listener-in-destruction-listener.cpp
-lib_test_remove_destruction_listener_in_destruction_listener_LDADD = \
-	$(LIB_COMMON_TEST_LDADD) \
-	$(top_builddir)/src/lib/libbabeltrace2.la
+lib_test_remove_destruction_listener_in_destruction_listener_LDADD = $(LIB_COMMON_TEST_LDADD)
 
 noinst_PROGRAMS += lib/test-mip
-lib_test_mip_SOURCES = lib/test-mip.cpp
-lib_test_mip_LDADD = \
-	$(LIB_COMMON_TEST_LDADD) \
-	$(top_builddir)/src/lib/libbabeltrace2.la
+lib_test_mip_LDADD = $(LIB_COMMON_TEST_LDADD)
 
 noinst_PROGRAMS += lib/test-fields
-lib_test_fields_SOURCES = lib/test-fields.cpp
-lib_test_fields_LDADD = \
-	$(LIB_COMMON_TEST_LDADD) \
-	$(top_builddir)/src/lib/libbabeltrace2.la
+lib_test_fields_LDADD = $(LIB_COMMON_TEST_LDADD)
 
 noinst_PROGRAMS += lib/test-plugins
-lib_test_plugins_SOURCES = lib/test-plugins.cpp
-lib_test_plugins_LDADD = \
-	$(LIB_COMMON_TEST_LDADD) \
-	$(top_builddir)/src/lib/libbabeltrace2.la
+lib_test_plugins_LDADD = $(LIB_COMMON_TEST_LDADD)
 lib_test_plugins_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-DPLUGINS_DIR=\"$(abs_builddir)/lib/plugins/.libs\"
 
 noinst_PROGRAMS += lib/test-find-plugins
-lib_test_find_plugins_SOURCES = lib/test-find-plugins.cpp
-lib_test_find_plugins_LDADD = \
-	$(LIB_COMMON_TEST_LDADD) \
-	$(top_builddir)/src/lib/libbabeltrace2.la
+lib_test_find_plugins_LDADD = $(LIB_COMMON_TEST_LDADD)
 lib_test_find_plugins_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-DPLUGINS_DIR=\"$(abs_builddir)/lib/plugins/.libs\" \
@@ -1421,69 +1383,33 @@ lib_test_find_plugins_CPPFLAGS = \
 
 noinst_LTLIBRARIES += lib/plugins/bt-plugin-minimal.la
 lib_plugins_bt_plugin_minimal_la_SOURCES = lib/plugins/minimal.c
-lib_plugins_bt_plugin_minimal_la_LDFLAGS = \
-	$(AM_LDFLAGS) \
-	$(LT_NO_UNDEFINED) \
-	-rpath / -avoid-version -module $(LD_NOTEXT)
-lib_plugins_bt_plugin_minimal_la_LIBADD = \
-	$(top_builddir)/src/lib/libbabeltrace2.la \
-	$(top_builddir)/src/common/libcommon.la \
-	$(top_builddir)/src/logging/liblogging.la
+lib_plugins_bt_plugin_minimal_la_LDFLAGS = $(TEST_PLUGIN_LDFLAGS)
+lib_plugins_bt_plugin_minimal_la_LIBADD = $(TEST_PLUGIN_LIBADD)
 
 noinst_LTLIBRARIES += lib/plugins/bt-plugin-sfs.la
 lib_plugins_bt_plugin_sfs_la_SOURCES = lib/plugins/sfs.c
-lib_plugins_bt_plugin_sfs_la_LDFLAGS = \
-	$(AM_LDFLAGS) \
-	$(LT_NO_UNDEFINED) \
-	-rpath / -avoid-version -module $(LD_NOTEXT)
-lib_plugins_bt_plugin_sfs_la_LIBADD = \
-	$(top_builddir)/src/lib/libbabeltrace2.la \
-	$(top_builddir)/src/common/libcommon.la \
-	$(top_builddir)/src/logging/liblogging.la
+lib_plugins_bt_plugin_sfs_la_LDFLAGS = $(TEST_PLUGIN_LDFLAGS)
+lib_plugins_bt_plugin_sfs_la_LIBADD = $(TEST_PLUGIN_LIBADD)
 
 noinst_LTLIBRARIES += lib/plugins/bt-plugin-multi.la
 lib_plugins_bt_plugin_multi_la_SOURCES = lib/plugins/multi.cpp
-lib_plugins_bt_plugin_multi_la_LDFLAGS = \
-	$(AM_LDFLAGS) \
-	$(LT_NO_UNDEFINED) \
-	-rpath / -avoid-version -module $(LD_NOTEXT)
-lib_plugins_bt_plugin_multi_la_LIBADD = \
-	$(top_builddir)/src/lib/libbabeltrace2.la \
-	$(top_builddir)/src/common/libcommon.la \
-	$(top_builddir)/src/logging/liblogging.la
+lib_plugins_bt_plugin_multi_la_LDFLAGS = $(TEST_PLUGIN_LDFLAGS)
+lib_plugins_bt_plugin_multi_la_LIBADD = $(TEST_PLUGIN_LIBADD)
 
 noinst_LTLIBRARIES += lib/plugin-providers/multi/bt-plugin-provider-multi.la
 lib_plugin_providers_multi_bt_plugin_provider_multi_la_SOURCES = lib/plugin-providers/multi/multi.cpp
-lib_plugin_providers_multi_bt_plugin_provider_multi_la_LDFLAGS = \
-	$(AM_LDFLAGS) \
-	$(LT_NO_UNDEFINED) \
-	-rpath / -avoid-version -module $(LD_NOTEXT)
-lib_plugin_providers_multi_bt_plugin_provider_multi_la_LIBADD = \
-	$(top_builddir)/src/lib/libbabeltrace2.la \
-	$(top_builddir)/src/common/libcommon.la \
-	$(top_builddir)/src/logging/liblogging.la
+lib_plugin_providers_multi_bt_plugin_provider_multi_la_LDFLAGS = $(TEST_PLUGIN_LDFLAGS)
+lib_plugin_providers_multi_bt_plugin_provider_multi_la_LIBADD = $(TEST_PLUGIN_LIBADD)
 
 noinst_LTLIBRARIES += lib/plugin-providers/init-fail/bt-plugin-provider-init-fail.la
 lib_plugin_providers_init_fail_bt_plugin_provider_init_fail_la_SOURCES = lib/plugin-providers/init-fail/init-fail.cpp
-lib_plugin_providers_init_fail_bt_plugin_provider_init_fail_la_LDFLAGS = \
-	$(AM_LDFLAGS) \
-	$(LT_NO_UNDEFINED) \
-	-rpath / -avoid-version -module $(LD_NOTEXT)
-lib_plugin_providers_init_fail_bt_plugin_provider_init_fail_la_LIBADD = \
-	$(top_builddir)/src/lib/libbabeltrace2.la \
-	$(top_builddir)/src/common/libcommon.la \
-	$(top_builddir)/src/logging/liblogging.la
+lib_plugin_providers_init_fail_bt_plugin_provider_init_fail_la_LDFLAGS = $(TEST_PLUGIN_LDFLAGS)
+lib_plugin_providers_init_fail_bt_plugin_provider_init_fail_la_LIBADD = $(TEST_PLUGIN_LIBADD)
 
 noinst_LTLIBRARIES += lib/plugin-providers/dup/bt-plugin-provider-dup.la
 lib_plugin_providers_dup_bt_plugin_provider_dup_la_SOURCES = lib/plugin-providers/dup/dup.cpp
-lib_plugin_providers_dup_bt_plugin_provider_dup_la_LDFLAGS = \
-	$(AM_LDFLAGS) \
-	$(LT_NO_UNDEFINED) \
-	-rpath / -avoid-version -module $(LD_NOTEXT)
-lib_plugin_providers_dup_bt_plugin_provider_dup_la_LIBADD = \
-	$(top_builddir)/src/lib/libbabeltrace2.la \
-	$(top_builddir)/src/common/libcommon.la \
-	$(top_builddir)/src/logging/liblogging.la
+lib_plugin_providers_dup_bt_plugin_provider_dup_la_LDFLAGS = $(TEST_PLUGIN_LDFLAGS)
+lib_plugin_providers_dup_bt_plugin_provider_dup_la_LIBADD = $(TEST_PLUGIN_LIBADD)
 
 noinst_PROGRAMS += lib/plugin-providers/load-plugin-providers.bin
 lib_plugin_providers_load_plugin_providers_bin_SOURCES = lib/plugin-providers/load-plugin-providers.cpp
@@ -1493,23 +1419,14 @@ lib_plugin_providers_load_plugin_providers_bin_LDADD = \
 
 noinst_LTLIBRARIES += lib/init-fail-plugin/bt-plugin.la
 lib_init_fail_plugin_bt_plugin_la_SOURCES = lib/init-fail-plugin/plugin.cpp
-lib_init_fail_plugin_bt_plugin_la_LDFLAGS = \
-	$(AM_LDFLAGS) \
-	$(LT_NO_UNDEFINED) \
-	-rpath / -avoid-version -module $(LD_NOTEXT)
+lib_init_fail_plugin_bt_plugin_la_LDFLAGS = $(TEST_PLUGIN_LDFLAGS)
 lib_init_fail_plugin_bt_plugin_la_LIBADD = \
 	$(top_builddir)/src/lib/libbabeltrace2.la
 
 noinst_LTLIBRARIES += utils/plugin-providers/bt-plugin-provider.la
 utils_plugin_providers_bt_plugin_provider_la_SOURCES = utils/plugin-providers/provider.cpp
-utils_plugin_providers_bt_plugin_provider_la_LDFLAGS = \
-	$(AM_LDFLAGS) \
-	$(LT_NO_UNDEFINED) \
-	-rpath / -avoid-version -module $(LD_NOTEXT)
-utils_plugin_providers_bt_plugin_provider_la_LIBADD = \
-	$(top_builddir)/src/lib/libbabeltrace2.la \
-	$(top_builddir)/src/common/libcommon.la \
-	$(top_builddir)/src/logging/liblogging.la
+utils_plugin_providers_bt_plugin_provider_la_LDFLAGS = $(TEST_PLUGIN_LDFLAGS)
+utils_plugin_providers_bt_plugin_provider_la_LIBADD = $(TEST_PLUGIN_LIBADD)
 
 if DEV_MODE
 
@@ -1538,18 +1455,13 @@ lib_conds_conds_triggers_bin_SOURCES = \
 	lib/conds/trace-cls-preconds-triggers.cpp \
 	lib/conds/trace-preconds-triggers.cpp \
 	lib/conds/value-conds-triggers.cpp
-lib_conds_conds_triggers_bin_LDADD = \
-	$(LIB_COMMON_TEST_LDADD) \
-	$(top_builddir)/src/lib/libbabeltrace2.la
+lib_conds_conds_triggers_bin_LDADD = $(LIB_COMMON_TEST_LDADD)
 
 endif # DEV_MODE
 
 noinst_PROGRAMS += bitfield/test-bitfield
-bitfield_test_bitfield_SOURCES = bitfield/test-bitfield.cpp
-bitfield_test_bitfield_LDADD = $(COMMON_TEST_LDADD)
 
 noinst_PROGRAMS += ctf-writer/test-ctf-writer
-ctf_writer_test_ctf_writer_SOURCES = ctf-writer/test-ctf-writer.cpp
 ctf_writer_test_ctf_writer_LDADD = \
 	utils/libtestcommon.la \
 	$(CATCH2_LDADD) \
@@ -1558,7 +1470,6 @@ ctf_writer_test_ctf_writer_LDADD = \
 	$(top_builddir)/src/logging/liblogging.la
 
 noinst_PROGRAMS += param-validation/test-param-validation
-param_validation_test_param_validation_SOURCES = param-validation/test-param-validation.cpp
 param_validation_test_param_validation_LDADD = \
 	$(CATCH2_LDADD) \
 	$(top_builddir)/src/param-parse/libparam-parse.la \
