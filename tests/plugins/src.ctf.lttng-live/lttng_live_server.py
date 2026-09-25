@@ -1942,16 +1942,6 @@ class LttngLiveServer:
     def session_url(self, session_name: str) -> str:
         return self.session_urls[session_name]
 
-    # URL for the single session.
-    #
-    # Convenience property for the common case where there's only one
-    # session (a precondition).
-    @property
-    def url(self) -> str:
-        urls = list(self.session_urls.values())
-        assert len(urls) == 1
-        return urls[0]
-
     def _recv_command(self):
         data = bytes()
 
@@ -2132,7 +2122,6 @@ def _lttng_live_server_process_target(
     override_session_name_len: Optional[int],
     override_trace_format: Optional[int],
     max_minor_version: int,
-    port: Optional[int],
     info_queue: "multiprocessing.Queue[tuple[int, Dict[str, str]]]",
 ):
     # Create the server in the child process
@@ -2145,7 +2134,6 @@ def _lttng_live_server_process_target(
         override_session_name_len,
         override_trace_format,
         max_minor_version,
-        port,
     )
 
     # Send server info back to parent
@@ -2164,8 +2152,8 @@ def _lttng_live_server_process_target(
 # Offers wait() to wait for the completion of the server (when the
 # viewer client disconnects) and stop() to terminate the process.
 #
-# The `port`, `base_url`, `session_urls`, and `url` properties and
-# the session_url() method are available once start() returns.
+# The `port`, `base_url`, and `session_urls` properties and the
+# session_url() method are available once start() returns.
 #
 # Use as a context manager to automatically handle waiting and stopping.
 class LttngLiveServerProcess:
@@ -2179,7 +2167,6 @@ class LttngLiveServerProcess:
         override_session_name_len: Optional[int] = None,
         override_trace_format: Optional[int] = None,
         max_minor_version: int = 10,
-        port: Optional[int] = None,
     ):
         self._sessions_filename = sessions_filename
         self._trace_path_prefix = trace_path_prefix
@@ -2189,7 +2176,6 @@ class LttngLiveServerProcess:
         self._override_session_name_len = override_session_name_len
         self._override_trace_format = override_trace_format
         self._max_minor_version = max_minor_version
-        self._port = port
         self._process: Optional[multiprocessing.Process] = None
         self._server_port: Optional[int] = None
         self._session_urls: Optional[Dict[str, str]] = None
@@ -2216,12 +2202,6 @@ class LttngLiveServerProcess:
         return self.session_urls[session_name]
 
     @property
-    def url(self) -> str:
-        urls = list(self.session_urls.values())
-        assert len(urls) == 1
-        return urls[0]
-
-    @property
     def is_alive(self) -> bool:
         return self._process is not None and self._process.is_alive()
 
@@ -2245,7 +2225,6 @@ class LttngLiveServerProcess:
                 self._override_session_name_len,
                 self._override_trace_format,
                 self._max_minor_version,
-                self._port,
                 info_queue,
             ),
             daemon=True,
@@ -2290,7 +2269,6 @@ class LttngLiveServerProcess:
         override_session_name_len: Optional[int] = None,
         override_trace_format: Optional[int] = None,
         max_minor_version: int = 10,
-        port: Optional[int] = None,
     ) -> "LttngLiveServerProcess":
         return cls(
             sessions_filename,
@@ -2301,7 +2279,6 @@ class LttngLiveServerProcess:
             override_session_name_len,
             override_trace_format,
             max_minor_version,
-            port,
         )
 
 
