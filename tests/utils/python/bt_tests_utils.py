@@ -79,7 +79,7 @@ def this_src_dir(source_file: Union[pathlib.Path, str]) -> pathlib.Path:
 # build directory `build_root_dir` (the build directory containing the
 # `tests` directory).
 def bt2_package_dir(build_root_dir: pathlib.Path) -> pathlib.Path:
-    return build_root_dir / "src/bindings/python/bt2/build/build_lib"
+    return build_root_dir / "src/bindings/python/bt2/uninstalled"
 
 
 # Returns the executable file path from `path`, appending `.exe`

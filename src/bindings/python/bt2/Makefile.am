@@ -182,21 +182,21 @@ uninstall-hook:
 
 # Directory containing a usable, uninstalled `bt2` package, used by the
 # tests and to build the documentation.
-BUILD_LIB_DIR = $(builddir)/build/build_lib
+UNINSTALLED_DIR = $(builddir)/uninstalled
 
 all-local: build-python-bindings.stamp
 
 build-python-bindings.stamp: native_bt.la $(STATIC_BINDINGS_DEPS) \
 		$(GENERATED_BINDINGS_DEPS) Makefile
-	$(AM_V_GEN)rm -rf "$(BUILD_LIB_DIR)/bt2" && \
-	$(MKDIR_P) "$(BUILD_LIB_DIR)/bt2" && \
+	$(AM_V_GEN)rm -rf "$(UNINSTALLED_DIR)/bt2" && \
+	$(MKDIR_P) "$(UNINSTALLED_DIR)/bt2" && \
 	cp -f $(addprefix $(srcdir)/,$(STATIC_BINDINGS_DEPS)) \
 		$(GENERATED_BINDINGS_DEPS) \
-		".libs/native_bt$(PYTHON_EXT_SUFFIX)" "$(BUILD_LIB_DIR)/bt2" && \
+		".libs/native_bt$(PYTHON_EXT_SUFFIX)" "$(UNINSTALLED_DIR)/bt2" && \
 	touch $@
 
 clean-local:
-	rm -rf $(builddir)/build
+	rm -rf $(UNINSTALLED_DIR)
 
 # distribute: internal documentation of the native extension module
 EXTRA_DIST = native/README.adoc

@@ -12,8 +12,8 @@ EXTRA_DIST = $(SPHINX_SOURCE_DIR) $(SPHINX_EXT_DIR)
 
 all-local: $(SPHINX_HTML_TARGET)
 
-PYTHON_BT2_BUILD_LIB_DIR = $(abs_top_builddir)/src/bindings/python/bt2/build/build_lib
-PP = $(PYTHON_BT2_BUILD_LIB_DIR)
+PYTHON_BT2_UNINSTALLED_DIR = $(abs_top_builddir)/src/bindings/python/bt2/uninstalled
+PP = $(PYTHON_BT2_UNINSTALLED_DIR)
 LLP = $(abs_top_builddir)/src/lib/.libs
 
 # Sphinx loads the bt2 Python module and thus libbabeltrace2.so.  If

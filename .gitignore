@@ -46,7 +46,7 @@ stamp-h1
 __pycache__
 *.py[cod]
 /src/bindings/python/bt2/bt2/version.py
-/src/bindings/python/bt2/build/
+/src/bindings/python/bt2/uninstalled/
 /src/bindings/python/bt2/dist-info/METADATA
 
 # Temporary pytest files

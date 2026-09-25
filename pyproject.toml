@@ -11,7 +11,7 @@
   '''
   exclude = '''
   (
-       src/bindings/python/bt2/build/
+       src/bindings/python/bt2/uninstalled/
      | src/bindings/python/bt2/bt2/version\.py$
      | tests/utils/python/vendor
 
@@ -43,7 +43,7 @@ markers = [
 ]
 
 [tool.coverage.run]
-include = ["**/src/bindings/python/bt2/build/build_lib/bt2/*.py"]
+include = ["**/src/bindings/python/bt2/uninstalled/bt2/*.py"]
 omit = [
     "object.py",
     "utils.py",
