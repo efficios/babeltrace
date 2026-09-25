@@ -6,119 +6,70 @@ import pytest
 import bt_tests_cli_utils as btu_cli
 
 
-# Test `help` command with a working plugin name.
-class TestHelpPlugin:
-    @pytest.fixture(scope="class")
-    def result(self, build_root_dir):
-        return btu_cli.run_cli(build_root_dir, ["help", "ctf"])
+@pytest.mark.parametrize(
+    ["args", "success", "expected_stdout", "expected_stderr"],
+    [
+        pytest.param(
+            ["ctf"],
+            True,
+            "Description: CTF input and output",
+            None,
+            id="plugin",
+        ),
+        pytest.param(
+            ["src.ctf.fs"],
+            True,
+            "Description: Read CTF traces from the file system.",
+            None,
+            id="comp-cls",
+        ),
+        pytest.param(
+            [],
+            False,
+            None,
+            "Missing plugin name or component class descriptor.",
+            id="no-param",
+        ),
+        pytest.param(
+            ["ctf", "fs"],
+            False,
+            None,
+            "Extraneous command-line argument specified to `help` command:",
+            id="too-many-params",
+        ),
+        pytest.param(
+            ["zigotos"],
+            False,
+            None,
+            'Cannot find plugin: plugin-name="zigotos"',
+            id="unknown-plugin",
+        ),
+        pytest.param(
+            ["src.ctf.bob"],
+            False,
+            "Description: CTF input and output",
+            'Cannot find component class: plugin-name="ctf", comp-cls-name="bob", comp-cls-type=SOURCE',
+            id="unknown-comp-cls",
+        ),
+        pytest.param(
+            ["src.bob.fs"],
+            False,
+            None,
+            'Cannot find plugin: plugin-name="bob"',
+            id="unknown-comp-cls-plugin",
+        ),
+    ],
+)
+def test_help(build_root_dir, args, success, expected_stdout, expected_stderr):
+    result = btu_cli.run_cli(build_root_dir, ["help", *args])
 
-    def test_exit_status(self, result):
-        assert result.returncode == 0
+    assert (result.returncode == 0) == success
 
-    def test_stdout_contains_expected_output(self, result):
-        assert "Description: CTF input and output" in result.stdout
-
-    def test_stderr_is_empty(self, result):
-        assert result.stderr == ""
-
-
-# Test `help` command with a working component class name.
-class TestHelpComponentClass:
-    @pytest.fixture(scope="class")
-    def result(self, build_root_dir):
-        return btu_cli.run_cli(build_root_dir, ["help", "src.ctf.fs"])
-
-    def test_exit_status(self, result):
-        assert result.returncode == 0
-
-    def test_stdout_contains_expected_output(self, result):
-        assert "Description: Read CTF traces from the file system." in result.stdout
-
-    def test_stderr_is_empty(self, result):
-        assert result.stderr == ""
-
-
-# Test `help` command without a parameter.
-class TestHelpNoParameter:
-    @pytest.fixture(scope="class")
-    def result(self, build_root_dir):
-        return btu_cli.run_cli(build_root_dir, ["help"])
-
-    def test_exit_status_is_failure(self, result):
-        assert result.returncode != 0
-
-    def test_stderr_contains_expected_error(self, result):
-        assert "Missing plugin name or component class descriptor." in result.stderr
-
-    def test_stdout_is_empty(self, result):
-        assert result.stdout == ""
-
-
-# Test `help` command with too many parameters.
-class TestHelpTooManyParameters:
-    @pytest.fixture(scope="class")
-    def result(self, build_root_dir):
-        return btu_cli.run_cli(build_root_dir, ["help", "ctf", "fs"])
-
-    def test_exit_status_is_failure(self, result):
-        assert result.returncode != 0
-
-    def test_stderr_contains_expected_error(self, result):
-        assert (
-            "Extraneous command-line argument specified to `help` command:"
-            in result.stderr
-        )
-
-    def test_stdout_is_empty(self, result):
-        assert result.stdout == ""
-
-
-# Test `help` command with an unknown plugin name.
-class TestHelpUnknownPlugin:
-    @pytest.fixture(scope="class")
-    def result(self, build_root_dir):
-        return btu_cli.run_cli(build_root_dir, ["help", "zigotos"])
-
-    def test_exit_status_is_failure(self, result):
-        assert result.returncode != 0
-
-    def test_stderr_contains_expected_error(self, result):
-        assert 'Cannot find plugin: plugin-name="zigotos"' in result.stderr
-
-    def test_stdout_is_empty(self, result):
-        assert result.stdout == ""
-
-
-# Test `help` command with an unknown component class name (but known plugin).
-class TestHelpUnknownComponentClass:
-    @pytest.fixture(scope="class")
-    def result(self, build_root_dir):
-        return btu_cli.run_cli(build_root_dir, ["help", "src.ctf.bob"])
-
-    def test_exit_status_is_failure(self, result):
-        assert result.returncode != 0
-
-    def test_stderr_contains_expected_error(self, result):
-        assert (
-            'Cannot find component class: plugin-name="ctf", comp-cls-name="bob", comp-cls-type=SOURCE'
-            in result.stderr
-        )
-
-    def test_stdout_contains_plugin_help(self, result):
-        assert "Description: CTF input and output" in result.stdout
-
-
-# Test `help` command with an unknown component class plugin.
-class TestHelpUnknownComponentClassPlugin:
-    @pytest.fixture(scope="class")
-    def result(self, build_root_dir):
-        return btu_cli.run_cli(build_root_dir, ["help", "src.bob.fs"])
-
-    def test_exit_status_is_failure(self, result):
-        assert result.returncode != 0
-
-    def test_stderr_contains_expected_error(self, result):
-        assert 'Cannot find plugin: plugin-name="bob"' in result.stderr
-
-    def test_stdout_is_empty(self, result):
-        assert result.stdout == ""
+    for output, expected in (
+        (result.stdout, expected_stdout),
+        (result.stderr, expected_stderr),
+    ):
+        if expected is None:
+            assert output == ""
+        else:
+            assert expected in output
