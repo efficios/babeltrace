@@ -8,9 +8,9 @@
 
 #include <cstring>
 #include <iterator>
-#include <optional>
 #include <string>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include <fmt/core.h>
@@ -92,7 +92,7 @@ public:
      */
     explicit Logger(const bt2::SelfComponentClass selfCompCls, const bt2::LoggingLevel logLevel,
                     std::string tag) noexcept
-        : _mSelfCompCls {selfCompCls},
+        : _mActor {selfCompCls},
           _mLevel {static_cast<Level>(logLevel)},
           _mTag {std::move(tag)}
     {
@@ -104,7 +104,7 @@ public:
      */
     explicit Logger(const bt2::SelfComponentClass selfCompCls,
                     const bt2::PrivateQueryExecutor privQueryExec, std::string tag) noexcept
-        : _mSelfCompCls {selfCompCls},
+        : _mActor {selfCompCls},
           _mLevel {static_cast<Level>(privQueryExec.loggingLevel())},
           _mTag {std::move(tag)}
     {
@@ -115,7 +115,7 @@ public:
      * `tag`.
      */
     explicit Logger(const bt2::SelfComponent selfComp, std::string tag) noexcept
-        : _mSelfComp {selfComp},
+        : _mActor {selfComp},
           _mLevel {static_cast<Level>(selfComp.loggingLevel())},
           _mTag {std::move(tag)}
     {
@@ -159,7 +159,7 @@ public:
      * using the tag `tag`.
      */
     explicit Logger(const bt2::SelfMessageIterator selfMsgIter, std::string tag) noexcept
-        : _mSelfMsgIter {selfMsgIter},
+        : _mActor {selfMsgIter},
           _mLevel {static_cast<Level>(selfMsgIter.component().loggingLevel())},
           _mTag {std::move(tag)}
     {
@@ -170,7 +170,7 @@ public:
      * `tag` and logging level `logLevel`.
      */
     explicit Logger(std::string moduleName, std::string tag, const Level logLevel) noexcept
-        : _mModuleName {std::move(moduleName)},
+        : _mActor {std::move(moduleName)},
           _mLevel {logLevel},
           _mTag {std::move(tag)}
     {
@@ -181,10 +181,7 @@ public:
      * `newTag`.
      */
     explicit Logger(const Logger& other, std::string newTag)
-        : _mSelfCompCls {other._mSelfCompCls},
-          _mSelfComp {other._mSelfComp},
-          _mSelfMsgIter {other._mSelfMsgIter},
-          _mModuleName {other._mModuleName},
+        : _mActor {other._mActor},
           _mLevel {other._mLevel},
           _mTag {std::move(newTag)},
           _mTextLocStrFmt {other._mTextLocStrFmt}
@@ -264,38 +261,6 @@ public:
     }
 
     /*
-     * Self component class actor, or `std::nullopt` if none.
-     */
-    const std::optional<bt2::SelfComponentClass>& selfCompCls() const noexcept
-    {
-        return _mSelfCompCls;
-    }
-
-    /*
-     * Self component actor, or `std::nullopt` if none.
-     */
-    const std::optional<bt2::SelfComponent>& selfComp() const noexcept
-    {
-        return _mSelfComp;
-    }
-
-    /*
-     * Self message iterator actor, or `std::nullopt` if none.
-     */
-    const std::optional<bt2::SelfMessageIterator>& selfMsgIter() const noexcept
-    {
-        return _mSelfMsgIter;
-    }
-
-    /*
-     * Name of module actor, or `std::nullopt` if none.
-     */
-    const std::optional<std::string>& moduleName() const noexcept
-    {
-        return _mModuleName;
-    }
-
-    /*
      * Sets the text location string format to be used by logTextLoc(),
      * logErrorTextLocAndThrow(), and logErrorTextLocAndRethrow() to
      * `fmt`.
@@ -317,19 +282,18 @@ public:
     void appendCauseStr(const char * const fileName, const int lineNo, const char * const initMsg,
                         const char * const msg) const noexcept
     {
-        if (_mSelfMsgIter) {
+        if (const auto selfMsgIter = std::get_if<bt2::SelfMessageIterator>(&_mActor)) {
             bt_current_thread_error_append_cause_from_message_iterator(
-                _mSelfMsgIter->libObjPtr(), fileName, lineNo, "%s%s", initMsg, msg);
-        } else if (_mSelfComp) {
-            bt_current_thread_error_append_cause_from_component(_mSelfComp->libObjPtr(), fileName,
+                selfMsgIter->libObjPtr(), fileName, lineNo, "%s%s", initMsg, msg);
+        } else if (const auto selfComp = std::get_if<bt2::SelfComponent>(&_mActor)) {
+            bt_current_thread_error_append_cause_from_component(selfComp->libObjPtr(), fileName,
                                                                 lineNo, "%s%s", initMsg, msg);
-        } else if (_mSelfCompCls) {
+        } else if (const auto selfCompCls = std::get_if<bt2::SelfComponentClass>(&_mActor)) {
             bt_current_thread_error_append_cause_from_component_class(
-                _mSelfCompCls->libObjPtr(), fileName, lineNo, "%s%s", initMsg, msg);
+                selfCompCls->libObjPtr(), fileName, lineNo, "%s%s", initMsg, msg);
         } else {
-            BT_ASSERT(_mModuleName);
-            bt_current_thread_error_append_cause_from_unknown(_mModuleName->data(), fileName,
-                                                              lineNo, "%s%s", initMsg, msg);
+            bt_current_thread_error_append_cause_from_unknown(
+                std::get<std::string>(_mActor).c_str(), fileName, lineNo, "%s%s", initMsg, msg);
         }
     }
 
@@ -588,11 +552,9 @@ private:
         return fmt::format("[{}] ", textLocStr(loc, _mTextLocStrFmt));
     }
 
-    /* Exactly one of the following four members has a value */
-    std::optional<bt2::SelfComponentClass> _mSelfCompCls;
-    std::optional<bt2::SelfComponent> _mSelfComp;
-    std::optional<bt2::SelfMessageIterator> _mSelfMsgIter;
-    std::optional<std::string> _mModuleName;
+    /* Actor (`std::string`: module name) */
+    std::variant<bt2::SelfComponentClass, bt2::SelfComponent, bt2::SelfMessageIterator, std::string>
+        _mActor;
 
     /* Current logging level */
     Level _mLevel;
