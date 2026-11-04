@@ -51,8 +51,15 @@ public:
 class OverflowError : public Error
 {
 public:
-    explicit OverflowError() noexcept
-        : Error {"Overflow error"}
+    /*!
+    @brief
+        Builds an overflow error.
+
+    @param[in] reason
+        Reason of the overflow (what() returns it).
+    */
+    explicit OverflowError(std::string reason = "Overflow error")
+        : Error {std::move(reason)}
     {
     }
 };

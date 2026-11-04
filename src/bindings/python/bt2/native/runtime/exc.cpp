@@ -208,8 +208,8 @@ void setPyErrFromCurCppExc() noexcept
         /* Already set; keep before `std::exception` below */
     } catch (const bt2::MemoryError&) {
         setBt2PyErr("_MemoryError", "Memory error");
-    } catch (const bt2::OverflowError&) {
-        setBt2PyErr("_OverflowError", "Overflow error");
+    } catch (const bt2::OverflowError& exc) {
+        setBt2PyErr("_OverflowError", exc.what());
     } catch (const bt2::Error& exc) {
         setBt2PyErr("_Error", exc.what());
     } catch (const bt2::TryAgain&) {

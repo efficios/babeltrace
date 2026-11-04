@@ -1371,6 +1371,11 @@ cpp_common_test_regex_LDADD = \
 	$(FMT_LDADD)
 
 noinst_PROGRAMS += cpp-common/test-reverse-fixed-len-int-bits
+noinst_PROGRAMS += cpp-common/test-safe-int
+cpp_common_test_safe_int_LDADD = \
+	$(COMMON_TEST_LDADD) \
+	$(FMT_LDADD)
+
 noinst_PROGRAMS += cpp-common/test-safe-ops
 
 noinst_PROGRAMS += cpp-common/test-uuid

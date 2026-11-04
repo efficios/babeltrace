@@ -233,6 +233,7 @@ cpp_common_libcpp_common_la_SOURCES = \
 	cpp-common/bt2c/read-fixed-len-int.hpp \
 	cpp-common/bt2c/regex.hpp \
 	cpp-common/bt2c/reverse-fixed-len-int-bits.hpp \
+	cpp-common/bt2c/safe-int.hpp \
 	cpp-common/bt2c/safe-ops.hpp \
 	cpp-common/bt2c/std-int.hpp \
 	cpp-common/bt2c/str-scanner.cpp \

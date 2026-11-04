@@ -150,6 +150,7 @@ INPUT                   = "@srcdir@/all.dox" \
                           "@abs_top_srcdir@/src/cpp-common/bt2c/read-fixed-len-int.hpp" \
                           "@abs_top_srcdir@/src/cpp-common/bt2c/regex.hpp" \
                           "@abs_top_srcdir@/src/cpp-common/bt2c/reverse-fixed-len-int-bits.hpp" \
+                          "@abs_top_srcdir@/src/cpp-common/bt2c/safe-int.hpp" \
                           "@abs_top_srcdir@/src/cpp-common/bt2c/safe-ops.hpp" \
                           "@abs_top_srcdir@/src/cpp-common/bt2c/std-int.hpp" \
                           "@abs_top_srcdir@/src/cpp-common/bt2c/str-scanner.hpp" \

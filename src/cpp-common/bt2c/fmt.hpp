@@ -30,6 +30,9 @@ When you include this file, you get custom {fmt} formatting of:
   The year of a date has at least four digits. A year outside
   [0,&nbsp;9999] also has an explicit sign (for example,
   <code>-0044-03-15</code> and <code>+10000-01-01</code>).
+
+- A bt2c::SafeInt instance, like its raw value (format specifications
+  apply, for example <code>{:\#x}</code>).
 */
 
 #include <fmt/format.h> /* IWYU pragma: keep */
@@ -38,6 +41,7 @@ When you include this file, you get custom {fmt} formatting of:
 #include "cpp-common/vendor/wise-enum/wise_enum.h"
 
 #include "date-time.hpp"
+#include "safe-int.hpp"
 #include "uuid.hpp"
 
 namespace internal {
@@ -142,6 +146,12 @@ inline std::string format_as(const TimeOfDay& timeOfDay)
 inline std::string format_as(const DateTime& dateTime)
 {
     return fmt::format("{}T{}", dateTime.date(), dateTime.timeOfDay());
+}
+
+template <typename ValT, SafeIntPolicy PolicyV>
+constexpr ValT format_as(const SafeInt<ValT, PolicyV> safeVal) noexcept
+{
+    return safeVal.val();
 }
 
 } /* namespace bt2c */
