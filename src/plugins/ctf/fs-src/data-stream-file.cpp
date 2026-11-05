@@ -254,49 +254,56 @@ static std::optional<ctf_fs_ds_index> build_index_from_idx_file(const ctf_fs_ds_
     ctf_fs_ds_index_entry *prev_index_entry = nullptr;
     auto totalPacketsSize = 0_bytes;
 
-    for (size_t i = 0; i < file_entry_count; i++) {
-        struct ctf_packet_index *file_index = (struct ctf_packet_index *) file_pos;
-        const auto packetSize = bt2c::DataLen::fromBits(be64toh(file_index->packet_size));
+    try {
+        for (size_t i = 0; i < file_entry_count; i++) {
+            struct ctf_packet_index *file_index = (struct ctf_packet_index *) file_pos;
+            const auto packetSize = bt2c::DataLen::fromBits(be64toh(file_index->packet_size));
 
-        if (packetSize.hasExtraBits()) {
-            BT_CPPLOGW_SPEC(fileInfo.logger(),
-                            "Invalid packet size encountered in LTTng trace index file");
-            return std::nullopt;
+            if (packetSize.hasExtraBits()) {
+                BT_CPPLOGW_SPEC(fileInfo.logger(),
+                                "Invalid packet size encountered in LTTng trace index file");
+                return std::nullopt;
+            }
+
+            const auto offset = bt2c::DataLen::fromBytes(be64toh(file_index->offset));
+
+            if (i != 0 && offset < prev_index_entry->offsetInFile) {
+                BT_CPPLOGW_SPEC(
+                    fileInfo.logger(),
+                    "Invalid, non-monotonic, packet offset encountered in LTTng trace index file: "
+                    "previous offset={} bytes, current offset={} bytes",
+                    prev_index_entry->offsetInFile.bytes(), offset.bytes());
+                return std::nullopt;
+            }
+
+            ctf_fs_ds_index_entry index_entry {path, offset, packetSize};
+            index_entry.timestamp_begin = be64toh(file_index->timestamp_begin);
+            index_entry.timestamp_end = be64toh(file_index->timestamp_end);
+            if (index_entry.timestamp_end < index_entry.timestamp_begin) {
+                BT_CPPLOGW_SPEC(
+                    fileInfo.logger(),
+                    "Invalid packet time bounds encountered in LTTng trace index file (begin > end): "
+                    "timestamp_begin={}, timestamp_end={}",
+                    index_entry.timestamp_begin, index_entry.timestamp_end);
+                return std::nullopt;
+            }
+
+            if (version_minor >= 1) {
+                index_entry.packet_seq_num = be64toh(file_index->packet_seq_num);
+            }
+
+            totalPacketsSize += packetSize;
+            file_pos += file_index_entry_size;
+
+            index.entries.emplace_back(index_entry);
+
+            prev_index_entry = &index.entries.back();
         }
-
-        const auto offset = bt2c::DataLen::fromBytes(be64toh(file_index->offset));
-
-        if (i != 0 && offset < prev_index_entry->offsetInFile) {
-            BT_CPPLOGW_SPEC(
-                fileInfo.logger(),
-                "Invalid, non-monotonic, packet offset encountered in LTTng trace index file: "
-                "previous offset={} bytes, current offset={} bytes",
-                prev_index_entry->offsetInFile.bytes(), offset.bytes());
-            return std::nullopt;
-        }
-
-        ctf_fs_ds_index_entry index_entry {path, offset, packetSize};
-        index_entry.timestamp_begin = be64toh(file_index->timestamp_begin);
-        index_entry.timestamp_end = be64toh(file_index->timestamp_end);
-        if (index_entry.timestamp_end < index_entry.timestamp_begin) {
-            BT_CPPLOGW_SPEC(
-                fileInfo.logger(),
-                "Invalid packet time bounds encountered in LTTng trace index file (begin > end): "
-                "timestamp_begin={}, timestamp_end={}",
-                index_entry.timestamp_begin, index_entry.timestamp_end);
-            return std::nullopt;
-        }
-
-        if (version_minor >= 1) {
-            index_entry.packet_seq_num = be64toh(file_index->packet_seq_num);
-        }
-
-        totalPacketsSize += packetSize;
-        file_pos += file_index_entry_size;
-
-        index.entries.emplace_back(index_entry);
-
-        prev_index_entry = &index.entries.back();
+    } catch (const bt2c::OverflowError& exc) {
+        BT_CPPLOGW_SPEC(fileInfo.logger(),
+                        "Invalid packet offset or size encountered in LTTng trace index file: {}",
+                        exc.what());
+        return std::nullopt;
     }
 
     /* Validate that the index addresses the complete stream. */
@@ -378,7 +385,8 @@ build_index_from_stream_file(const ctf_fs_ds_file_info& fileInfo,
                         props.snapshots.beginDefClk ? *props.snapshots.beginDefClk : -1,
                         props.snapshots.endDefClk ? *props.snapshots.endDefClk : -1);
 
-        if (currentPacketOffset + currentPacketSize > fileInfo.size()) {
+        /* `currentPacketOffset` is less than the file size (checked above) */
+        if (currentPacketSize > fileInfo.size() - currentPacketOffset) {
             BT_CPPLOGW_SPEC(fileInfo.logger(),
                             "Invalid packet size reported in file: stream=\"{}\", "
                             "packet-offset-bytes={}, packet-size-bytes={}, "
@@ -431,7 +439,7 @@ Medium::Medium(const ctf_fs_ds_index& index, const bt2c::Logger& parentLogger)
 }
 
 ctf_fs_ds_index::EntriesT::const_iterator
-Medium::_mFindIndexEntryForOffset(bt2c::DataLen offsetInStream) const noexcept
+Medium::_mFindIndexEntryForOffset(bt2c::DataLen offsetInStream) const
 {
     return std::lower_bound(_mIndex.entries.begin(), _mIndex.entries.end(), offsetInStream,
                             [](const auto& entry, const auto offsetInStreamLambda) {

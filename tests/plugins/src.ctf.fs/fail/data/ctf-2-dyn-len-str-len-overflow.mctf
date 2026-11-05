@@ -1,0 +1,63 @@
+--- metadata
+[
+{
+  "type": "preamble",
+  "version": 2
+},
+{
+  "type": "trace-class",
+  "packet-header-field-class": {
+    "type": "structure",
+    "member-classes": [{
+      "name": "magic",
+      "field-class": {
+        "type": "fixed-length-unsigned-integer",
+        "length": 32,
+        "alignment": 8,
+        "byte-order": "little-endian",
+        "roles": ["packet-magic-number"]
+      }
+    }]
+  }
+},
+{
+  "type": "data-stream-class"
+},
+{
+  "type": "event-record-class",
+  "payload-field-class": {
+    "type": "structure",
+    "member-classes": [{
+      "name": "len",
+      "field-class": {
+        "type": "fixed-length-unsigned-integer",
+        "length": 64,
+        "alignment": 8,
+        "byte-order": "little-endian"
+      }
+    },{
+      "name": "s",
+      "field-class": {
+        "type": "dynamic-length-string",
+        "length-field-location": {"path": ["len"]}
+      }
+    }]
+  }
+}
+]
+
+--- channel0
+!le
+
+<beg>
+# packet header
+[         0xc1fc1fc1 : 32]  # `magic`
+
+# event: length of `s` in bytes (2^61), of which the length in bits
+# doesn't fit a 64-bit unsigned integer (no packet length fields: the
+# packet content length is unknown)
+[ 0x2000000000000000 : 64]  # `len`
+<end>
+
+--- @error
+At 96 bits: 2305843009213693952 string/BLOB field bytes required at this point

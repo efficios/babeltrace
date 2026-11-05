@@ -1633,7 +1633,7 @@ public:
     bt2c::DataLen fieldLen() const noexcept
     {
         /* `*_mLen` doesn't need to be a multiple of 7 */
-        return bt2c::DataLen::fromBytes((*_mLen + 6) / 7);
+        return bt2c::DataLen::fromBytesDbg((*_mLen + 6) / 7);
     }
 
 private:
@@ -1832,7 +1832,7 @@ public:
      */
     bt2c::DataLen len() const noexcept
     {
-        return bt2c::DataLen::fromBytes(_mData.size());
+        return bt2c::DataLen::fromBytesDbg(_mData.size());
     }
 
     void accept(ItemVisitor& visitor) const override;
@@ -2094,7 +2094,7 @@ public:
     void accept(ItemVisitor& visitor) const override;
 
 protected:
-    bt2c::DataLen _mLen = bt2c::DataLen::fromBytes(0);
+    bt2c::DataLen _mLen = bt2c::DataLen::fromBits(0);
 };
 
 /*
@@ -2231,7 +2231,7 @@ public:
     void accept(ItemVisitor& visitor) const override;
 
 protected:
-    bt2c::DataLen _mLen = bt2c::DataLen::fromBytes(0);
+    bt2c::DataLen _mLen = bt2c::DataLen::fromBits(0);
 };
 
 /*

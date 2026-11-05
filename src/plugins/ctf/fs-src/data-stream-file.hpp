@@ -195,7 +195,7 @@ struct Medium : public ctf::src::Medium
 
 private:
     ctf_fs_ds_index::EntriesT::const_iterator
-    _mFindIndexEntryForOffset(bt2c::DataLen offsetInStream) const noexcept;
+    _mFindIndexEntryForOffset(bt2c::DataLen offsetInStream) const;
 
     const ctf_fs_ds_index& _mIndex;
     bt2c::Logger _mLogger;

@@ -377,11 +377,14 @@ EXTRA_DIST = \
 	plugins/src.ctf.fs/fail/data/ctf-1.8-not-enough-data-static-len-array.mctf \
 	plugins/src.ctf.fs/fail/data/ctf-1.8-not-enough-data-static-len-str.mctf \
 	plugins/src.ctf.fs/fail/data/ctf-1.8-pkt-content-len-gt-pkt-total-len.mctf \
+	plugins/src.ctf.fs/fail/data/ctf-1.8-pkt-content-len-lt-header-ctx-len.mctf \
 	plugins/src.ctf.fs/fail/data/ctf-1.8-pkt-total-len-not-multiple-of-8.mctf \
+	plugins/src.ctf.fs/fail/data/ctf-1.8-pkt-total-len-overflow.mctf \
 	plugins/src.ctf.fs/fail/data/ctf-1.8-unknown-data-stream-cls-id.mctf \
 	plugins/src.ctf.fs/fail/data/ctf-1.8-valid-events-then-invalid-events.mctf \
 	plugins/src.ctf.fs/fail/data/ctf-2-contiguous-pkts-different-stream-classes.mctf \
 	plugins/src.ctf.fs/fail/data/ctf-2-contiguous-pkts-different-stream-ids.mctf \
+	plugins/src.ctf.fs/fail/data/ctf-2-dyn-len-str-len-overflow.mctf \
 	plugins/src.ctf.fs/fail/data/ctf-2-empty-event-record.mctf \
 	plugins/src.ctf.fs/fail/data/ctf-2-invalid-metadata-stream-uuid.mctf \
 	plugins/src.ctf.fs/fail/data/ctf-2-invalid-pkt-magic.mctf \
@@ -392,6 +395,7 @@ EXTRA_DIST = \
 	plugins/src.ctf.fs/fail/data/ctf-2-not-enough-data-static-len-str.mctf \
 	plugins/src.ctf.fs/fail/data/ctf-2-not-enough-data-var-len-int.mctf \
 	plugins/src.ctf.fs/fail/data/ctf-2-pkt-content-len-gt-pkt-total-len.mctf \
+	plugins/src.ctf.fs/fail/data/ctf-2-pkt-content-len-lt-header-ctx-len.mctf \
 	plugins/src.ctf.fs/fail/data/ctf-2-pkt-total-len-not-multiple-of-8.mctf \
 	plugins/src.ctf.fs/fail/data/ctf-2-unknown-data-stream-cls-id.mctf \
 	plugins/src.ctf.fs/fail/metadata/ctf-1.8-bitfield-array-declarator.mctf \
@@ -1354,6 +1358,10 @@ noinst_PROGRAMS += c-common/test-safe
 noinst_PROGRAMS += cpp-common/test-c-string-view
 noinst_PROGRAMS += cpp-common/test-align
 noinst_PROGRAMS += cpp-common/test-data-len
+cpp_common_test_data_len_LDADD = \
+	$(COMMON_TEST_LDADD) \
+	$(FMT_LDADD)
+
 noinst_PROGRAMS += cpp-common/test-endian
 noinst_PROGRAMS += cpp-common/test-join
 

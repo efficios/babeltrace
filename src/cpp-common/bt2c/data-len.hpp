@@ -32,7 +32,7 @@ len -= 64_bits;
 @endcode
 */
 
-#include "safe-ops.hpp"
+#include "safe-int.hpp"
 
 namespace bt2c {
 
@@ -58,13 +58,30 @@ Check whether or not a data length is a power of two with isPowOfTwo().
 You may add to and subtract from a data length. All the comparison
 operators are also implemented.
 
+The operations which may overflow, that is, fromBytes() (bytes to bits
+conversion), the addition, and the subtraction, throw
+bt2c::OverflowError on overflow, for example:
+
+@code{.cpp}
+// Throws bt2c::OverflowError if `lenBytes × 8` doesn't fit
+const auto len = bt2c::DataLen::fromBytes(lenBytes);
+@endcode
+
+This makes it safe to use a data length with untrusted data.
+
+When an overflow would be a programming error instead (in a
+\c noexcept function, for example), use fromBytesDbg(), addDbg(), and
+subDbg() which only check in debug mode, like BT_ASSERT_DBG() does.
+
 A DataLen instance is lightweight: it only contains an unsigned integer.
 Pass and return by copy.
 */
 class DataLen final
 {
 private:
-    constexpr explicit DataLen(const unsigned long long lenBits) noexcept
+    using _Bits = SafeInt<unsigned long long>;
+
+    constexpr explicit DataLen(const _Bits lenBits) noexcept
         : _mLenBits {lenBits}
     {
     }
@@ -100,14 +117,40 @@ public:
     @returns
         Data length of \bt_p{lenBytes} bytes.
 
+    @throws bt2c::OverflowError
+        \bt_p{lenBytes}&nbsp;×&nbsp;8 doesn't fit an
+        <code>unsigned long long</code>.
+
+    @sa fromBytesDbg()
     @sa fromBits()
     @sa
-        The \c _bytes user-defined literal under the \c bt2c::literals::datalen
-        namespace.
+        The \c _bytes user-defined literal under the
+        \c bt2c::literals::datalen namespace.
     */
-    static DataLen fromBytes(const unsigned long long lenBytes) noexcept
+    static constexpr DataLen fromBytes(const unsigned long long lenBytes)
     {
-        return DataLen {safeMulDbg(lenBytes, 8ULL)};
+        return DataLen {_Bits {lenBytes} * 8ULL};
+    }
+
+    /*!
+    @brief
+        Like fromBytes(), but only checks in debug mode that
+        \bt_p{lenBytes}&nbsp;×&nbsp;8 fits an
+        <code>unsigned long long</code>.
+
+    @param[in] lenBytes
+        Length of the created data length (bytes).
+
+    @returns
+        Data length of \bt_p{lenBytes} bytes.
+
+    @pre
+        \bt_p{lenBytes}&nbsp;×&nbsp;8 fits an
+        <code>unsigned long long</code>.
+    */
+    static constexpr DataLen fromBytesDbg(const unsigned long long lenBytes) noexcept
+    {
+        return DataLen::fromBits((SafeIntDbg<unsigned long long> {lenBytes} * 8ULL).val());
     }
 
     /*!
@@ -119,7 +162,7 @@ public:
     */
     constexpr unsigned long long operator*() const noexcept
     {
-        return _mLenBits;
+        return _mLenBits.val();
     }
 
     /*!
@@ -131,7 +174,7 @@ public:
     */
     constexpr unsigned long long bits() const noexcept
     {
-        return _mLenBits;
+        return _mLenBits.val();
     }
 
     /*!
@@ -143,7 +186,7 @@ public:
     */
     constexpr unsigned long long bytes() const noexcept
     {
-        return _mLenBits / 8;
+        return _mLenBits.val() / 8;
     }
 
     /*!
@@ -170,7 +213,7 @@ public:
     */
     constexpr unsigned int extraBitCount() const noexcept
     {
-        return _mLenBits & 7;
+        return _mLenBits.val() & 7;
     }
 
     /*!
@@ -182,7 +225,10 @@ public:
     */
     constexpr bool isPowOfTwo() const noexcept
     {
-        return ((_mLenBits & (_mLenBits - 1)) == 0) && _mLenBits > 0;
+        /* `bits - 1` wraps when `bits` is zero, but then `bits > 0` is false */
+        const auto bits = _mLenBits.val();
+
+        return ((bits & (bits - 1)) == 0) && bits > 0;
     }
 
     /*!
@@ -198,7 +244,7 @@ public:
     */
     constexpr bool operator==(const DataLen& other) const noexcept
     {
-        return _mLenBits == other._mLenBits;
+        return _mLenBits.val() == other._mLenBits.val();
     }
 
     /*!
@@ -230,7 +276,7 @@ public:
     */
     constexpr bool operator<(const DataLen& other) const noexcept
     {
-        return _mLenBits < other._mLenBits;
+        return _mLenBits.val() < other._mLenBits.val();
     }
 
     /*!
@@ -285,6 +331,54 @@ public:
 
     /*!
     @brief
+        Returns a data length of
+        (bits()&nbsp;+&nbsp;\bt_p{*len})&nbsp;bits, only checking in
+        debug mode that it fits an <code>unsigned long long</code>.
+
+    @param[in] len
+        Quantity to add to this data length.
+
+    @returns
+        Data length of (bits()&nbsp;+&nbsp;\bt_p{*len})&nbsp;bits.
+
+    @pre
+        bits()&nbsp;+&nbsp;\bt_p{*len} fits an
+        <code>unsigned long long</code>.
+
+    @sa operator+=()
+    */
+    constexpr DataLen addDbg(const DataLen len) const noexcept
+    {
+        return DataLen::fromBits(
+            (SafeIntDbg<unsigned long long> {this->bits()} + len.bits()).val());
+    }
+
+    /*!
+    @brief
+        Returns a data length of
+        (bits()&nbsp;−&nbsp;\bt_p{*len})&nbsp;bits, only checking in
+        debug mode that \bt_p{len} isn't greater than this
+        data length.
+
+    @param[in] len
+        Quantity to subtract from this data length.
+
+    @returns
+        Data length of (bits()&nbsp;−&nbsp;\bt_p{*len})&nbsp;bits.
+
+    @pre
+        \bt_p{len} isn't greater than this data length.
+
+    @sa operator-=()
+    */
+    constexpr DataLen subDbg(const DataLen len) const noexcept
+    {
+        return DataLen::fromBits(
+            (SafeIntDbg<unsigned long long> {this->bits()} - len.bits()).val());
+    }
+
+    /*!
+    @brief
         Adds \bt_p{*len} bits to this data length.
 
     @param[in] len
@@ -292,10 +386,17 @@ public:
 
     @returns
         <code>*this</code>
+
+    @throws bt2c::OverflowError
+        bits()&nbsp;+&nbsp;\bt_p{*len} doesn't fit an
+        <code>unsigned long long</code> (this data length doesn't
+        change).
+
+    @sa addDbg()
     */
-    DataLen& operator+=(const DataLen len) noexcept
+    constexpr DataLen& operator+=(const DataLen len)
     {
-        _mLenBits = safeAddDbg(_mLenBits, len._mLenBits);
+        _mLenBits += len._mLenBits;
         return *this;
     }
 
@@ -308,31 +409,22 @@ public:
 
     @returns
         <code>*this</code>
+
+    @throws bt2c::OverflowError
+        \bt_p{len} is greater than this data length (this data length
+        doesn't change).
+
+    @sa subDbg()
     */
-    DataLen& operator-=(const DataLen len) noexcept
+    constexpr DataLen& operator-=(const DataLen len)
     {
-        _mLenBits = safeSubDbg(_mLenBits, len._mLenBits);
-        return *this;
-    }
-
-    /*!
-    @brief
-        Multiplies this data length by \bt_p{mul}.
-
-    @param[in] mul
-        Multiplier.
-
-    @returns
-        <code>*this</code>
-    */
-    DataLen& operator*=(const unsigned long long mul) noexcept
-    {
-        _mLenBits = safeMulDbg(_mLenBits, mul);
+        _mLenBits -= len._mLenBits;
         return *this;
     }
 
 private:
-    unsigned long long _mLenBits = 0;
+    /* Number of bits */
+    _Bits _mLenBits;
 };
 
 /*!
@@ -348,10 +440,16 @@ private:
 @returns
     Data length of
     (\bt_p{*lenA}&nbsp;+&nbsp;\bt_p{*lenB})&nbsp;bits.
+
+@throws bt2c::OverflowError
+    \bt_p{*lenA}&nbsp;+&nbsp;\bt_p{*lenB} doesn't fit an
+    <code>unsigned long long</code>.
+
+@sa DataLen::addDbg()
 */
-inline DataLen operator+(const DataLen lenA, const DataLen lenB) noexcept
+constexpr DataLen operator+(DataLen lenA, const DataLen lenB)
 {
-    return DataLen::fromBits(safeAddDbg(*lenA, *lenB));
+    return lenA += lenB;
 }
 
 /*!
@@ -367,29 +465,15 @@ inline DataLen operator+(const DataLen lenA, const DataLen lenB) noexcept
 @returns
     Data length of
     (\bt_p{*lenA}&nbsp;−&nbsp;\bt_p{*lenB})&nbsp;bits.
+
+@throws bt2c::OverflowError
+    \bt_p{lenB} is greater than \bt_p{lenA}.
+
+@sa DataLen::subDbg()
 */
-inline DataLen operator-(const DataLen lenA, const DataLen lenB) noexcept
+constexpr DataLen operator-(DataLen lenA, const DataLen lenB)
 {
-    return DataLen::fromBits(safeSubDbg(*lenA, *lenB));
-}
-
-/*!
-@brief
-    Returns a data length of
-    (\bt_p{*len}&nbsp;×&nbsp;\bt_p{mul})&nbsp;bits.
-
-@param[in] len
-    Length to multiply.
-@param[in] mul
-    Multiplier.
-
-@returns
-    Data length of
-    (\bt_p{*len}&nbsp;×&nbsp;\bt_p{mul})&nbsp;bits.
-*/
-inline DataLen operator*(const DataLen len, const unsigned long long mul) noexcept
-{
-    return DataLen::fromBits(safeMulDbg(*len, mul));
+    return lenA -= lenB;
 }
 
 /*
@@ -413,7 +497,7 @@ namespace literals::datalen {
 @returns
     Data length of \bt_p{val}&nbsp;bits.
 */
-inline DataLen operator"" _bits(const unsigned long long val) noexcept
+constexpr DataLen operator"" _bits(const unsigned long long val) noexcept
 {
     return DataLen::fromBits(val);
 }
@@ -428,10 +512,13 @@ inline DataLen operator"" _bits(const unsigned long long val) noexcept
 
 @returns
     Data length of \bt_p{val}&nbsp;kibibits.
+
+@pre
+    \bt_p{val}&nbsp;×&nbsp;1024 fits an <code>unsigned long long</code>.
 */
-inline DataLen operator"" _KiBits(const unsigned long long val) noexcept
+constexpr DataLen operator"" _KiBits(const unsigned long long val) noexcept
 {
-    return DataLen::fromBits(safeMulDbg(val, 1024ULL));
+    return DataLen::fromBits((SafeIntDbg<unsigned long long> {val} * 1024ULL).val());
 }
 
 /*!
@@ -444,10 +531,13 @@ inline DataLen operator"" _KiBits(const unsigned long long val) noexcept
 
 @returns
     Data length of \bt_p{val}&nbsp;mibibits.
+
+@pre
+    \bt_p{val}&nbsp;×&nbsp;1024<sup>2</sup> fits an <code>unsigned long long</code>.
 */
-inline DataLen operator"" _MiBits(const unsigned long long val) noexcept
+constexpr DataLen operator"" _MiBits(const unsigned long long val) noexcept
 {
-    return DataLen::fromBits(safeMulDbg(val, 1024ULL * 1024));
+    return DataLen::fromBits((SafeIntDbg<unsigned long long> {val} * (1024ULL * 1024)).val());
 }
 
 /*!
@@ -460,10 +550,14 @@ inline DataLen operator"" _MiBits(const unsigned long long val) noexcept
 
 @returns
     Data length of \bt_p{val}&nbsp;gibibits.
+
+@pre
+    \bt_p{val}&nbsp;×&nbsp;1024<sup>3</sup> fits an <code>unsigned long long</code>.
 */
-inline DataLen operator"" _GiBits(const unsigned long long val) noexcept
+constexpr DataLen operator"" _GiBits(const unsigned long long val) noexcept
 {
-    return DataLen::fromBits(safeMulDbg(val, 1024ULL * 1024 * 1024));
+    return DataLen::fromBits(
+        (SafeIntDbg<unsigned long long> {val} * (1024ULL * 1024 * 1024)).val());
 }
 
 /*!
@@ -476,10 +570,13 @@ inline DataLen operator"" _GiBits(const unsigned long long val) noexcept
 
 @returns
     Data length of \bt_p{val}&nbsp;bytes.
+
+@pre
+    \bt_p{val}&nbsp;×&nbsp;8 fits an <code>unsigned long long</code>.
 */
-inline DataLen operator"" _bytes(const unsigned long long val) noexcept
+constexpr DataLen operator"" _bytes(const unsigned long long val) noexcept
 {
-    return DataLen::fromBytes(val);
+    return DataLen::fromBytesDbg(val);
 }
 
 /*!
@@ -492,10 +589,13 @@ inline DataLen operator"" _bytes(const unsigned long long val) noexcept
 
 @returns
     Data length of \bt_p{val}&nbsp;kibibytes.
+
+@pre
+    \bt_p{val}&nbsp;×&nbsp;8&nbsp;×&nbsp;1024 fits an <code>unsigned long long</code>.
 */
-inline DataLen operator"" _KiBytes(const unsigned long long val) noexcept
+constexpr DataLen operator"" _KiBytes(const unsigned long long val) noexcept
 {
-    return DataLen::fromBytes(safeMulDbg(val, 1024ULL));
+    return DataLen::fromBytesDbg((SafeIntDbg<unsigned long long> {val} * 1024ULL).val());
 }
 
 /*!
@@ -508,10 +608,13 @@ inline DataLen operator"" _KiBytes(const unsigned long long val) noexcept
 
 @returns
     Data length of \bt_p{val}&nbsp;mibibytes.
+
+@pre
+    \bt_p{val}&nbsp;×&nbsp;8&nbsp;×&nbsp;1024<sup>2</sup> fits an <code>unsigned long long</code>.
 */
-inline DataLen operator"" _MiBytes(const unsigned long long val) noexcept
+constexpr DataLen operator"" _MiBytes(const unsigned long long val) noexcept
 {
-    return DataLen::fromBytes(safeMulDbg(val, 1024ULL * 1024));
+    return DataLen::fromBytesDbg((SafeIntDbg<unsigned long long> {val} * (1024ULL * 1024)).val());
 }
 
 /*!
@@ -524,10 +627,14 @@ inline DataLen operator"" _MiBytes(const unsigned long long val) noexcept
 
 @returns
     Data length of \bt_p{val}&nbsp;gibibytes.
+
+@pre
+    \bt_p{val}&nbsp;×&nbsp;8&nbsp;×&nbsp;1024<sup>3</sup> fits an <code>unsigned long long</code>.
 */
-inline DataLen operator"" _GiBytes(const unsigned long long val) noexcept
+constexpr DataLen operator"" _GiBytes(const unsigned long long val) noexcept
 {
-    return DataLen::fromBytes(safeMulDbg(val, 1024ULL * 1024 * 1024));
+    return DataLen::fromBytesDbg(
+        (SafeIntDbg<unsigned long long> {val} * (1024ULL * 1024 * 1024)).val());
 }
 
 } /* namespace literals::datalen */

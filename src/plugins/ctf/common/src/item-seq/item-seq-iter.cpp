@@ -5,6 +5,7 @@
  */
 
 #include <algorithm>
+#include <limits>
 
 #include "common/assert.h"
 
@@ -151,6 +152,19 @@ void ItemSeqIter::_newBuf(const bt2c::DataLen offsetInItemSeq, const bt2c::DataL
     BT_ASSERT_DBG(minSize <= 9_bytes);
     _mBuf = _mMedium->buf(offsetInItemSeq, minSize);
     _mBufOffsetInCurPkt = offsetInItemSeq - _mCurPktOffsetInItemSeq;
+
+    /*
+     * Make sure that the end offset of this buffer within the item
+     * sequence fits: this is what makes the `Dbg` operations of the
+     * offset helpers (for example, _headOffsetInItemSeq()) safe because
+     * the head is always within the current buffer.
+     */
+    if (*_mBuf.size() > std::numeric_limits<unsigned long long>::max() - *offsetInItemSeq) {
+        CTF_SRC_ITEM_SEQ_ITER_CPPLOGE_APPEND_CAUSE_AND_THROW(
+            "end offset of medium buffer doesn't fit a 64-bit unsigned integer: "
+            "buf-offset-in-item-seq-bits={}, buf-size-bits={}",
+            *offsetInItemSeq, *_mBuf.size());
+    }
 }
 
 ItemSeqIter::_StateHandlingReaction ItemSeqIter::_handleInitState()
@@ -561,6 +575,34 @@ ItemSeqIter::_StateHandlingReaction ItemSeqIter::_handleSetPktInfoItemState()
                 "is greater than its expected total length ({} bits).",
                 *_mCurPktExpectedLens.content, *_mCurPktExpectedLens.total);
         }
+
+        /*
+         * Make sure that the end offset of the current packet within
+         * the item sequence fits.
+         *
+         * Because the decoding head is always within the current packet
+         * from this point, this is what makes the `Dbg` operations
+         * involving packet offsets and lengths safe.
+         */
+        if (_mCurPktExpectedLens.total != this->_infDataLen() &&
+            *_mCurPktExpectedLens.total >
+                std::numeric_limits<unsigned long long>::max() - *_mCurPktOffsetInItemSeq) {
+            CTF_SRC_ITEM_SEQ_ITER_CPPLOGE_APPEND_CAUSE_AND_THROW(
+                "end offset of current packet doesn't fit a 64-bit unsigned integer: "
+                "pkt-offset-in-item-seq-bits={}, expected-total-len-bits={}",
+                *_mCurPktOffsetInItemSeq, *_mCurPktExpectedLens.total);
+        }
+
+        /*
+         * Make sure that the packet header and context fields are
+         * within the packet content.
+         */
+        if (_mHeadOffsetInCurPkt > _mCurPktExpectedLens.content) {
+            CTF_SRC_ITEM_SEQ_ITER_CPPLOGE_APPEND_CAUSE_AND_THROW(
+                "expected content length of current packet ({} bits) "
+                "is less than the length of its header and context fields ({} bits).",
+                *_mCurPktExpectedLens.content, *_mHeadOffsetInCurPkt);
+        }
     }
 
     /* Update for user */
@@ -863,6 +905,26 @@ ItemSeqIter::_handleCommonBeginReadStrBlobFieldState(const unsigned long long le
     return _StateHandlingReaction::Stop;
 }
 
+bt2c::DataLen ItemSeqIter::_validatedDynLenStrBlobFieldLen(const unsigned long long len)
+{
+    /*
+     * The string/BLOB field data must be within the remaining
+     * packet content.
+     *
+     * Even when the expected content length is unknown (_infDataLen()),
+     * `_remainingPktContentLen().bytes()` is less than 2^61, therefore
+     * this check also makes DataLen::fromBytesDbg() below safe.
+     */
+    if (len > this->_remainingPktContentLen().bytes()) {
+        CTF_SRC_ITEM_SEQ_ITER_CPPLOGE_APPEND_CAUSE_AND_THROW(
+            "{} string/BLOB field bytes required at this point, "
+            "but only {} bits of packet content remain.",
+            len, *this->_remainingPktContentLen());
+    }
+
+    return bt2c::DataLen::fromBytesDbg(len);
+}
+
 ItemSeqIter::_StateHandlingReaction ItemSeqIter::_handleBeginReadStaticLenStrFieldState()
 {
     /* Update for user */
@@ -890,7 +952,7 @@ ItemSeqIter::_StateHandlingReaction ItemSeqIter::_handleBeginReadDynLenStrFieldS
 
     /* Update for user */
     this->_setFieldItemFcAndUpdateForUser(_mItems.dynLenStrFieldBegin, *this->_stackTop().fc);
-    _mItems.dynLenStrFieldBegin._mLen = bt2c::DataLen::fromBytes(len);
+    _mItems.dynLenStrFieldBegin._mLen = this->_validatedDynLenStrBlobFieldLen(len);
 
     /* Begin reading dynamic-length string field */
     return this->_handleCommonBeginReadStrBlobFieldState(len, _State::ReadRawData, strFc);
@@ -918,8 +980,12 @@ void ItemSeqIter::_handleCommonReadRawDataNoNextState()
     const auto end = begin + std::min(this->_remainingBufLen().bytes(),
                                       static_cast<unsigned long long>(top.len - top.elemIndex));
 
-    /* Make sure the section is completely part of the packet content */
-    const auto len = bt2c::DataLen::fromBytes(end - begin);
+    /*
+     * Make sure the section is completely part of the packet content.
+     *
+     * Can't overflow: the section is within the current buffer.
+     */
+    const auto len = bt2c::DataLen::fromBytesDbg(end - begin);
 
     if (len > this->_remainingPktContentLen()) {
         CTF_SRC_ITEM_SEQ_ITER_CPPLOGE_APPEND_CAUSE_AND_THROW(
@@ -993,7 +1059,7 @@ ItemSeqIter::_StateHandlingReaction ItemSeqIter::_handleBeginReadDynLenBlobField
 
     /* Update for user */
     this->_setFieldItemFcAndUpdateForUser(_mItems.dynLenBlobFieldBegin, *this->_stackTop().fc);
-    _mItems.dynLenBlobFieldBegin._mLen = bt2c::DataLen::fromBytes(len);
+    _mItems.dynLenBlobFieldBegin._mLen = this->_validatedDynLenStrBlobFieldLen(len);
 
     /* Begin reading dynamic-length BLOB field */
     return this->_handleCommonBeginReadStrBlobFieldState(len, _State::ReadRawData, blobFc);

@@ -1,0 +1,38 @@
+--- metadata
+/* CTF 1.8 */
+
+typealias integer { size = 8; align = 8; signed = false; byte_order = le; } := uint8_t;
+typealias integer { size = 64; align = 8; signed = false; byte_order = le; } := uint64_t;
+
+trace {
+    major = 1;
+    minor = 8;
+    byte_order = le;
+};
+
+stream {
+    packet.context := struct {
+        uint64_t content_size;
+        uint64_t packet_size;
+    };
+};
+
+event {
+    name = "ev";
+    fields := struct { uint8_t v; };
+};
+
+--- channel0
+!le
+
+# first packet: packet context only
+[                128 : 64]  # `content_size` (in bits)
+[                128 : 64]  # `packet_size` (in bits)
+
+# second packet: its offset (128 bits) plus its total length (2^64 - 128
+# bits) wraps to zero
+[                128 : 64]  # `content_size` (in bits)
+[ 0xffffffffffffff80 : 64]  # `packet_size` (in bits)
+
+--- @error
+At 256 bits: end offset of current packet doesn't fit a 64-bit unsigned integer

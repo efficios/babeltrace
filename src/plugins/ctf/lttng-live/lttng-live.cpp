@@ -259,10 +259,20 @@ static enum lttng_live_iterator_status lttng_live_iterator_next_handle_one_no_da
         goto end;
     }
 
-    lttng_live_stream->curPktInfo.emplace(lttng_live_stream_iterator::CurPktInfo {
-        bt2c::DataLen::fromBytes(index.offset),
-        bt2c::DataLen::fromBits(index.packet_size),
-    });
+    try {
+        lttng_live_stream->curPktInfo.emplace(lttng_live_stream_iterator::CurPktInfo {
+            bt2c::DataLen::fromBytes(index.offset),
+            bt2c::DataLen::fromBits(index.packet_size),
+        });
+    } catch (const bt2c::OverflowError& exc) {
+        BT_CPPLOGE_APPEND_CAUSE_SPEC(lttng_live_msg_iter->logger,
+                                     "Invalid packet offset received from the relay daemon: {}: "
+                                     "stream-name=\"{}\", viewer-stream-id={}, offset-bytes={}",
+                                     exc.what(), lttng_live_stream->name,
+                                     lttng_live_stream->viewer_stream_id, index.offset);
+        ret = LTTNG_LIVE_ITERATOR_STATUS_ERROR;
+        goto end;
+    }
 
     BT_CPPLOGD_SPEC(lttng_live_msg_iter->logger,
                     "Setting live stream reading info: stream-name=\"{}\", "

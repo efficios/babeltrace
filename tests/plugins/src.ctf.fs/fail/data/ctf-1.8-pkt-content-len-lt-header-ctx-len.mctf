@@ -1,0 +1,41 @@
+--- metadata
+/* CTF 1.8 */
+
+typealias integer { size = 8; align = 8; signed = false; } := uint8_t;
+typealias integer { size = 16; align = 8; signed = false; } := uint16_t;
+typealias integer { size = 32; align = 8; signed = false; } := uint32_t;
+
+trace {
+    major = 1;
+    minor = 8;
+    byte_order = le;
+    packet.header := struct {
+        uint32_t magic;
+    };
+};
+
+stream {
+    packet.context := struct {
+        uint16_t packet_size;
+        uint16_t content_size;
+    };
+};
+
+event {
+    name = "ev";
+    fields := struct { uint8_t v; };
+};
+
+--- channel0
+!le
+
+# packet header
+[     0xc1fc1fc1 : 32]  # `magic`
+
+# packet context: the expected content length (48 bits) ends before
+# the end of the packet context (64 bits)
+[             64 : 16]  # `packet_size`
+[             48 : 16]  # `content_size`
+
+--- @error
+At 64 bits: expected content length of current packet (48 bits) is less than the length of its header and context fields (64 bits)

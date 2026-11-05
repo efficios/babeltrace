@@ -789,8 +789,22 @@ public:
     {
         BT_ASSERT_DBG(_mState != _State::Done);
 
-        while (this->_handleState() == _StateHandlingReaction::Continue) {
-            continue;
+        try {
+            while (this->_handleState() == _StateHandlingReaction::Continue) {
+                continue;
+            }
+        } catch (const bt2c::OverflowError& exc) {
+            /*
+             * Some data length or offset, computed from the data
+             * stream, doesn't fit.
+             *
+             * Don't use CTF_SRC_ITEM_SEQ_ITER_CPPLOGE_APPEND_CAUSE_AND_THROW()
+             * because the head offset itself may be what doesn't fit.
+             */
+            BT_CPPLOGE_APPEND_CAUSE_AND_THROW(
+                bt2c::Error,
+                "Invalid data length or offset: {}: last-item-offset-in-item-seq-bits={}",
+                exc.what(), *_mCurItemOffsetInItemSeq);
         }
 
         return _mCurItem;
@@ -1247,7 +1261,8 @@ private:
             return bt2c::DataLen::fromBits(0);
         }
 
-        return _mCurPktExpectedLens.content - _mHeadOffsetInCurPkt;
+        /* Can't underflow: checked above */
+        return _mCurPktExpectedLens.content.subDbg(_mHeadOffsetInCurPkt);
     }
 
     /*
@@ -1255,7 +1270,11 @@ private:
      */
     bt2c::DataLen _headOffsetInItemSeq() const noexcept
     {
-        return _mCurPktOffsetInItemSeq + _mHeadOffsetInCurPkt;
+        /*
+         * Can't overflow: the head is always within the current buffer,
+         * of which _newBuf() checks that the end offset fits.
+         */
+        return _mCurPktOffsetInItemSeq.addDbg(_mHeadOffsetInCurPkt);
     }
 
     /*
@@ -1477,7 +1496,7 @@ private:
                                           "len-bits={}",
                                           *lenToSkip);
 
-            _mRemainingLenToSkip -= lenToSkip;
+            _mRemainingLenToSkip = _mRemainingLenToSkip.subDbg(lenToSkip);
             this->_consumeAvailData(lenToSkip);
         }
 
@@ -1492,7 +1511,7 @@ private:
      * This method may still throw `bt2c::TryAgain`, but it won't
      * throw `NoData`.
      */
-    bool _tryHaveData(const bt2c::DataLen len)
+    [[gnu::always_inline]] bool _tryHaveData(const bt2c::DataLen len)
     {
         BT_ASSERT_DBG(len <= bt2c::DataLen::fromBits(64));
 
@@ -1501,6 +1520,18 @@ private:
             return true;
         }
 
+        return this->_tryHaveDataSlow(len);
+    }
+
+    /*
+     * Slow path of _tryHaveData(): requests a new buffer from
+     * the medium.
+     *
+     * Not inline to keep the fast path of _tryHaveData(), which
+     * reading any field requires, small.
+     */
+    [[gnu::noinline]] bool _tryHaveDataSlow(const bt2c::DataLen len)
+    {
         /*
          * In the initializations below:
          *
@@ -1567,7 +1598,8 @@ private:
      */
     const std::uint8_t *_bufAtHead() const noexcept
     {
-        return _mBuf.addr() + (_mHeadOffsetInCurPkt - _mBufOffsetInCurPkt).bytes();
+        /* The head is always within the current buffer */
+        return _mBuf.addr() + _mHeadOffsetInCurPkt.subDbg(_mBufOffsetInCurPkt).bytes();
     }
 
     /*
@@ -1575,7 +1607,8 @@ private:
      */
     bt2c::DataLen _remainingBufLen() const noexcept
     {
-        return (_mBufOffsetInCurPkt + _mBuf.size()) - _mHeadOffsetInCurPkt;
+        /* The head is always within the current buffer */
+        return _mBufOffsetInCurPkt.addDbg(_mBuf.size()).subDbg(_mHeadOffsetInCurPkt);
     }
 
     /*
@@ -1587,7 +1620,9 @@ private:
         CTF_SRC_ITEM_SEQ_ITER_CPPLOGT("Marking data as consumed: "
                                       "len-bits={}",
                                       *len);
-        _mHeadOffsetInCurPkt += len;
+
+        /* Can't overflow: `len` fits the current buffer (checked above) */
+        _mHeadOffsetInCurPkt = _mHeadOffsetInCurPkt.addDbg(len);
     }
 
     /*
@@ -3268,6 +3303,12 @@ private:
     void _handleCommonBeginReadStructFieldState();
     _StateHandlingReaction _handleCommonBeginReadArrayFieldState(unsigned long long len,
                                                                  const ArrayFc& arrayFc);
+    /*
+     * Validates the length `len` (bytes) of the current dynamic-length
+     * string/BLOB field, returning it as a data length.
+     */
+    bt2c::DataLen _validatedDynLenStrBlobFieldLen(unsigned long long len);
+
     _StateHandlingReaction _handleCommonBeginReadStrBlobFieldState(unsigned long long len,
                                                                    _State contentState,
                                                                    const Fc& fc);
@@ -3349,7 +3390,8 @@ private:
          * packet content.
          */
         {
-            if (const auto strDataLen = bt2c::DataLen::fromBytes(end - begin);
+            /* Can't overflow: the string data is within the current buffer */
+            if (const auto strDataLen = bt2c::DataLen::fromBytesDbg(end - begin);
                 strDataLen > this->_remainingPktContentLen()) {
                 CTF_SRC_ITEM_SEQ_ITER_CPPLOGE_APPEND_CAUSE_AND_THROW(
                     "{} null-terminated string field bytes required at this point, "
@@ -3920,7 +3962,8 @@ private:
     {
         using namespace bt2c::literals::datalen;
 
-        auto newVarLenIntLen = _mCurVarLenInt.len + 7_bits;
+        /* Can't overflow: `_mCurVarLenInt.len` is at most 64 bits */
+        auto newVarLenIntLen = _mCurVarLenInt.len.addDbg(7_bits);
         const auto byteVal = byte & 0x7f;
 
         /* Validate upcoming variable-length integer length */
@@ -3997,7 +4040,7 @@ private:
             BT_ASSERT_DBG(!_mHeadOffsetInCurPkt.hasExtraBits());
 
             /* Require at least one byte */
-            this->_requireContentData(bt2c::DataLen::fromBytes(1));
+            this->_requireContentData(bt2c::DataLen::fromBits(8));
 
             /* Read current byte */
             const auto byte = *this->_bufAtHead();
@@ -4017,7 +4060,7 @@ private:
                                                                    _mCurVarLenInt.val));
                 item._mLen = _mCurVarLenInt.len;
                 this->_setFieldItemFc(item, *_mCurScalarFc);
-                this->_updateForUser(item, this->_headOffsetInItemSeq() - item.fieldLen());
+                this->_updateForUser(item, this->_headOffsetInItemSeq().subDbg(item.fieldLen()));
 
                 /*
                  * Any state handler which calls this method template
