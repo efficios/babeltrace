@@ -35,4 +35,4 @@ event {
 [ 0xffffffffffffff80 : 64]  # `packet_size` (in bits)
 
 --- @error
-At 256 bits: end offset of current packet doesn't fit a 64-bit unsigned integer
+At 256 bits: end offset of current packet is greater than the maximum supported offset (18446744071562067968 bits)

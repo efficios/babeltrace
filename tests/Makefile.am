@@ -402,6 +402,12 @@ EXTRA_DIST = \
 	plugins/src.ctf.fs/fail/metadata/ctf-1.8-bitfield-id-declarator.mctf \
 	plugins/src.ctf.fs/fail/metadata/ctf-1.8-bitfield-paren-declarator.mctf \
 	plugins/src.ctf.fs/fail/metadata/ctf-1.8-bitfield-unnamed.mctf \
+	plugins/src.ctf.fs/fail/metadata/ctf-1.8-float-align-too-large.mctf \
+	plugins/src.ctf.fs/fail/metadata/ctf-1.8-int-align-too-large.mctf \
+	plugins/src.ctf.fs/fail/metadata/ctf-1.8-struct-align-not-pow-of-two.mctf \
+	plugins/src.ctf.fs/fail/metadata/ctf-1.8-struct-align-too-large.mctf \
+	plugins/src.ctf.fs/fail/metadata/ctf-2-align-too-large.mctf \
+	plugins/src.ctf.fs/fail/metadata/ctf-2-min-align-too-large.mctf \
 	plugins/src.ctf.fs/fail/metadata/ctf-2-no-data-stream-cls.mctf \
 	plugins/src.ctf.fs/fail/metadata/ctf-2-no-trace-cls-no-data-stream-cls.mctf \
 	plugins/src.ctf.fs/fail/README.adoc \

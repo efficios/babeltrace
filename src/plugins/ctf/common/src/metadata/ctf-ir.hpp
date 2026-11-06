@@ -33,6 +33,22 @@ namespace ctf::src {
  * this below).
  */
 
+/*
+ * Maximum alignment (bits) of a field class.
+ *
+ * Neither CTF 1.8 nor CTF 2 has a maximum alignment, but the metadata
+ * stream parsers reject anything greater than this because:
+ *
+ * • The `ctf` plugin stores alignments as `unsigned int` (for example,
+ *   the `align` parameters of the create*Fc() functions below), 2^31
+ *   being the greatest power of two which fits.
+ *
+ * • `ctf::src::ItemSeqIter` keeps that many bits of headroom at the end
+ *   of the item sequence to align any decoding head offset without
+ *   overflow.
+ */
+constexpr auto maxAlign = 1ULL << 31;
+
 /* clang-format off */
 
 /*

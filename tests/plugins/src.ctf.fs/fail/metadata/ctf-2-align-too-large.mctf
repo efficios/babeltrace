@@ -1,0 +1,28 @@
+--- metadata
+[
+{
+  "type": "preamble",
+  "version": 2
+},
+{
+  "type": "data-stream-class"
+},
+{
+  "type": "event-record-class",
+  "payload-field-class": {
+    "type": "structure",
+    "member-classes": [{
+      "name": "v",
+      "field-class": {
+        "type": "fixed-length-unsigned-integer",
+        "length": 8,
+        "alignment": 4294967296,
+        "byte-order": "little-endian"
+      }
+    }]
+  }
+}
+]
+
+--- @error
+4294967296 is greater than the maximum supported alignment (2147483648).

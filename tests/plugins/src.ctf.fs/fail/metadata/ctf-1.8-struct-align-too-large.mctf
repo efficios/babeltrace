@@ -1,0 +1,20 @@
+--- metadata
+/* CTF 1.8 */
+
+trace {
+    major = 1;
+    minor = 8;
+    byte_order = le;
+};
+
+event {
+    name = ev;
+    fields := struct {
+        struct {
+            integer { size = 8; } v;
+        } align(4294967296) s;
+    };
+};
+
+--- @error
+Invalid `align` attribute in structure field class: expecting a power of two which is at most 2147483648: align=4294967296

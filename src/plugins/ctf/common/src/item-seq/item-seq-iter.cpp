@@ -5,7 +5,6 @@
  */
 
 #include <algorithm>
-#include <limits>
 
 #include "common/assert.h"
 
@@ -155,15 +154,18 @@ void ItemSeqIter::_newBuf(const bt2c::DataLen offsetInItemSeq, const bt2c::DataL
 
     /*
      * Make sure that the end offset of this buffer within the item
-     * sequence fits: this is what makes the `Dbg` operations of the
-     * offset helpers (for example, _headOffsetInItemSeq()) safe because
-     * the head is always within the current buffer.
+     * sequence is at most `_maxEndOffsetInItemSeq`: this is what makes
+     * the `Dbg` operations of the offset helpers (for example,
+     * _headOffsetInItemSeq()), as well as aligning the decoding head
+     * (see _alignHead()), safe because the head is always within the
+     * current buffer.
      */
-    if (*_mBuf.size() > std::numeric_limits<unsigned long long>::max() - *offsetInItemSeq) {
+    if (*offsetInItemSeq > _maxEndOffsetInItemSeq ||
+        *_mBuf.size() > _maxEndOffsetInItemSeq - *offsetInItemSeq) {
         CTF_SRC_ITEM_SEQ_ITER_CPPLOGE_APPEND_CAUSE_AND_THROW(
-            "end offset of medium buffer doesn't fit a 64-bit unsigned integer: "
-            "buf-offset-in-item-seq-bits={}, buf-size-bits={}",
-            *offsetInItemSeq, *_mBuf.size());
+            "end offset of medium buffer is greater than the maximum supported offset "
+            "({} bits): buf-offset-in-item-seq-bits={}, buf-size-bits={}",
+            _maxEndOffsetInItemSeq, *offsetInItemSeq, *_mBuf.size());
     }
 }
 
@@ -578,19 +580,20 @@ ItemSeqIter::_StateHandlingReaction ItemSeqIter::_handleSetPktInfoItemState()
 
         /*
          * Make sure that the end offset of the current packet within
-         * the item sequence fits.
+         * the item sequence is at most `_maxEndOffsetInItemSeq`.
          *
          * Because the decoding head is always within the current packet
          * from this point, this is what makes the `Dbg` operations
-         * involving packet offsets and lengths safe.
+         * involving packet offsets and lengths, as well as aligning the
+         * decoding head (see _alignHead()), safe.
          */
         if (_mCurPktExpectedLens.total != this->_infDataLen() &&
-            *_mCurPktExpectedLens.total >
-                std::numeric_limits<unsigned long long>::max() - *_mCurPktOffsetInItemSeq) {
+            (*_mCurPktOffsetInItemSeq > _maxEndOffsetInItemSeq ||
+             *_mCurPktExpectedLens.total > _maxEndOffsetInItemSeq - *_mCurPktOffsetInItemSeq)) {
             CTF_SRC_ITEM_SEQ_ITER_CPPLOGE_APPEND_CAUSE_AND_THROW(
-                "end offset of current packet doesn't fit a 64-bit unsigned integer: "
-                "pkt-offset-in-item-seq-bits={}, expected-total-len-bits={}",
-                *_mCurPktOffsetInItemSeq, *_mCurPktExpectedLens.total);
+                "end offset of current packet is greater than the maximum supported offset "
+                "({} bits): pkt-offset-in-item-seq-bits={}, expected-total-len-bits={}",
+                _maxEndOffsetInItemSeq, *_mCurPktOffsetInItemSeq, *_mCurPktExpectedLens.total);
         }
 
         /*

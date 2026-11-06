@@ -1,0 +1,20 @@
+--- metadata
+[
+{
+  "type": "preamble",
+  "version": 2
+},
+{
+  "type": "data-stream-class"
+},
+{
+  "type": "event-record-class",
+  "payload-field-class": {
+    "type": "structure",
+    "minimum-alignment": 4294967296
+  }
+}
+]
+
+--- @error
+4294967296 is greater than the maximum supported alignment (2147483648).

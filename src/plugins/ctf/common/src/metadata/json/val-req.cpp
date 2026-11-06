@@ -14,6 +14,7 @@
 #include "cpp-common/bt2c/logging.hpp"
 
 #include "../../../metadata/json-strings.hpp"
+#include "../ctf-ir.hpp"
 #include "val-req.hpp"
 
 namespace ctf::src {
@@ -43,9 +44,17 @@ protected:
 
     void _validate(const bt2c::JsonVal& jsonVal) const override
     {
-        if (const auto val = *jsonVal.asUInt(); !this->_isPowOfTwo(val)) {
+        const auto val = *jsonVal.asUInt();
+
+        if (!this->_isPowOfTwo(val)) {
             BT_CPPLOGE_TEXT_LOC_APPEND_CAUSE_AND_THROW_SPEC(
                 this->_logger(), bt2c::Error, jsonVal.loc(), "{} is not a power of two.", val);
+        }
+
+        if (val > maxAlign) {
+            BT_CPPLOGE_TEXT_LOC_APPEND_CAUSE_AND_THROW_SPEC(
+                this->_logger(), bt2c::Error, jsonVal.loc(),
+                "{} is greater than the maximum supported alignment ({}).", val, maxAlign);
         }
     }
 };

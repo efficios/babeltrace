@@ -1415,10 +1415,18 @@ private:
         /*
          * Compute new decoding head offset and how many bits we need to
          * skip to align.
+         *
+         * Can't overflow: the decoding head offset is at most
+         * `_maxEndOffsetInItemSeq` (see _newBuf() and
+         * _handleSetPktInfoItemState()) and the metadata stream parsers
+         * guarantee that `align` is at most `maxAlign`.
          */
+        BT_ASSERT_DBG(align <= maxAlign);
+        BT_ASSERT_DBG(*_mHeadOffsetInCurPkt <= _maxEndOffsetInItemSeq);
+
         const auto newHeadOffset =
             bt2c::DataLen::fromBits(bt2c::align(*_mHeadOffsetInCurPkt, align));
-        const auto lenToSkip = newHeadOffset - _mHeadOffsetInCurPkt;
+        const auto lenToSkip = newHeadOffset.subDbg(_mHeadOffsetInCurPkt);
 
         /* Already aligned? */
         if (lenToSkip == bt2c::DataLen::fromBits(0)) {
@@ -4162,6 +4170,16 @@ private:
     {
         return bt2c::DataLen::fromBits(std::numeric_limits<unsigned long long>::max() & ~7ULL);
     }
+
+    /*
+     * Maximum end offset (bits) of a packet or of a medium buffer
+     * within the item sequence.
+     *
+     * This leaves `maxAlign` bits of headroom so that aligning any
+     * decoding head offset (at most this value) never overflows.
+     */
+    static constexpr unsigned long long _maxEndOffsetInItemSeq =
+        std::numeric_limits<unsigned long long>::max() - maxAlign + 1;
 
     /*
      * Observer notified when the number of saved key values required by

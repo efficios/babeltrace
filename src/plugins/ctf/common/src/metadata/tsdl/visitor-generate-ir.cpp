@@ -23,6 +23,7 @@
 #include "compat/endian.h" /* IWYU pragma: keep  */
 #include "cpp-common/bt2c/logging.hpp"
 
+#include "../ctf-ir.hpp"
 #include "../normalize-clk-offset.hpp"
 #include "ast.hpp"
 #include "ctf-meta-visitors.hpp"
@@ -810,7 +811,7 @@ static enum ctf_byte_order get_real_byte_order(struct ctf_visitor_generate_ir *c
 
 static int is_align_valid(uint64_t align)
 {
-    return (align != 0) && !(align & (align - UINT64_C(1)));
+    return (align != 0) && !(align & (align - UINT64_C(1))) && align <= ctf::src::maxAlign;
 }
 
 static int get_class_specifier_name(struct ctf_visitor_generate_ir *ctx,
@@ -1583,6 +1584,17 @@ static int visit_struct_decl(struct ctf_visitor_generate_ir *ctx, const char *na
                     ret);
                 goto error;
             }
+
+            /* Zero means no minimum alignment */
+            if (min_align_value != 0 && !is_align_valid(min_align_value)) {
+                BT_CPPLOGE_APPEND_CAUSE_SPEC(ctx->logger,
+                                             "Invalid `align` attribute in structure field class: "
+                                             "expecting a power of two which is at most {}: "
+                                             "align={}",
+                                             ctf::src::maxAlign, min_align_value);
+                ret = -EINVAL;
+                goto error;
+            }
         }
 
         *struct_decl = ctf_field_class_struct_create();
@@ -2123,9 +2135,9 @@ static int visit_integer_decl(struct ctf_visitor_generate_ir *ctx, struct bt_lis
             if (!is_align_valid(alignment)) {
                 _BT_CPPLOGE_APPEND_CAUSE_NODE(right,
                                               "Invalid `align` attribute in integer field class: "
-                                              "expecting power of two: "
+                                              "expecting a power of two which is at most {}: "
                                               "align={}",
-                                              alignment);
+                                              ctf::src::maxAlign, alignment);
                 ret = -EINVAL;
                 goto error;
             }
@@ -2466,9 +2478,9 @@ static int visit_floating_point_number_decl(struct ctf_visitor_generate_ir *ctx,
                 _BT_CPPLOGE_APPEND_CAUSE_NODE(
                     right,
                     "Invalid `align` attribute in floating point number field class: "
-                    "expecting power of two: "
+                    "expecting a power of two which is at most {}: "
                     "align={}",
-                    alignment);
+                    ctf::src::maxAlign, alignment);
                 ret = -EINVAL;
                 goto error;
             }
