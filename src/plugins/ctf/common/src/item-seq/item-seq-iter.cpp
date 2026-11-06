@@ -56,7 +56,8 @@ void ItemSeqIter::seekPkt(const bt2c::DataLen pktOffset)
      * Reset the current buffer so as to make the next call to _tryHaveData()
      * request a new buffer at the beginning of this packet from the medium.
      */
-    this->_mBuf = Buf {};
+    _mBuf = Buf {};
+    _mBufOffsetInCurPkt = 0_bits;
 
     /* Next: try to begin reading a packet */
     this->_state(_State::TryBeginReadPkt);
