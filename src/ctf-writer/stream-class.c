@@ -651,7 +651,6 @@ int init_packet_context(struct bt_ctf_stream_class *stream_class)
 end:
 	if (ret) {
 		bt_ctf_object_put_ref(packet_context_type);
-		goto end;
 	}
 
 	bt_ctf_object_put_ref(_uint64_t);
