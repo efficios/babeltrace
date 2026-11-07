@@ -1697,3 +1697,92 @@ TEST_CASE("CTF writer: variant field type copy with computed choice ranges")
     recursive_rmdir(trace_path);
     g_free(trace_path);
 }
+
+/*
+ * Append an event to a stream of which the event header field type has
+ * a `timestamp` field, but no `id` field, and check that the library
+ * automatically sets the `timestamp` field from the clock of the stream
+ * class.
+ */
+TEST_CASE("CTF writer: event header with timestamp and no ID")
+{
+    gchar *trace_path = g_build_filename(g_get_tmp_dir(), "ctfwriter_XXXXXX", NULL);
+
+    REQUIRE(g_mkdtemp(trace_path));
+
+    struct bt_ctf_writer *writer = bt_ctf_writer_create(trace_path);
+
+    REQUIRE(writer);
+
+    struct bt_ctf_clock *clock = bt_ctf_clock_create("timestamp_only_clock");
+
+    REQUIRE(clock);
+    REQUIRE(bt_ctf_writer_add_clock(writer, clock) == 0);
+    REQUIRE(bt_ctf_clock_set_time(clock, 1234) == 0);
+
+    struct bt_ctf_stream_class *stream_class = bt_ctf_stream_class_create("timestamp_only_stream");
+
+    REQUIRE(stream_class);
+    REQUIRE(bt_ctf_stream_class_set_clock(stream_class, clock) == 0);
+
+    struct bt_ctf_field_type *uint_64_type = bt_ctf_field_type_integer_create(64);
+
+    REQUIRE(uint_64_type);
+
+    struct bt_ctf_field_type *event_header_type = bt_ctf_field_type_structure_create();
+
+    REQUIRE(event_header_type);
+    REQUIRE(bt_ctf_field_type_structure_add_field(event_header_type, uint_64_type, "timestamp") ==
+            0);
+    REQUIRE(bt_ctf_stream_class_set_event_header_type(stream_class, event_header_type) == 0);
+
+    struct bt_ctf_event_class *event_class = bt_ctf_event_class_create("timestamp_only_event");
+
+    REQUIRE(event_class);
+    REQUIRE(bt_ctf_event_class_add_field(event_class, uint_64_type, "value") == 0);
+    REQUIRE(bt_ctf_stream_class_add_event_class(stream_class, event_class) == 0);
+
+    struct bt_ctf_stream *stream = bt_ctf_writer_create_stream(writer, stream_class);
+
+    REQUIRE(stream);
+
+    struct bt_ctf_event *event = bt_ctf_event_create(event_class);
+
+    REQUIRE(event);
+
+    struct bt_ctf_field *value_field = bt_ctf_event_get_payload(event, "value");
+
+    REQUIRE(value_field);
+    REQUIRE(bt_ctf_field_integer_unsigned_set_value(value_field, 42) == 0);
+    REQUIRE(bt_ctf_stream_append_event(stream, event) == 0);
+
+    /* The library must have set the `timestamp` field */
+    struct bt_ctf_field *event_header = bt_ctf_event_get_header(event);
+
+    REQUIRE(event_header);
+
+    struct bt_ctf_field *timestamp_field =
+        bt_ctf_field_structure_get_field_by_name(event_header, "timestamp");
+
+    REQUIRE(timestamp_field);
+
+    uint64_t timestamp;
+
+    REQUIRE(bt_ctf_field_integer_unsigned_get_value(timestamp_field, &timestamp) == 0);
+    REQUIRE(timestamp == 1234);
+    REQUIRE(bt_ctf_stream_flush(stream) == 0);
+
+    bt_ctf_object_put_ref(timestamp_field);
+    bt_ctf_object_put_ref(event_header);
+    bt_ctf_object_put_ref(value_field);
+    bt_ctf_object_put_ref(event);
+    bt_ctf_object_put_ref(stream);
+    bt_ctf_object_put_ref(event_class);
+    bt_ctf_object_put_ref(event_header_type);
+    bt_ctf_object_put_ref(uint_64_type);
+    bt_ctf_object_put_ref(stream_class);
+    bt_ctf_object_put_ref(clock);
+    bt_ctf_object_put_ref(writer);
+    recursive_rmdir(trace_path);
+    g_free(trace_path);
+}

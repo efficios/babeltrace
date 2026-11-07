@@ -1328,7 +1328,7 @@ static int auto_populate_event_header(struct bt_ctf_stream *stream,
 	timestamp_field = bt_ctf_field_structure_get_field_by_name(
 			(void *) event->common.header_field->field, "timestamp");
 	if (timestamp_field && stream_class->clock &&
-			bt_ctf_field_get_type_id(id_field) == BT_CTF_FIELD_TYPE_ID_INTEGER &&
+			bt_ctf_field_get_type_id(timestamp_field) == BT_CTF_FIELD_TYPE_ID_INTEGER &&
 			!bt_ctf_field_is_set_recursive(timestamp_field)) {
 		mapped_clock_class =
 			bt_ctf_field_type_integer_get_mapped_clock_class(
