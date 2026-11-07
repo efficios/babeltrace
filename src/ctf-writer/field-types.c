@@ -5325,7 +5325,6 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_copy_recursive(
 	for (i = 0; i < var_ft->choices->len; i++) {
 		struct bt_ctf_field_type_common_variant_choice *entry, *copy_entry;
 		struct bt_ctf_field_type_common *field_ft_copy;
-		uint64_t range_i;
 
 		entry = BT_CTF_FIELD_TYPE_COMMON_VARIANT_CHOICE_AT_INDEX(var_ft, i);
 		copy_entry = BT_CTF_FIELD_TYPE_COMMON_VARIANT_CHOICE_AT_INDEX(
@@ -5342,7 +5341,6 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_copy_recursive(
 				"index=%" PRId64 ", "
 				"field-ft-addr=%p, field-name=\"%s\"",
 				i, entry, g_quark_to_string(entry->name));
-			g_free(copy_entry);
 			goto error;
 		}
 
@@ -5353,11 +5351,8 @@ struct bt_ctf_field_type *bt_ctf_field_type_variant_copy_recursive(
 		copy_entry->ranges = g_array_new(FALSE, TRUE,
 			sizeof(struct bt_ctf_field_type_common_variant_choice_range));
 		BT_ASSERT_DBG(copy_entry->ranges);
-		g_array_set_size(copy_entry->ranges, entry->ranges->len);
-
-		for (range_i = 0; range_i < entry->ranges->len; range_i++) {
-			copy_entry->ranges[range_i] = entry->ranges[range_i];
-		}
+		g_array_append_vals(copy_entry->ranges, entry->ranges->data,
+			entry->ranges->len);
 	}
 
 	if (var_ft->tag_field_path) {

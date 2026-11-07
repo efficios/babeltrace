@@ -1584,3 +1584,116 @@ TEST_CASE("CTF writer: full")
         g_free(trace_path);
     }
 }
+
+/*
+ * Copy a variant field type of which the choice ranges are already
+ * computed.
+ *
+ * Creating a variant field computes the ranges of the choices of its
+ * type. Adding the event class to a stream class of a trace then
+ * validates it, copying its payload field type because it contains a
+ * variant field type.
+ */
+TEST_CASE("CTF writer: variant field type copy with computed choice ranges")
+{
+    gchar *trace_path = g_build_filename(g_get_tmp_dir(), "ctfwriter_XXXXXX", NULL);
+
+    REQUIRE(g_mkdtemp(trace_path));
+
+    struct bt_ctf_writer *writer = bt_ctf_writer_create(trace_path);
+
+    REQUIRE(writer);
+
+    struct bt_ctf_field_type *uint_8_type = bt_ctf_field_type_integer_create(8);
+
+    REQUIRE(uint_8_type);
+
+    struct bt_ctf_field_type *tag_type = bt_ctf_field_type_enumeration_create(uint_8_type);
+
+    REQUIRE(tag_type);
+
+    /* Choice `a` has two ranges */
+    REQUIRE(bt_ctf_field_type_enumeration_unsigned_add_mapping(tag_type, "a", 0, 0) == 0);
+    REQUIRE(bt_ctf_field_type_enumeration_unsigned_add_mapping(tag_type, "b", 1, 1) == 0);
+    REQUIRE(bt_ctf_field_type_enumeration_unsigned_add_mapping(tag_type, "a", 2, 2) == 0);
+
+    struct bt_ctf_field_type *variant_type = bt_ctf_field_type_variant_create(tag_type, "tag");
+
+    REQUIRE(variant_type);
+    REQUIRE(bt_ctf_field_type_variant_add_field(variant_type, uint_8_type, "a") == 0);
+    REQUIRE(bt_ctf_field_type_variant_add_field(variant_type, uint_8_type, "b") == 0);
+
+    /* Computes the choice ranges of `variant_type` */
+    struct bt_ctf_field *variant_field = bt_ctf_field_create(variant_type);
+
+    REQUIRE(variant_field);
+    BT_CTF_OBJECT_PUT_REF_AND_RESET(variant_field);
+
+    struct bt_ctf_event_class *event_class = bt_ctf_event_class_create("variant_event");
+
+    REQUIRE(event_class);
+    REQUIRE(bt_ctf_event_class_add_field(event_class, tag_type, "tag") == 0);
+    REQUIRE(bt_ctf_event_class_add_field(event_class, variant_type, "var") == 0);
+
+    struct bt_ctf_clock *clock = bt_ctf_clock_create("variant_clock");
+
+    REQUIRE(clock);
+    REQUIRE(bt_ctf_writer_add_clock(writer, clock) == 0);
+
+    struct bt_ctf_stream_class *stream_class = bt_ctf_stream_class_create("variant_stream");
+
+    REQUIRE(stream_class);
+    REQUIRE(bt_ctf_stream_class_set_clock(stream_class, clock) == 0);
+    REQUIRE(bt_ctf_stream_class_add_event_class(stream_class, event_class) == 0);
+
+    /* Adds the stream class to the trace, copying the payload field type */
+    struct bt_ctf_stream *stream = bt_ctf_writer_create_stream(writer, stream_class);
+
+    REQUIRE(stream);
+
+    /* Select choice `a` through its second range, using the copy */
+    struct bt_ctf_event *event = bt_ctf_event_create(event_class);
+
+    REQUIRE(event);
+
+    struct bt_ctf_field *tag_field = bt_ctf_event_get_payload(event, "tag");
+
+    REQUIRE(tag_field);
+
+    struct bt_ctf_field *tag_container_field = bt_ctf_field_enumeration_get_container(tag_field);
+
+    REQUIRE(tag_container_field);
+    REQUIRE(bt_ctf_field_integer_unsigned_set_value(tag_container_field, 2) == 0);
+
+    struct bt_ctf_field *var_field = bt_ctf_event_get_payload(event, "var");
+
+    REQUIRE(var_field);
+
+    struct bt_ctf_field *choice_field = bt_ctf_field_variant_get_field(var_field, tag_field);
+
+    REQUIRE(choice_field);
+
+    struct bt_ctf_field *cur_choice_field = bt_ctf_field_variant_get_current_field(var_field);
+
+    REQUIRE(cur_choice_field == choice_field);
+    REQUIRE(bt_ctf_field_integer_unsigned_set_value(choice_field, 23) == 0);
+    REQUIRE(bt_ctf_stream_append_event(stream, event) == 0);
+    REQUIRE(bt_ctf_stream_flush(stream) == 0);
+
+    bt_ctf_object_put_ref(cur_choice_field);
+    bt_ctf_object_put_ref(choice_field);
+    bt_ctf_object_put_ref(var_field);
+    bt_ctf_object_put_ref(tag_container_field);
+    bt_ctf_object_put_ref(tag_field);
+    bt_ctf_object_put_ref(event);
+    bt_ctf_object_put_ref(stream);
+    bt_ctf_object_put_ref(stream_class);
+    bt_ctf_object_put_ref(clock);
+    bt_ctf_object_put_ref(event_class);
+    bt_ctf_object_put_ref(variant_type);
+    bt_ctf_object_put_ref(tag_type);
+    bt_ctf_object_put_ref(uint_8_type);
+    bt_ctf_object_put_ref(writer);
+    recursive_rmdir(trace_path);
+    g_free(trace_path);
+}
