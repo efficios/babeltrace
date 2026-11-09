@@ -2516,7 +2516,7 @@ static int visit_floating_point_number_decl(struct ctf_visitor_generate_ir *ctx,
         goto error;
     }
 
-    if (!_IS_SET(&set, _INTEGER_ALIGN_SET)) {
+    if (!_IS_SET(&set, _FLOAT_ALIGN_SET)) {
         if ((mant_dig + exp_dig) % CHAR_BIT) {
             /* Bit-packed alignment */
             alignment = 1;
