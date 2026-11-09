@@ -1308,10 +1308,8 @@ int ctf_fs_component_create_ctf_fs_trace(
         }
     } else {
         /* Just one trace, it may or may not have a UUID, both are fine. */
-        BT_DIAG_PUSH
-        BT_DIAG_IGNORE_NULL_DEREFERENCE
+        BT_ASSERT(traces.size() == 1);
         ctf_fs->trace = std::move(traces[0]);
-        BT_DIAG_POP
     }
 
     if (const auto ret = fix_packet_index_tracer_bugs(ctf_fs)) {

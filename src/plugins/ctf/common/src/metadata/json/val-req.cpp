@@ -210,7 +210,7 @@ private:
             /* Validate that the last path element is not `null` */
             {
                 const auto& jsonLastPathElem =
-                    **(jsonVal.asObj()[jsonstr::path]->asArray().end() - 1);
+                    **(jsonVal.asObj().val<bt2c::JsonArrayVal>(jsonstr::path).end() - 1);
 
                 if (jsonLastPathElem.isNull()) {
                     BT_CPPLOGE_TEXT_LOC_APPEND_CAUSE_AND_THROW_SPEC(this->_logger(), bt2c::Error,
