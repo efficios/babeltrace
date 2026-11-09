@@ -229,6 +229,11 @@ int field_type_contains_sequence_or_variant_ft(struct bt_ctf_field_type_common *
 				bt_ctf_field_type_common_borrow_field_at_index(
 					type, i);
 
+			if (!child_type) {
+				ret = -1;
+				goto end;
+			}
+
 			ret = field_type_contains_sequence_or_variant_ft(
 				child_type);
 			if (ret != 0) {
