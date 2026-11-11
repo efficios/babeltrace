@@ -204,7 +204,7 @@ public:
         return PacketEndMessage::Shared::createWithoutRef(libObjPtr);
     }
 
-    DiscardedEventsMessage::Shared createDiscardedEventsMessage(const ConstStream stream)
+    DiscardedEventsMessage::Shared createDiscardedEventsMessage(const ConstStream stream) const
     {
         const auto libObjPtr =
             bt_message_discarded_events_create(this->libObjPtr(), stream.libObjPtr());

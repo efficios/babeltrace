@@ -1273,7 +1273,7 @@ protected:
         return _mSelfMsgIter.createPacketEndMessage(packet, clockSnapshotValue);
     }
 
-    DiscardedEventsMessage::Shared _createDiscardedEventsMessage(const ConstStream stream)
+    DiscardedEventsMessage::Shared _createDiscardedEventsMessage(const ConstStream stream) const
     {
         return _mSelfMsgIter.createDiscardedEventsMessage(stream);
     }
@@ -1281,13 +1281,13 @@ protected:
     DiscardedEventsMessage::Shared
     _createDiscardedEventsMessage(const ConstStream stream,
                                   const std::uint64_t beginningClockSnapshotValue,
-                                  const std::uint64_t endClockSnapshotValue)
+                                  const std::uint64_t endClockSnapshotValue) const
     {
         return _mSelfMsgIter.createDiscardedEventsMessage(stream, beginningClockSnapshotValue,
                                                           endClockSnapshotValue);
     }
 
-    DiscardedPacketsMessage::Shared _createDiscardedPacketsMessage(const ConstStream stream)
+    DiscardedPacketsMessage::Shared _createDiscardedPacketsMessage(const ConstStream stream) const
     {
         return _mSelfMsgIter.createDiscardedPacketsMessage(stream);
     }
@@ -1295,7 +1295,7 @@ protected:
     DiscardedPacketsMessage::Shared
     _createDiscardedPacketsMessage(const ConstStream stream,
                                    const std::uint64_t beginningClockSnapshotValue,
-                                   const std::uint64_t endClockSnapshotValue)
+                                   const std::uint64_t endClockSnapshotValue) const
     {
         return _mSelfMsgIter.createDiscardedPacketsMessage(stream, beginningClockSnapshotValue,
                                                            endClockSnapshotValue);
@@ -1303,7 +1303,7 @@ protected:
 
     MessageIteratorInactivityMessage::Shared
     _createMessageIteratorInactivityMessage(const ConstClockClass clockClass,
-                                            const std::uint64_t clockSnapshotValue)
+                                            const std::uint64_t clockSnapshotValue) const
     {
         return _mSelfMsgIter.createMessageIteratorInactivityMessage(clockClass, clockSnapshotValue);
     }
