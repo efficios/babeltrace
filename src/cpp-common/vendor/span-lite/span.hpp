@@ -496,6 +496,7 @@ span_DISABLE_MSVC_WARNINGS( 26439 26440 26472 26473 26481 26490 )
 # include <stdexcept>
 #endif
 
+#include <exception>
 // Contract violation
 
 #define span_ELIDE_CONTRACT_EXPECTS  ( 0 == ( span_CONFIG_CONTRACT_LEVEL_MASK & 0x01 ) )
